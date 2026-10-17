@@ -49,40 +49,63 @@
     await loadScript("./coach.js");
     await loadScript("./app.js");
 
-    const header = document.querySelector("header");
-    if (header) {
+    // Hesap bilgilerini ve çıkış butonunu yalnızca Yedekleme sekmesinde göster.
+    // app.js, sekme her açıldığında settings.innerHTML içeriğini yeniden oluşturur.
+    // Bu yüzden kartı her yeniden çizimden sonra güvenli biçimde geri ekliyoruz.
+    const settingsSection = document.getElementById("settings");
+    if (!settingsSection) throw new Error("Yedekleme sekmesi bulunamadı");
+
+    function addAccountCard() {
+      if (document.getElementById("gym-account-card")) return;
+      if (!settingsSection.querySelector(".card")) return;
+
+      const card = document.createElement("div");
+      card.id = "gym-account-card";
+      card.className = "card";
+
+      const title = document.createElement("h2");
+      title.textContent = "Kullanıcı bilgileri";
+
+      const emailLabel = document.createElement("label");
+      emailLabel.textContent = "E-posta";
+      const email = document.createElement("p");
+      email.style.cssText = "margin:5px 0 15px;overflow-wrap:anywhere;font-weight:600";
+      email.textContent = data.user.email || "E-posta bilgisi yok";
+
+      const roleLabel = document.createElement("label");
+      roleLabel.textContent = "Hesap türü";
+      const role = document.createElement("p");
+      role.style.cssText = "margin:5px 0 16px;font-weight:600";
+      role.textContent = profile.role === "admin" ? "Yönetici" : "Üye";
+
       const logoutButton = document.createElement("button");
       logoutButton.type = "button";
-      logoutButton.className = "secondary";
+      logoutButton.className = "danger";
       logoutButton.textContent = "Çıkış Yap";
-      logoutButton.style.fontSize = "12px";
-      logoutButton.style.padding = "9px 11px";
-
-      const saveStatus = document.getElementById("saveStatus");
-      if (saveStatus) {
-        const actions = document.createElement("div");
-        actions.style.display = "flex";
-        actions.style.alignItems = "center";
-        actions.style.gap = "8px";
-        actions.append(saveStatus, logoutButton);
-        header.appendChild(actions);
-      } else {
-        header.appendChild(logoutButton);
-      }
+      logoutButton.style.width = "100%";
 
       logoutButton.addEventListener("click", async () => {
         logoutButton.disabled = true;
         logoutButton.textContent = "Çıkılıyor...";
-        const { error: signOutError } = await client.auth.signOut();
-        if (signOutError) {
-          alert("Çıkış yapılamadı: " + signOutError.message);
+        try {
+          const { error: signOutError } = await client.auth.signOut();
+          if (signOutError) throw signOutError;
+          // Yerel antrenman kayıtları silinmez.
+          window.location.replace(LOGIN_PAGE);
+        } catch (error) {
+          alert("Çıkış yapılamadı: " + error.message);
           logoutButton.disabled = false;
           logoutButton.textContent = "Çıkış Yap";
-          return;
         }
-        window.location.replace(LOGIN_PAGE);
       });
+
+      card.append(title, emailLabel, email, roleLabel, role, logoutButton);
+      settingsSection.prepend(card);
     }
+
+    const settingsObserver = new MutationObserver(addAccountCard);
+    settingsObserver.observe(settingsSection, { childList: true });
+    addAccountCard();
 
     document.documentElement.style.visibility = "visible";
   } catch (error) {
