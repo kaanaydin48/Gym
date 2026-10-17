@@ -5,7 +5,7 @@
 
   // login.html içindeki Publishable Key değerini
   // buraya da aynı şekilde yaz.
-  const SUPABASE_KEY = "BURAYA_PUBLISHABLE_KEY";
+  const SUPABASE_KEY = "sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837";
 
   document.documentElement.style.visibility = "hidden";
 
