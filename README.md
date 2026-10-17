@@ -1,4 +1,4 @@
-# Gym Tracker Pro — Yerel test sürümü 1.0
+# Gym Tracker Pro — Yerel test sürümü 1.0.1
 
 Mobil uyumlu, Türkçe, kurulumsuz statik web uygulaması. Harici bağımlılık, API anahtarı veya sunucu bağlantısı içermez.
 
@@ -32,7 +32,7 @@ Klasörde `python3 -m http.server 8080` çalıştır; tarayıcıda http://localh
 
 Bu sürüm verileri localStorage'a kaydeder. Kayıtlar cihaz + tarayıcı + site adresine özeldir. Aynı anda birden çok sekmeden düzenleme yapma; sekmeler arası çakışma çözümü yoktur. Tarayıcı verilerini silmek, gizli sekme kullanmak veya site adresini değiştirmek kayıtların kaybına/görünmemesine yol açabilir. JSON yedeğini düzenli indir ve dosyanın gerçekten indiğini kontrol et.
 
-Başlangıçta geçmiş antrenman verisi yoktur. 16 Ekim kayıtları eksik bağlamdan tahmin edilip eklenmedi. Yalnızca bu sürümün `schema: gym-tracker-pro, version: 1` yedeği alınır. Eski panelin version:3 JSON'u doğrudan alınmaz; önce hareket sırası ve ağırlık anlamı doğrulanarak ayrı dönüştürme gerekir.
+16 Ekim 2026 antrenmanının sohbet arşivinde bilinen 15 seti eklendi. İlk açılışta yalnızca bu tarih cihazda yoksa geri yüklenir; mevcut günler, profil ve programlar korunur. İşlem bir kez uygulanır. Bilinmeyen setler, RIR ve süre doldurulmaz. Overhead Cable Triceps Extension değerleri eksiktir. Bu kayıt tam arşivin kurtarıldığı anlamına gelmez. Yalnızca bu sürümün `schema: gym-tracker-pro, version: 1` yedeği alınır. Eski panelin version:3 JSON'u doğrudan alınmaz; önce hareket sırası ve ağırlık anlamı doğrulanarak ayrı dönüştürme gerekir.
 
 Hacim: harici ağırlık ile vücut ağırlığı ayrı. Dambıl setinde tek eldeki kg × 2 × tekrar; diğer harici setlerde toplam kg × tekrar. Dips gibi hareketlerde kullanıcı toplam vücut + ek ağırlığı girer. Yardımlı hareketler için ayrı yardım alanı henüz yoktur. Plank gibi süre temelli hareketler bu tekrar tabanlı takipte kullanılmamalıdır.
 
@@ -56,3 +56,9 @@ Süperset şu anda program ve set ekranında bir gruplama etiketidir; otomatik s
 JavaScript sözdizimi kontrol edildi. DOM taklidiyle kayıt, dambıl hacmi, program anlık görüntüsü, KG/LB dönüşümü, bozuk yedek reddi, tekrar içe aktarımda çoğalmama, dinlenme kaydı, tüm ekranların HTML üretimi ve grafik üretimi test edildi. Gerçek tarayıcı/iPhone görsel ve etkileşim testi bu ortamda yapılamadı.
 
 Canlı kullanımdan önce test: bir antrenman ata, bir set gir, sayfayı yenile, JSON yedeğini indir, başka test adresinde içeri al ve değerleri karşılaştır. Sonra iPhone'da takvim, klavye, modallar ve tema görünümünü kontrol et.
+
+## 1.0.1 düzeltmesini yükleme
+
+Önce mevcut uygulamadan JSON yedeğini indir. ZIP içindeki app.js dosyasını test uygulamasının aynı konumundaki app.js ile değiştir; index.html ve style.css değişmedi. Sayfayı yenile ve takvimde 16 Ekim 2026 gününü aç. O gün zaten kayıtlıysa otomatik değiştirilmez.
+
+Paket içindeki 16_Ekim_2026_Kurtarma.json dosyası Hesabım → Yedekten birleştir yoluyla da alınabilir. Çakışma varsa mevcut kaydı koru; arşiv sürümüne geçmek istersen önizlemede o günü açıkça seç. Bu paket login.html içermez ve Supabase hesabını değiştirmez.

@@ -7,6 +7,24 @@ const library=[exercise('Dumbbell Bench Press','Göğüs','Dambıl','external',2
 const program=(name,indices)=>({id:uid(),name,version:1,exercises:indices.map(i=>clone(library[i])),history:[]});
 const initial=()=>({schema:'gym-tracker-pro',version:1,programs:[program('Göğüs + Arka Kol',[0,1,2,3,4,5]),program('Sırt + Ön Kol',[6,7,8,9]),program('Omuz + Bacak',[10,11,12,13])],active:0,library:clone(library),days:{},profile:{name:'Kaan',goal:'Düzenli ve güçlü',weight:'',height:''},settings:{theme:'system',unit:'kg',week:'monday'},bodyweights:[]});
 let state,storageError=false;try{state=JSON.parse(localStorage.getItem(KEY))||initial();if(state.schema!=='gym-tracker-pro')throw Error();}catch{state=initial();storageError=true;}
+
+// Recover the known archive once, without replacing any existing day.
+function recoverOctober16(){
+  const marker='archive-2026-10-16-v1';
+  if(storageError||state.migrations?.includes(marker))return;
+  const next=clone(state);
+  if(!Object.prototype.hasOwnProperty.call(next.days,'2026-10-16')){
+    const rows=[[[20,15,8],[25,10,4],[27.5,8,2],[30,6,0]],[[25,8,2],[27.5,4,0],[27.5,3,0]],[[44,12,3],[49,8,2]],[[70,12,3],[70,12,1],[70,12,0],[70,8,0]],[[35,12,2],[30,10,'']],[]];
+    const reps=['8–12','6–10','10–15','8–12','10–12','10–15'];
+    const rests=[90,120,60,90,60,60];
+    next.days['2026-10-16']={id:'archive-2026-10-16',kind:'workout',name:'Göğüs + Arka Kol',programId:'archive-chest-2026-10-16',version:1,
+      exercises:rows.map((sets,i)=>({...clone(library[i]),id:'archive-oct16-ex-'+i,reps:reps[i],rest:rests[i],logs:Array.from({length:4},(_,j)=>sets[j]?{kg:sets[j][0],reps:sets[j][1],rir:sets[j][2],done:true}:{kg:'',reps:'',rir:'',done:false})})),
+      started:null,finished:null,note:'16 Ekim sohbet arşivinden bilinen 15 set geri yüklendi. Cable Triceps Pushdown 2. set RIR bilgisi bilinmiyor. Overhead Cable Triceps Extension set değerleri ve antrenman süresi arşivde yok; boş bırakıldı. Boş setler yapılmadı anlamına gelmez.'};
+  }
+  next.migrations=[...(next.migrations||[]),marker];
+  try{localStorage.setItem(KEY,JSON.stringify(next));state=next;}catch{storageError=true;}
+}
+recoverOctober16();
 let tab='calendar',selected=today,month=new Date(new Date().getFullYear(),new Date().getMonth(),1),draft=null,pending=null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageError=false;return true}catch{storageError=true;toast('Kayıt cihazda saklanamadı. Hemen JSON yedeği indirin.');return false}}
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',4500)}

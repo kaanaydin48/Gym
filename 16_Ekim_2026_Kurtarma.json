@@ -1,0 +1,686 @@
+{
+  "schema": "gym-tracker-pro",
+  "version": 1,
+  "programs": [
+    {
+      "id": "33d428fe-acb2-42fe-a292-58b699da8284",
+      "name": "Göğüs + Arka Kol",
+      "version": 1,
+      "exercises": [
+        {
+          "id": "92c053bf-5007-4f28-8043-ad962af29e3d",
+          "name": "Dumbbell Bench Press",
+          "muscle": "Göğüs",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "4489bc05-0c74-4a81-9823-d539d1c914b4",
+          "name": "Incline Dumbbell Bench Press",
+          "muscle": "Göğüs",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "558814fd-1c62-4633-979d-051d7899ac2d",
+          "name": "Chest Fly Makine",
+          "muscle": "Göğüs",
+          "equipment": "Makine",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "c654bac1-3fc5-44ed-92e1-b59a41f93929",
+          "name": "Dips",
+          "muscle": "Arka kol",
+          "equipment": "Vücut ağırlığı",
+          "type": "body",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "02416765-288d-40c2-b013-eba74435f0d3",
+          "name": "Cable Triceps Pushdown",
+          "muscle": "Arka kol",
+          "equipment": "Kablo",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "1d59496d-9942-4a56-9abc-b1d5698795d1",
+          "name": "Overhead Cable Triceps Extension",
+          "muscle": "Arka kol",
+          "equipment": "Kablo",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        }
+      ],
+      "history": []
+    },
+    {
+      "id": "5f742163-69a7-45ff-b1fe-335e8d353e04",
+      "name": "Sırt + Ön Kol",
+      "version": 1,
+      "exercises": [
+        {
+          "id": "c11e0993-b346-406d-b118-8b8b29390a28",
+          "name": "Dumbbell Curl",
+          "muscle": "Ön kol",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "e8ba95c8-8fec-4268-940c-723736b62449",
+          "name": "Hammer Curl",
+          "muscle": "Ön kol",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "dacd9edf-45e5-4ce4-b546-46d52caee951",
+          "name": "Lat Pulldown",
+          "muscle": "Sırt",
+          "equipment": "Makine",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "1174fa8e-5e64-40fa-9fdb-154cbf5f7acb",
+          "name": "Seated Cable Row",
+          "muscle": "Sırt",
+          "equipment": "Kablo",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        }
+      ],
+      "history": []
+    },
+    {
+      "id": "8fde0586-0d99-4f9e-89fa-731cbf983d55",
+      "name": "Omuz + Bacak",
+      "version": 1,
+      "exercises": [
+        {
+          "id": "61ab77f9-7cf5-4a71-849c-a2fa6ab370be",
+          "name": "Dumbbell Shoulder Press",
+          "muscle": "Omuz",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "44dc7db5-2cfe-4394-b0be-d2a32f1ddee7",
+          "name": "Lateral Raise",
+          "muscle": "Omuz",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "4a3a3b97-5e05-493d-a72a-5fdc5ed9bbb2",
+          "name": "Leg Press",
+          "muscle": "Bacak",
+          "equipment": "Makine",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        },
+        {
+          "id": "80d47ccf-ae96-4653-a18b-aca5eadd1c06",
+          "name": "Leg Curl",
+          "muscle": "Bacak",
+          "equipment": "Makine",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": ""
+        }
+      ],
+      "history": []
+    }
+  ],
+  "active": 0,
+  "library": [
+    {
+      "id": "92c053bf-5007-4f28-8043-ad962af29e3d",
+      "name": "Dumbbell Bench Press",
+      "muscle": "Göğüs",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 2,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "4489bc05-0c74-4a81-9823-d539d1c914b4",
+      "name": "Incline Dumbbell Bench Press",
+      "muscle": "Göğüs",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 2,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "558814fd-1c62-4633-979d-051d7899ac2d",
+      "name": "Chest Fly Makine",
+      "muscle": "Göğüs",
+      "equipment": "Makine",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "c654bac1-3fc5-44ed-92e1-b59a41f93929",
+      "name": "Dips",
+      "muscle": "Arka kol",
+      "equipment": "Vücut ağırlığı",
+      "type": "body",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "02416765-288d-40c2-b013-eba74435f0d3",
+      "name": "Cable Triceps Pushdown",
+      "muscle": "Arka kol",
+      "equipment": "Kablo",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "1d59496d-9942-4a56-9abc-b1d5698795d1",
+      "name": "Overhead Cable Triceps Extension",
+      "muscle": "Arka kol",
+      "equipment": "Kablo",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "c11e0993-b346-406d-b118-8b8b29390a28",
+      "name": "Dumbbell Curl",
+      "muscle": "Ön kol",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 2,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "e8ba95c8-8fec-4268-940c-723736b62449",
+      "name": "Hammer Curl",
+      "muscle": "Ön kol",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 2,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "dacd9edf-45e5-4ce4-b546-46d52caee951",
+      "name": "Lat Pulldown",
+      "muscle": "Sırt",
+      "equipment": "Makine",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "1174fa8e-5e64-40fa-9fdb-154cbf5f7acb",
+      "name": "Seated Cable Row",
+      "muscle": "Sırt",
+      "equipment": "Kablo",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "61ab77f9-7cf5-4a71-849c-a2fa6ab370be",
+      "name": "Dumbbell Shoulder Press",
+      "muscle": "Omuz",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 2,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "44dc7db5-2cfe-4394-b0be-d2a32f1ddee7",
+      "name": "Lateral Raise",
+      "muscle": "Omuz",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 2,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "4a3a3b97-5e05-493d-a72a-5fdc5ed9bbb2",
+      "name": "Leg Press",
+      "muscle": "Bacak",
+      "equipment": "Makine",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "80d47ccf-ae96-4653-a18b-aca5eadd1c06",
+      "name": "Leg Curl",
+      "muscle": "Bacak",
+      "equipment": "Makine",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "e2b2b317-7484-4a68-8996-94b6143f3835",
+      "name": "Goblet Squat",
+      "muscle": "Bacak",
+      "equipment": "Dambıl",
+      "type": "external",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    },
+    {
+      "id": "d15c50c4-b75c-4cc8-8706-765c5341b298",
+      "name": "Plank",
+      "muscle": "Karın",
+      "equipment": "Vücut ağırlığı",
+      "type": "body",
+      "factor": 1,
+      "sets": 4,
+      "reps": "8–12",
+      "rir": 2,
+      "rest": 90,
+      "superset": ""
+    }
+  ],
+  "days": {
+    "2026-10-16": {
+      "id": "archive-2026-10-16",
+      "kind": "workout",
+      "name": "Göğüs + Arka Kol",
+      "programId": "archive-chest-2026-10-16",
+      "version": 1,
+      "exercises": [
+        {
+          "id": "archive-oct16-ex-0",
+          "name": "Dumbbell Bench Press",
+          "muscle": "Göğüs",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": "",
+          "logs": [
+            {
+              "kg": 20,
+              "reps": 15,
+              "rir": 8,
+              "done": true
+            },
+            {
+              "kg": 25,
+              "reps": 10,
+              "rir": 4,
+              "done": true
+            },
+            {
+              "kg": 27.5,
+              "reps": 8,
+              "rir": 2,
+              "done": true
+            },
+            {
+              "kg": 30,
+              "reps": 6,
+              "rir": 0,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "archive-oct16-ex-1",
+          "name": "Incline Dumbbell Bench Press",
+          "muscle": "Göğüs",
+          "equipment": "Dambıl",
+          "type": "external",
+          "factor": 2,
+          "sets": 4,
+          "reps": "6–10",
+          "rir": 2,
+          "rest": 120,
+          "superset": "",
+          "logs": [
+            {
+              "kg": 25,
+              "reps": 8,
+              "rir": 2,
+              "done": true
+            },
+            {
+              "kg": 27.5,
+              "reps": 4,
+              "rir": 0,
+              "done": true
+            },
+            {
+              "kg": 27.5,
+              "reps": 3,
+              "rir": 0,
+              "done": true
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            }
+          ]
+        },
+        {
+          "id": "archive-oct16-ex-2",
+          "name": "Chest Fly Makine",
+          "muscle": "Göğüs",
+          "equipment": "Makine",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "10–15",
+          "rir": 2,
+          "rest": 60,
+          "superset": "",
+          "logs": [
+            {
+              "kg": 44,
+              "reps": 12,
+              "rir": 3,
+              "done": true
+            },
+            {
+              "kg": 49,
+              "reps": 8,
+              "rir": 2,
+              "done": true
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            }
+          ]
+        },
+        {
+          "id": "archive-oct16-ex-3",
+          "name": "Dips",
+          "muscle": "Arka kol",
+          "equipment": "Vücut ağırlığı",
+          "type": "body",
+          "factor": 1,
+          "sets": 4,
+          "reps": "8–12",
+          "rir": 2,
+          "rest": 90,
+          "superset": "",
+          "logs": [
+            {
+              "kg": 70,
+              "reps": 12,
+              "rir": 3,
+              "done": true
+            },
+            {
+              "kg": 70,
+              "reps": 12,
+              "rir": 1,
+              "done": true
+            },
+            {
+              "kg": 70,
+              "reps": 12,
+              "rir": 0,
+              "done": true
+            },
+            {
+              "kg": 70,
+              "reps": 8,
+              "rir": 0,
+              "done": true
+            }
+          ]
+        },
+        {
+          "id": "archive-oct16-ex-4",
+          "name": "Cable Triceps Pushdown",
+          "muscle": "Arka kol",
+          "equipment": "Kablo",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "10–12",
+          "rir": 2,
+          "rest": 60,
+          "superset": "",
+          "logs": [
+            {
+              "kg": 35,
+              "reps": 12,
+              "rir": 2,
+              "done": true
+            },
+            {
+              "kg": 30,
+              "reps": 10,
+              "rir": "",
+              "done": true
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            }
+          ]
+        },
+        {
+          "id": "archive-oct16-ex-5",
+          "name": "Overhead Cable Triceps Extension",
+          "muscle": "Arka kol",
+          "equipment": "Kablo",
+          "type": "external",
+          "factor": 1,
+          "sets": 4,
+          "reps": "10–15",
+          "rir": 2,
+          "rest": 60,
+          "superset": "",
+          "logs": [
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            },
+            {
+              "kg": "",
+              "reps": "",
+              "rir": "",
+              "done": false
+            }
+          ]
+        }
+      ],
+      "started": null,
+      "finished": null,
+      "note": "16 Ekim sohbet arşivinden bilinen 15 set geri yüklendi. Cable Triceps Pushdown 2. set RIR bilgisi bilinmiyor. Overhead Cable Triceps Extension set değerleri ve antrenman süresi arşivde yok; boş bırakıldı. Boş setler yapılmadı anlamına gelmez."
+    }
+  },
+  "profile": {
+    "name": "Kaan",
+    "goal": "Düzenli ve güçlü",
+    "weight": "",
+    "height": ""
+  },
+  "settings": {
+    "theme": "system",
+    "unit": "kg",
+    "week": "monday"
+  },
+  "bodyweights": [],
+  "migrations": [
+    "archive-2026-10-16-v1"
+  ]
+}
