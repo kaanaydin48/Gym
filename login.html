@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Gym Tracker Pro | Giriş</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f7f6f2;
+      color: #344b3a;
+      font-family: -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
+    }
+
+    main {
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 30px 22px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 30px #3040300a;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #819184;
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #dce4da;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      background: #78977d;
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 24px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: .6;
+    }
+
+    #message {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <div class="card">
+    <h1>Gym Tracker Pro</h1>
+    <p class="subtitle">Antrenman yönetim sistemi</p>
+
+    <form id="loginForm">
+      <label for="email">E-posta</label>
+      <input
+        id="email"
+        type="email"
+        autocomplete="email"
+        required
+      >
+
+      <label for="password">Şifre</label>
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button id="loginButton" type="submit">
+        Giriş Yap
+      </button>
+    </form>
+
+    <p id="message" role="status"></p>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL =
+    "https://aryzgrgjwjdxumbddank.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const form = document.getElementById("loginForm");
+  const message = document.getElementById("message");
+  const button = document.getElementById("loginButton");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    button.disabled = true;
+    message.textContent = "Giriş yapılıyor...";
+
+    try {
+      const email =
+        document.getElementById("email").value.trim();
+
+      const password =
+        document.getElementById("password").value;
+
+      const { data, error } =
+        await client.auth.signInWithPassword({
+          email,
+          password
+        });
+
+      if (error) throw error;
+
+      const { data: profile, error: profileError } =
+        await client
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+
+      if (profileError) throw profileError;
+
+      if (profile.role === "admin") {
+        message.textContent =
+          "Yönetici girişi başarılı!";
+      } else {
+        message.textContent =
+          "Üye girişi başarılı!";
+      }
+
+    } catch (error) {
+      message.textContent =
+        "Giriş başarısız: " + error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
