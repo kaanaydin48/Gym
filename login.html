@@ -29,8 +29,7 @@ async function account(){
  view('account');
  if(result.error||!result.data){message('Hesabın doğrulandı. Profil yetkilerin henüz hazır değil; koçunla iletişime geç.');return;}
  const role=result.data.role;
- if(role==='admin'){message('Yönetici girişi başarılı.');const a=document.createElement('a');a.href='./index.html';a.textContent='Antrenman panelini aç →';el('message').append(document.createElement('br'),a);}
- else if(['coach','member'].includes(role)){message((role==='coach'?'Koç':'Üye')+' hesabın doğrulandı. Kişiye özel program ve bulut antrenman ekranı henüz bağlı değil.');}
+ if(['admin','coach','member'].includes(role)){message(({admin:'Yönetici',coach:'Koç',member:'Üye'})[role]+' girişi başarılı.');const a=document.createElement('a');a.href='./index.html';a.textContent='Antrenman panelini aç →';el('message').append(document.createElement('br'),a);}
  else message('Hesap yetkin tanımlanmamış. Yöneticinle iletişime geç.');
 }
 el('loginTab').onclick=()=>view('login');el('inviteTab').onclick=()=>view('invite');el('back').onclick=()=>view('login');el('forgot').onclick=()=>view('forgot');
