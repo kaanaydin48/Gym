@@ -1,187 +1,66 @@
-
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>Gym Tracker Pro | Giriş</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: #f7f6f2;
-      color: #344b3a;
-      font-family: -apple-system, BlinkMacSystemFont,
-                   "Segoe UI", sans-serif;
-    }
-
-    main {
-      min-height: 100dvh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 24px;
-      padding: 30px 22px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 8px 30px #3040300a;
-    }
-
-    h1 {
-      margin-bottom: 4px;
-      text-align: center;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #819184;
-      margin-bottom: 32px;
-    }
-
-    label {
-      display: block;
-      margin: 18px 0 8px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    input {
-      width: 100%;
-      padding: 15px;
-      border: 1px solid #dce4da;
-      border-radius: 12px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      background: #78977d;
-      color: white;
-      border: none;
-      padding: 16px;
-      border-radius: 12px;
-      margin-top: 24px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    button:disabled {
-      opacity: .6;
-    }
-
-    #message {
-      margin-top: 16px;
-      text-align: center;
-      font-size: 14px;
-    }
-  </style>
-</head>
-
-<body>
-<main>
-  <div class="card">
-    <h1>Gym Tracker Pro</h1>
-    <p class="subtitle">Antrenman yönetim sistemi</p>
-
-    <form id="loginForm">
-      <label for="email">E-posta</label>
-      <input
-        id="email"
-        type="email"
-        autocomplete="email"
-        required
-      >
-
-      <label for="password">Şifre</label>
-      <input
-        id="password"
-        type="password"
-        autocomplete="current-password"
-        required
-      >
-
-      <button id="loginButton" type="submit">
-        Giriş Yap
-      </button>
-    </form>
-
-    <p id="message" role="status"></p>
-  </div>
-</main>
-
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#faf8f5"><title>Hesabın · Gym Tracker Pro</title><link rel="stylesheet" href="style.css?v=account-1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
+body{min-height:100dvh;display:grid;place-items:center;padding:24px}main{width:100%;max-width:460px;padding:0}.brand{margin-bottom:32px}.card{padding:28px}h1{font-size:30px}input{font-size:16px}button{width:100%}.tabs button{width:auto}.password-row{display:flex;gap:8px;align-items:center}.password-row button{width:auto;margin-top:6px;padding:10px;font-size:12px}a{color:var(--green)}[hidden]{display:none!important}#message{white-space:pre-line;overflow-wrap:anywhere}button:disabled{opacity:.55;cursor:wait}.steps{font-size:13px;line-height:1.8;padding-left:20px}.brand small{color:var(--muted)}
+</style></head><body><main><div class="brand"><span class="logo">G</span><div>GYM TRACKER<small>PRO / KİŞİSEL ALAN</small></div></div><section class="card"><span class="eyebrow">BİRLİKTE DAHA GÜÇLÜ</span><h1 id="title">Tekrar hoş geldin.</h1><p class="lead" id="intro">Hesabına giriş yap ve antrenman yolculuğuna devam et.</p><div class="tabs" id="tabs"><button id="loginTab" type="button">Giriş yap</button><button id="inviteTab" type="button" class="secondary">Davetle kayıt</button></div>
+<form id="accountForm" hidden><label id="nameLabel" hidden>Ad soyad<input id="fullName" autocomplete="name" maxlength="100"></label><label>E-posta<input id="email" type="email" autocomplete="email" required></label><label id="passwordLabel">Şifre<div class="password-row"><input id="password" type="password" autocomplete="current-password" required><button id="togglePassword" type="button" class="secondary" aria-label="Şifreyi göster">Göster</button></div></label><label id="confirmLabel" hidden>Şifre tekrar<input id="confirmPassword" type="password" autocomplete="new-password"></label><button id="submitButton" type="submit">Giriş yap</button></form>
+<div id="inviteInfo" hidden><span class="badge">YALNIZCA DAVETLE</span><ol class="steps"><li>Koçundan e-posta adresine davet göndermesini iste.</li><li>E-postandaki davet bağlantısını aç.</li><li>Adını ve şifreni belirleyerek kaydını tamamla.</li></ol><p class="muted">Hesap rolünü yönetici belirler. Buradan koç veya yönetici yetkisi seçilemez.</p></div>
+<p id="message" role="status" aria-live="polite"></p><button id="forgot" type="button" class="link">Şifremi unuttum</button><button id="back" type="button" class="secondary" hidden>Giriş ekranına dön</button><button id="signOut" type="button" class="secondary" hidden>Çıkış yap</button></section><p class="muted" style="text-align:center;font-size:12px">Kişisel antrenman kayıtların bu işlemde silinmez.</p></main>
 <script>
-  const SUPABASE_URL =
-    "https://aryzgrgjwjdxumbddank.supabase.co";
-
-  const SUPABASE_KEY =
-    "sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837";
-
-  const client = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-  const form = document.getElementById("loginForm");
-  const message = document.getElementById("message");
-  const button = document.getElementById("loginButton");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    button.disabled = true;
-    message.textContent = "Giriş yapılıyor...";
-
-    try {
-      const email =
-        document.getElementById("email").value.trim();
-
-      const password =
-        document.getElementById("password").value;
-
-      const { data, error } =
-        await client.auth.signInWithPassword({
-          email,
-          password
-        });
-
-      if (error) throw error;
-
-      const { data: profile, error: profileError } =
-        await client
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .single();
-
-      if (profileError) throw profileError;
-
-      
-if (profile.role === "admin") {
-  message.textContent = "Yönetici girişi başarılı!";
-    window.location.replace("./index.html");
-  window.location.replace("./index.html");
-} else {
-  message.textContent = "Üye girişi başarılı!";
+'use strict';
+const el=id=>document.getElementById(id);
+let client,mode='login',verifiedUser=null,busy=false;
+const callback=new URL('./login.html',location.href).href;
+function message(text){el('message').textContent=text;}
+function view(next){
+ mode=next;message('');el('accountForm').hidden=!['login','complete','reset','forgot'].includes(next);
+ el('inviteInfo').hidden=next!=='invite';el('tabs').hidden=['complete','reset','account'].includes(next);
+ el('nameLabel').hidden=next!=='complete';el('fullName').required=next==='complete';
+ el('email').readOnly=['complete','reset'].includes(next);el('passwordLabel').hidden=next==='forgot';el('password').required=next!=='forgot';
+ const setting=['complete','reset'].includes(next);el('password').minLength=setting?10:1;el('password').autocomplete=setting?'new-password':'current-password';
+ el('confirmLabel').hidden=!setting;el('confirmPassword').required=setting;
+ el('forgot').hidden=next!=='login';el('back').hidden=!['forgot','invite'].includes(next);el('signOut').hidden=!['complete','reset','account'].includes(next);
+ el('title').textContent=({login:'Tekrar hoş geldin.',invite:'Ekibine katıl.',complete:'Hesabını tamamla.',reset:'Yeni şifreni belirle.',forgot:'Şifreni yenile.',account:'Hesabın hazır.'})[next];
+ el('intro').textContent=({login:'E-posta adresin ve şifrenle giriş yap.',invite:'Kayıt, koçunun gönderdiği e-posta davetiyle açılır.',complete:'En az 10 karakterli bir şifre belirle.',reset:'En az 10 karakterli yeni bir şifre belirle.',forgot:'Şifre yenileme bağlantısı için e-posta adresini yaz.',account:'Hesap durumunu aşağıda görebilirsin.'})[next];
+ el('submitButton').textContent=({login:'Giriş yap',complete:'Kaydı tamamla',reset:'Şifreyi güncelle',forgot:'Yenileme bağlantısı gönder'})[next]||'Devam et';
 }
-
-
-    } catch (error) {
-      message.textContent =
-        "Giriş başarısız: " + error.message;
-    } finally {
-      button.disabled = false;
-    }
-  });
-</script>
-</body>
-</html>
+async function account(){
+ const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Oturum doğrulanamadı. Tekrar giriş yap.');
+ verifiedUser=data.user;const result=await client.from('profiles').select('role').eq('id',data.user.id).single();
+ view('account');
+ if(result.error||!result.data){message('Hesabın doğrulandı. Profil yetkilerin henüz hazır değil; koçunla iletişime geç.');return;}
+ const role=result.data.role;
+ if(role==='admin'){message('Yönetici girişi başarılı.');const a=document.createElement('a');a.href='./index.html';a.textContent='Antrenman panelini aç →';el('message').append(document.createElement('br'),a);}
+ else if(['coach','member'].includes(role)){message((role==='coach'?'Koç':'Üye')+' hesabın doğrulandı. Kişiye özel program ve bulut antrenman ekranı henüz bağlı değil.');}
+ else message('Hesap yetkin tanımlanmamış. Yöneticinle iletişime geç.');
+}
+el('loginTab').onclick=()=>view('login');el('inviteTab').onclick=()=>view('invite');el('back').onclick=()=>view('login');el('forgot').onclick=()=>view('forgot');
+el('togglePassword').onclick=()=>{const show=el('password').type==='password';el('password').type=show?'text':'password';el('togglePassword').textContent=show?'Gizle':'Göster';el('togglePassword').setAttribute('aria-label',show?'Şifreyi gizle':'Şifreyi göster');};
+el('signOut').onclick=async()=>{el('signOut').disabled=true;try{const {error}=await client.auth.signOut();if(error)throw error;verifiedUser=null;el('password').value='';el('confirmPassword').value='';view('login');}catch{message('Çıkış yapılamadı. Tekrar dene.');}finally{el('signOut').disabled=false;}};
+el('accountForm').onsubmit=async event=>{
+ event.preventDefault();if(busy||!client)return;const submittedMode=mode;
+ if(['complete','reset'].includes(mode)&&el('password').value!==el('confirmPassword').value){message('Şifreler eşleşmiyor.');return;}
+ if(mode==='complete'&&!el('fullName').value.trim()){message('Adını ve soyadını yaz.');return;}
+ busy=true;el('accountForm').querySelectorAll('button').forEach(b=>b.disabled=true);el('tabs').querySelectorAll('button').forEach(b=>b.disabled=true);el('forgot').disabled=true;el('back').disabled=true;message('İşlem yapılıyor…');
+ try{
+  if(mode==='login'){const {error}=await client.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)throw Error('Giriş yapılamadı. E-posta ve şifreni kontrol et.');await account();}
+  else if(mode==='forgot'){const {error}=await client.auth.resetPasswordForEmail(el('email').value.trim(),{redirectTo:callback});if(error)throw Error('Bağlantı gönderilemedi. Biraz sonra tekrar dene.');message('Bu adresle bir hesap varsa yenileme bağlantısı gönderildi. Gelen kutunu ve spam klasörünü kontrol et.');}
+  else {const check=await client.auth.getUser();if(check.error||!verifiedUser||check.data.user?.id!==verifiedUser.id)throw Error('Bağlantının oturumu sona ermiş. Yeni bir bağlantı iste.');const attributes={password:el('password').value};if(mode==='complete')attributes.data={full_name:el('fullName').value.trim()};const {error}=await client.auth.updateUser(attributes);if(error)throw Error('Kaydedilemedi. Şifrenin koşullarını ve bağlantını kontrol edip tekrar dene.');await account();el('message').prepend(document.createTextNode(submittedMode==='complete'?'Kaydın tamamlandı. ':'Şifren güncellendi. '));}
+  el('password').value='';el('confirmPassword').value='';
+ }catch(error){message(error.message);}finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);}
+};
+(async()=>{
+ view('login');
+ try{
+ if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
+ const hash=new URLSearchParams(location.hash.slice(1)),query=new URLSearchParams(location.search),type=hash.get('type')||query.get('type');
+ const linkError=hash.get('error')||query.get('error');
+ client=window.supabase.createClient('https://aryzgrgjwjdxumbddank.supabase.co','sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837');
+ const session=await client.auth.getSession();history.replaceState(null,'',location.pathname);
+ if(linkError||session.error)throw Error('Bağlantı geçersiz veya süresi dolmuş. Koçundan yeni davet iste; şifre için Şifremi unuttum seçeneğini kullan.');
+ if(['invite','recovery'].includes(type)){
+ const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Bağlantı doğrulanamadı. Yeni bir davet veya şifre yenileme bağlantısı iste.');
+ verifiedUser=data.user;el('email').value=data.user.email||'';view(type==='invite'?'complete':'reset');
+ }else if(session.data.session)await account();
+ }catch(error){message(error.message);}
+})();
+</script></body></html>
