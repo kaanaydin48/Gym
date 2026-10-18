@@ -1,6 +1,6 @@
 # Üyelik kurulumunun tamamlanması
 
-Canlı uygulama Supabase Auth ile admin, coach ve member rollerini doğrular. Antrenman verileri hesap UUID'sine özel yerel alanda saklanır; bulut antrenman senkronizasyonu bu değişikliğin parçası değildir. Eski `gym-tracker-pro-v1` kaydı silinmez; yönetici Hesabım ekranından önizlemeli birleştirme yapabilir.
+Canlı uygulama Supabase Auth ile admin, coach ve member rollerini doğrular. Antrenmanlar, kullanıcı Kaydet düğmesine bastığında save_gym_state RPC ile workout_logs ve gym_account_state tablolarına atomik yazılır. Yerel kopya başarısız ağ isteklerinde yeniden deneme için tutulur. cloud-sync.sql ve trigger-permissions.sql bu projeye 18 Ekim 2026 tarihinde uygulanmıştır. Eski `gym-tracker-pro-v1` kaydı silinmez; yönetici Hesabım ekranından önizlemeli birleştirme yapabilir.
 
 ## Gerekli sunucu kurulumu
 1. Mevcut `profiles` tablosunda `id` (auth.users UUID) ve `role` alanlarını doğrula. RLS açık olmalı. Kullanıcı kendi rolünü okuyabilmeli, rolünü değiştirememeli. Authenticated/anon istemcilere rol yazma izni verme. Mevcut politikaları incelemeden toplu değiştirme.

@@ -36,7 +36,7 @@ Deno.serve(async(req:Request)=>{
   // Role is fixed on the server. The request cannot grant admin or coach access.
   const invite=await service.auth.admin.inviteUserByEmail(email,{redirectTo:'https://kaanaydin48.github.io/Gym/login.html',data:{full_name:fullName}});
   if(invite.error||!invite.data.user)return reply(400,{error:'Davet gönderilemedi. Hesap zaten mevcut olabilir veya e-posta gönderim sınırına ulaşılmış olabilir.'});
-  const saved=await service.from('profiles').upsert({id:invite.data.user.id,role:'member'},{onConflict:'id'});
+  const saved=await service.from('profiles').upsert({id:invite.data.user.id,role:'member',display_name:fullName,coach_id:auth.user.id},{onConflict:'id'});
   if(saved.error)return reply(503,{error:'Davet gönderildi ancak üye profili hazırlanamadı. Yönetici Supabase profil kaydını tamamlamalı.'});
   return reply(200,{ok:true});
  }catch{return reply(500,{error:'Üye servisi işlemi tamamlayamadı.'});}
