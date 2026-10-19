@@ -5,7 +5,7 @@ const client={from(){const q={select(){return q},eq(){return q},async maybeSingl
 function boot(storage=new Map()){
  const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',style:{},hidden:false,open:false,textContent:'',innerHTML:'',classList:{toggle(){}},addEventListener(){},setAttribute(){},removeAttribute(){},querySelector(){return element(id+' child')},querySelectorAll(){return []},closest(){return element('row')},showModal(){this.open=true},close(){this.open=false},click(){}});return elements.get(id)};
  const ctx={console,crypto:webcrypto,Date,Map,Set,JSON,Math,Number,String,Array,Object,RegExp,Error,Promise,Blob,URL,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,confirm:()=>true,matchMedia:()=>({matches:false}),document:{getElementById:element,querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:{classList:{toggle(){}}},createElement:element},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{getItem:()=>null,setItem(){}},gymAccount:{user:{id:'audit-user',email:'audit@example.invalid',user_metadata:{}},role:'admin',client},addEventListener(){},scrollTo(){}};ctx.window=ctx;
- vm.createContext(ctx);for(const f of ['membership.js','app.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
+ vm.createContext(ctx);for(const f of ['membership.js','motion.js','app.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
 }
 (async()=>{
  let a=boot();await a.ctx.gymReady;
@@ -31,5 +31,12 @@ function boot(storage=new Map()){
  for(const view of ['calendarView','workoutView','progressView','programsView','settingsView']){
   const html=c.run(`${view}()`);for(const m of html.matchAll(/on(?:click|input|change)="([^"]*)"/g)){new Function('event',m[1]);for(const f of m[1].matchAll(/(?<![.\w])([A-Za-z_$][\w$]*)\(/g)){if(['if'].includes(f[1]))continue;assert.equal(c.run(`typeof ${f[1]}`),'function',f[1]);}}
  }
+ const before=c.run('JSON.stringify(state)');
+ assert.equal(c.run('GymMotion.names.length'),16);
+ assert.equal(c.run('library.every(e=>GymMotion.card(e).includes("exercise-preview"))'),true);
+ for(const [name,id] of c.ctx.GymMotion.names){assert.ok(fs.existsSync(require('node:path').join(__dirname,'../assets/exercises',id+'.webp')));c.ctx.GymMotion.open(id);}
+ c.ctx.GymMotion.toggle();c.ctx.GymMotion.toggle();c.ctx.GymMotion.refresh();
+ assert.equal(c.run('JSON.stringify(state)'),before,'Opening/pausing animations must not mutate workout data');
+ assert.ok(!c.ctx.GymMotion.card({name:'Custom unknown move',equipment:'Dambıl'}).includes('exercise-preview'));
  console.log('PASS: navigation, sets/volume, cloud save/readback, second device reload, conflict, offline retry, reconciliation, validation, finish, rest/delete, programs/templates, timer, bodyweight, inline handlers');
 })().catch(e=>{console.error(e);process.exit(1)});
