@@ -1,9 +1,9 @@
 # Exercise motion integration
 
-16 built-in movements have original six-frame illustrations, a white background, gray figure and orange muscle highlights. The 960x640 WebP sheets are played forward/backward using CSS discrete frames. They are short illustrated loops, not video or motion-captured demonstrations. Leg Curl uses the prone variant; plank remains an isometric hold.
+All 40 built-in movements have original six-frame illustrations with white background, gray anatomical figure and orange target-muscle highlights. The 24 added sheets use the same 960x640 WebP format and existing CSS playback, enlargement and pause controls. These are discrete illustrated loops, not motion-captured videos.
 
-The workout header and movement library share the same normalized-name lookup. Custom unknown movements retain their equipment badge. The media button opens a larger dialog. A pause/play button controls all loops for this page session. The initial pause state follows prefers-reduced-motion. Offscreen and background-tab playback is paused. Files are requested when visible.
+Both the workout and library views use the same name lookup. Unknown custom movements retain their equipment badge. Reduced-motion preferences, offscreen loading and background-tab pausing remain supported. No workout or account data is changed by this update.
 
-No account state, cloud schema, saved day, sets, kg, reps or RIR fields are changed.
+Validation: JavaScript syntax; all 40 names mapped to nonempty decodable assets; simulated DOM audit checks opening each animation and pause controls without changing state, alongside existing cloud-save regression tests. Actual signed-in browser interaction was unavailable in this environment.
 
-Validation: JS syntax; all 16 names mapped; all 16 WebP files decode with correct dimensions; Node audit covers modal open/pause and confirms unchanged state; each uploaded blob matches the local git blob hash. Actual signed-in browser interaction was not available in this environment.
+Assets were created with the built-in image generation tool. Prompt brief: six sequential exercise poses in a 3x2 grid, fixed camera and scale, full-body gray mannequin, white background, dark equipment and orange target-muscle overlays, with movement-specific joint and equipment instructions. Final assets: assets/exercises/*.webp.

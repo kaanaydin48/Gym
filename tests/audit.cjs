@@ -48,8 +48,8 @@ function boot(storage=new Map()){
   const html=c.run(`${view}()`);for(const m of html.matchAll(/on(?:click|input|change)="([^"]*)"/g)){new Function('event',m[1]);for(const f of m[1].matchAll(/(?<![.\w])([A-Za-z_$][\w$]*)\(/g)){if(['if'].includes(f[1]))continue;assert.equal(c.run(`typeof ${f[1]}`),'function',f[1]);}}
  }
  const before=c.run('JSON.stringify(state)');
- assert.equal(c.run('GymMotion.names.length'),16);
- assert.equal(c.run('library.slice(0,16).every(e=>GymMotion.card(e).includes("exercise-preview"))'),true);
+ assert.equal(c.run('GymMotion.names.length'),40);
+ assert.equal(c.run('library.every(e=>GymMotion.card(e).includes("exercise-preview"))'),true);
  for(const [name,id] of c.ctx.GymMotion.names){assert.ok(fs.existsSync(require('node:path').join(__dirname,'../assets/exercises',id+'.webp')));c.ctx.GymMotion.open(id);}
  c.ctx.GymMotion.toggle();c.ctx.GymMotion.toggle();c.ctx.GymMotion.refresh();
  assert.equal(c.run('JSON.stringify(state)'),before,'Opening/pausing animations must not mutate workout data');

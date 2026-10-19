@@ -10,7 +10,31 @@ window.GymMotion=(()=>{
  ['Dumbbell Curl','dumbbell-curl'],['Hammer Curl','hammer-curl'],
  ['Lat Pulldown','lat-pulldown'],['Seated Cable Row','seated-cable-row'],
  ['Dumbbell Shoulder Press','dumbbell-shoulder-press'],['Lateral Raise','lateral-raise'],
- ['Leg Press','leg-press'],['Leg Curl','leg-curl'],['Goblet Squat','goblet-squat'],['Plank','plank']
+ ['Leg Press','leg-press'],['Leg Curl','leg-curl'],['Goblet Squat','goblet-squat'],['Plank','plank'],
+ ["Barbell Bench Press", "barbell-bench-press"],
+ ["Chest Press Makine", "chest-press-machine"],
+ ["Cable Crossover", "cable-crossover"],
+ ["Barfiks", "pull-up"],
+ ["Assisted Pull-up", "assisted-pull-up"],
+ ["Tek Kol Dumbbell Row", "single-arm-dumbbell-row"],
+ ["Chest-Supported Row", "chest-supported-row"],
+ ["Reverse Pec Deck", "reverse-pec-deck"],
+ ["Cable Lateral Raise", "cable-lateral-raise"],
+ ["Face Pull", "face-pull"],
+ ["Smith Squat", "smith-squat"],
+ ["Bulgarian Split Squat", "bulgarian-split-squat"],
+ ["Romanian Deadlift", "romanian-deadlift"],
+ ["Leg Extension", "leg-extension"],
+ ["Hip Thrust", "hip-thrust"],
+ ["Cable Glute Kickback", "cable-glute-kickback"],
+ ["Standing Calf Raise", "standing-calf-raise"],
+ ["Seated Calf Raise", "seated-calf-raise"],
+ ["Preacher Curl", "preacher-curl"],
+ ["Incline Dumbbell Curl", "incline-dumbbell-curl"],
+ ["Rope Triceps Pushdown", "rope-triceps-pushdown"],
+ ["Dead Bug", "dead-bug"],
+ ["Cable Crunch", "cable-crunch"],
+ ["Reverse Crunch", "reverse-crunch"]
  ];
  const normalize=s=>String(s||'').trim().toLocaleLowerCase('en').replace(/\s+/g,' ');
  const byName=new Map(names.map(([name,id])=>[normalize(name),id]));
