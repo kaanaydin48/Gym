@@ -15,6 +15,7 @@
   await load('./membership.js?v=invite-3');
   await load('./motion.js?v=2');
   await load('./app.js?v=library-2');
+  await load('./program-access.js?v=1');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';

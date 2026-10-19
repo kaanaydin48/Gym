@@ -2,12 +2,14 @@ const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/st
 let remote=null,fail=false,rpcCalls=0;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const client={from(){const q={select(){return q},eq(){return q},async maybeSingle(){return fail?{error:Error('offline')}:{data:clone(remote)}},async single(){return q.maybeSingle()}};return q},async rpc(name,{payload,expected_revision}){rpcCalls++;if(fail)return {error:Error('offline')};if(expected_revision!==(remote?.revision||0))return {error:Error('GYM_CONFLICT: conflict')};remote={state:clone(payload),revision:expected_revision+1};return {data:remote.revision}}};
-function boot(storage=new Map()){
+function boot(storage=new Map(),options={}){
  const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',style:{},hidden:false,open:false,textContent:'',innerHTML:'',classList:{toggle(){}},addEventListener(){},setAttribute(){},removeAttribute(){},querySelector(){return element(id+' child')},querySelectorAll(){return []},closest(){return element('row')},showModal(){this.open=true},close(){this.open=false},click(){}});return elements.get(id)};
  const ctx={console,crypto:webcrypto,Date,Map,Set,JSON,Math,Number,String,Array,Object,RegExp,Error,Promise,Blob,URL,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,confirm:()=>true,matchMedia:()=>({matches:false}),document:{getElementById:element,querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:{classList:{toggle(){}}},createElement:element},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{getItem:()=>null,setItem(){}},gymAccount:{user:{id:'audit-user',email:'audit@example.invalid',user_metadata:{}},role:'admin',client},addEventListener(){},scrollTo(){}};ctx.window=ctx;
- vm.createContext(ctx);for(const f of ['membership.js','motion.js','app.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
+ Object.assign(ctx.gymAccount,options);
+ vm.createContext(ctx);for(const f of ['membership.js','motion.js','app.js','program-access.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
 }
-(async()=>{
+module.exports={boot};
+if(require.main===module)(async()=>{
  let a=boot();await a.ctx.gymReady;
  assert.equal(a.run('state.library.length'),40);
  // Upgrade a saved 16-movement account without touching history or custom settings.
