@@ -4,6 +4,43 @@ const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 const today=dateKey(new Date()), KEY='gym-tracker-pro-v1:'+window.gymAccount.user.id;
 const exercise=(name,muscle,equipment,type='external',factor=1)=>({id:uid(),name,muscle,equipment,type,factor,sets:4,reps:'8–12',rir:2,rest:90,superset:''});
 const library=[exercise('Dumbbell Bench Press','Göğüs','Dambıl','external',2),exercise('Incline Dumbbell Bench Press','Göğüs','Dambıl','external',2),exercise('Chest Fly Makine','Göğüs','Makine'),exercise('Dips','Arka kol','Vücut ağırlığı','body'),exercise('Cable Triceps Pushdown','Arka kol','Kablo'),exercise('Overhead Cable Triceps Extension','Arka kol','Kablo'),exercise('Dumbbell Curl','Ön kol','Dambıl','external',2),exercise('Hammer Curl','Ön kol','Dambıl','external',2),exercise('Lat Pulldown','Sırt','Makine'),exercise('Seated Cable Row','Sırt','Kablo'),exercise('Dumbbell Shoulder Press','Omuz','Dambıl','external',2),exercise('Lateral Raise','Omuz','Dambıl','external',2),exercise('Leg Press','Bacak','Makine'),exercise('Leg Curl','Bacak','Makine'),exercise('Goblet Squat','Bacak','Dambıl'),exercise('Plank','Karın','Vücut ağırlığı','body')];
+// Additional catalog entries keep stable IDs across devices and backups.
+const additionalLibrary=[
+ exercise('Barbell Bench Press','Göğüs','Barbell'),
+ exercise('Chest Press Makine','Göğüs','Makine'),
+ exercise('Cable Crossover','Göğüs','Kablo'),
+ exercise('Barfiks','Sırt','Vücut ağırlığı','body'),
+ exercise('Assisted Pull-up','Sırt','Makine'),
+ exercise('Tek Kol Dumbbell Row','Sırt','Dambıl'),
+ exercise('Chest-Supported Row','Sırt','Dambıl','external',2),
+ exercise('Reverse Pec Deck','Omuz','Makine'),
+ exercise('Cable Lateral Raise','Omuz','Kablo'),
+ exercise('Face Pull','Omuz','Kablo'),
+ exercise('Smith Squat','Bacak','Makine'),
+ exercise('Bulgarian Split Squat','Bacak','Dambıl','external',2),
+ exercise('Romanian Deadlift','Bacak','Barbell'),
+ exercise('Leg Extension','Bacak','Makine'),
+ exercise('Hip Thrust','Bacak','Barbell'),
+ exercise('Cable Glute Kickback','Bacak','Kablo'),
+ exercise('Standing Calf Raise','Bacak','Makine'),
+ exercise('Seated Calf Raise','Bacak','Makine'),
+ exercise('Preacher Curl','Ön kol','Barbell'),
+ exercise('Incline Dumbbell Curl','Ön kol','Dambıl','external',2),
+ exercise('Rope Triceps Pushdown','Arka kol','Kablo'),
+ exercise('Dead Bug','Karın','Vücut ağırlığı','body'),
+ exercise('Cable Crunch','Karın','Kablo'),
+ exercise('Reverse Crunch','Karın','Vücut ağırlığı','body')
+].map((e,i)=>({...e,id:'catalog-v2-'+i}));
+library.push(...additionalLibrary);
+function extendExerciseLibrary(){
+ const normalize=name=>name.trim().toLocaleLowerCase('tr').replace(/\s+/g,' ');
+ const names=new Set(state.library.map(e=>normalize(e.name)));
+ const ids=new Set(state.library.map(e=>e.id));
+ for(const e of additionalLibrary){
+  if(ids.has(e.id)||names.has(normalize(e.name)))continue;
+  state.library.push(clone(e));names.add(normalize(e.name));ids.add(e.id);dirty=true;
+ }
+}
 const program=(name,indices)=>({id:uid(),name,version:1,exercises:indices.map(i=>clone(library[i])),history:[]});
 const initial=()=>({schema:'gym-tracker-pro',version:1,programs:[program('Göğüs + Arka Kol',[0,1,2,3,4,5]),program('Sırt + Ön Kol',[6,7,8,9]),program('Omuz + Bacak',[10,11,12,13])],active:0,library:clone(library),days:{},profile:{name:window.gymAccount.user.user_metadata?.full_name||'Sporcu',goal:'Düzenli ve güçlü',weight:'',height:''},settings:{theme:'light',unit:'kg',week:'monday'},bodyweights:[]});
 let state,storageError=false;try{state=JSON.parse(localStorage.getItem(KEY))||initial();if(state.schema!=='gym-tracker-pro')throw Error();}catch{state=initial();storageError=true;}
@@ -97,7 +134,7 @@ function toast(s){$('toast').textContent=s;$('toast').style.display='block';clea
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 const labels=[['calendar','▦','Takvim'],['workout','◈','Antrenman'],['progress','↗','İlerleme'],['programs','☷','Programlar']];
 function go(t){tab=t;render();window.scrollTo(0,0)}
-function render(){document.body.classList.toggle('dark',state.settings.theme==='dark'||state.settings.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
+function render(){extendExerciseLibrary();document.body.classList.toggle('dark',state.settings.theme==='dark'||state.settings.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
 const nav=labels.map(([id,icon,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${icon}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();}
 const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
 const allWork=()=>Object.entries(state.days).filter(([,d])=>d.kind==='workout');
