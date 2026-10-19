@@ -15,7 +15,8 @@ Deno.serve(async(req:Request)=>{
   const {data:auth,error:authError}=await service.auth.getUser(token);
   if(authError||!auth.user)return reply(401,{error:'Oturum geçersiz.'});
   const profile=await service.from('profiles').select('role').eq('id',auth.user.id).single();
-  if(profile.error||profile.data?.role!=='admin')return reply(403,{error:'Bu işlem yalnızca yöneticiye açık.'});
+  if(profile.error)return reply(503,{error:'Üye servisi yönetici profilini okuyamadı. Profil tablosunun servis izinleri kontrol edilmeli.'});
+  if(profile.data?.role!=='admin')return reply(403,{error:'Bu işlem yalnızca yöneticiye açık.'});
   let body;try{body=await req.json();}catch{return reply(400,{error:'Geçersiz istek.'});}
   if(body.action==='list'){
    const profiles=await service.from('profiles').select('id').eq('role','member');
@@ -35,7 +36,17 @@ Deno.serve(async(req:Request)=>{
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||!fullName||fullName.length>100)return reply(400,{error:'Geçerli ad ve e-posta gerekli.'});
   // Role is fixed on the server. The request cannot grant admin or coach access.
   const invite=await service.auth.admin.inviteUserByEmail(email,{redirectTo:'https://kaanaydin48.github.io/Gym/login.html',data:{full_name:fullName}});
-  if(invite.error||!invite.data.user)return reply(400,{error:'Davet gönderilemedi. Hesap zaten mevcut olabilir veya e-posta gönderim sınırına ulaşılmış olabilir.'});
+  if(invite.error){
+   const messages:Record<string,string>={
+    email_exists:'Bu e-posta adresi zaten kayıtlı. Üye giriş ekranını kullanabilir.',
+    user_already_exists:'Bu e-posta adresi zaten kayıtlı. Üye giriş ekranını kullanabilir.',
+    over_email_send_rate_limit:'E-posta gönderim sınırına ulaşıldı. Bir süre sonra tekrar dene.',
+    email_address_not_authorized:'E-posta servisi bu alıcıya gönderime izin vermiyor. Supabase için özel SMTP kurulumu gerekli.',
+    email_address_invalid:'E-posta adresi geçerli değil. Adresi kontrol et.'
+   };
+   return reply(invite.error.status===429?429:400,{error:messages[invite.error.code||'']||'Davet e-postası gönderilemedi. E-posta servisinin SMTP ayarlarını kontrol et.'});
+  }
+  if(!invite.data.user)return reply(503,{error:'Davet yanıtında üye bilgisi alınamadı.'});
   const saved=await service.from('profiles').upsert({id:invite.data.user.id,role:'member',display_name:fullName,coach_id:auth.user.id},{onConflict:'id'});
   if(saved.error)return reply(503,{error:'Davet gönderildi ancak üye profili hazırlanamadı. Yönetici Supabase profil kaydını tamamlamalı.'});
   return reply(200,{ok:true});

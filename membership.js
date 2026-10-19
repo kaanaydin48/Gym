@@ -3,7 +3,19 @@ const memberEscape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt
 function membershipCard(){const a=window.gymAccount;return `<section class="card"><h2>Üyelik hesabım</h2><p>${memberEscape(a.user.email)}</p><span class="badge">${{admin:'Yönetici',coach:'Koç',member:'Üye'}[a.role]}</span><p>Oturumun doğrulandı. Antrenman kayıtların Antrenmanı kaydet düğmesiyle hesabına özel bulut alanına yazılır. Aynı hesapla diğer cihazlarından ulaşabilirsin.</p>${a.role==='admin'?'<button onclick="openMembers()">Üye yönetimi</button> <button class="secondary" onclick="importLegacyAccount()">Eski cihaz kayıtlarımı aktar</button>':''}<button class="secondary" onclick="membershipSignOut()">Çıkış yap</button></section>`;}
 async function membershipSignOut(){if(typeof saving!=='undefined'&&saving){toast('Kayıt işleminin bitmesini bekle.');return;}if(typeof dirty!=='undefined'&&(dirty||draft)&&!confirm('Kaydedilmemiş değişiklikler var. Kaydetmeden çıkılsın mı?'))return;const {error}=await gymAccount.client.auth.signOut();if(error)toast('Çıkış yapılamadı. Tekrar dene.');}
 function importLegacyAccount(){try{const raw=localStorage.getItem('gym-tracker-pro-v1');if(!raw){toast('Bu cihazda eski kayıt bulunamadı.');return;}pending=validateBackup(JSON.parse(raw));previewImport();}catch{toast('Eski kayıt okunamadı. JSON yedeğini kullan.');}}
-async function memberRequest(body){const {data,error}=await gymAccount.client.functions.invoke('invite-member',{body});if(error)throw Error('Üye servisine erişilemedi. Supabase invite-member fonksiyonu kurulumunu ve oturumunu kontrol et.');if(data?.error)throw Error(data.error);return data;}
+async function memberRequest(body){
+ const {data,error}=await gymAccount.client.functions.invoke('invite-member',{body});
+ if(error){
+  let detail;try{detail=await error.context?.json();}catch{}
+  if(typeof detail?.error==='string')throw Error(detail.error);
+  const status=error.context?.status;
+  if(status===401)throw Error('Oturumun sona ermiş olabilir. Girdilerini kaydet, yeniden giriş yap ve tekrar dene.');
+  if(status===403)throw Error('Üye yönetimi için yönetici yetkisi gerekli.');
+  if(status===429)throw Error('Çok fazla istek gönderildi. Bir süre sonra tekrar dene.');
+  throw Error('Üye servisine bağlanılamadı. İnternet bağlantını kontrol edip tekrar dene.');
+ }
+ if(data?.error)throw Error(data.error);return data;
+}
 function openMembers(){
  if(gymAccount.role!=='admin')return;
  show(`<h2>Üye yönetimi</h2><p>Yeni üyeler yalnızca e-posta davetiyle katılır.</p><form id="memberInvite"><label>Ad soyad<input name="fullName" required maxlength="100" autocomplete="name"></label><label>E-posta<input name="email" type="email" required maxlength="254" autocomplete="email"></label><button type="submit">Üye daveti gönder</button></form><p id="memberStatus" role="status"></p><h3>Üyeler</h3><input id="memberSearch" placeholder="Ad veya e-posta ara" aria-label="Üye ara"><div id="memberList">Yükleniyor…</div><button type="button" id="refreshMembers" class="secondary">Listeyi yenile</button>`);
