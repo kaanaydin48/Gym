@@ -119,7 +119,7 @@ async function saveAll(){
   return true;
  }catch(e){
   dirty=true;
-  cloudMessage=String(e.message).includes('GYM_CONFLICT')?'Başka cihazda yeni kayıt var. Bulutu yeniden kontrol et ve kayıtları birleştir.':'Bulut kaydı doğrulanamadı. Cihaz kopyası korunuyor; yeniden dene.';
+  cloudMessage=String(e.message).includes('GYM_CONFLICT')?'Başka cihazda yeni kayıt var. Bulutu yeniden kontrol et ve kayıtları birleştir.':/PROGRAM_LOCKED|ASSIGNMENT_REQUIRED|PROGRAM_INACTIVE|ASSIGNED_ONLY/.test(String(e.message))?'Program ataman değişmiş veya program yapısı geçersiz. Girdilerin cihazda korunuyor. Programları yenile ve koçunla kontrol et.':'Bulut kaydı doğrulanamadı. Cihaz kopyası korunuyor; yeniden dene.';
   toast(cloudMessage);return false;
  }finally{saving=false;updateSaveStatus();}
 }

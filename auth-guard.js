@@ -14,7 +14,10 @@
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
   await load('./membership.js?v=invite-3');
   await load('./motion.js?v=2');
-  await load('./app.js?v=library-2');
+  await load('./app.js?v=coach-1');
+  await load('./program-access.js?v=1');
+  await load('./coach-dashboard.js?v=1');
+  const coachStyle=document.createElement('link');coachStyle.rel='stylesheet';coachStyle.href='./coach-dashboard.css?v=1';document.head.append(coachStyle);
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
