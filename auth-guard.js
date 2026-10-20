@@ -4,6 +4,11 @@
  document.documentElement.style.visibility='hidden';
  const load=src=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(Error('Uygulama dosyası yüklenemedi.'));document.body.append(s);});
  try{
+  // Preserve email credentials before the SDK consumes/clears the URL.
+  const query=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));
+  if(['code','token_hash','access_token','error','error_description'].some(key=>query.has(key)||hash.has(key))||['invite','recovery'].includes(query.get('type')||hash.get('type'))){
+   location.replace('./login.html'+location.search+location.hash);return;
+  }
   if(!window.supabase)throw Error('Giriş bağlantısı yüklenemedi.');
   const client=window.supabase.createClient('https://aryzgrgjwjdxumbddank.supabase.co','sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837');
   const {data,error}=await client.auth.getUser();

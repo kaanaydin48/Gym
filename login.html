@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#faf8f5"><title>Hesabın · Gym Tracker Pro</title><link rel="stylesheet" href="style.css?v=account-1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#faf8f5"><title>Hesabın · Gym Tracker Pro</title><link rel="stylesheet" href="style.css?v=account-1"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0"></script><style>
 body{min-height:100dvh;display:grid;place-items:center;padding:24px}main{width:100%;max-width:460px;padding:0}.brand{margin-bottom:32px}.card{padding:28px}h1{font-size:30px}input{font-size:16px}button{width:100%}.tabs button{width:auto}.password-row{display:flex;gap:8px;align-items:center}.password-row button{width:auto;margin-top:6px;padding:10px;font-size:12px}a{color:var(--green)}[hidden]{display:none!important}#message{white-space:pre-line;overflow-wrap:anywhere}button:disabled{opacity:.55;cursor:wait}.steps{font-size:13px;line-height:1.8;padding-left:20px}.brand small{color:var(--muted)}
 </style><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=sage-1"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=sage-1"><link rel="manifest" href="manifest.webmanifest?v=sage-1"></head><body><main><div class="brand"><img class="logo" src="icon.png?v=sage-1" alt="Gym Tracker" width="44" height="44"><div>GYM TRACKER<small>PRO / KİŞİSEL ALAN</small></div></div><section class="card"><span class="eyebrow">BİRLİKTE DAHA GÜÇLÜ</span><h1 id="title">Tekrar hoş geldin.</h1><p class="lead" id="intro">Hesabına giriş yap ve antrenman yolculuğuna devam et.</p><div class="tabs" id="tabs"><button id="loginTab" type="button">Giriş yap</button><button id="inviteTab" type="button" class="secondary">Davetle kayıt</button></div>
 <form id="accountForm" hidden><label id="nameLabel" hidden>Ad soyad<input id="fullName" autocomplete="name" maxlength="100"></label><label>E-posta<input id="email" type="email" autocomplete="email" required></label><label id="passwordLabel">Şifre<div class="password-row"><input id="password" type="password" autocomplete="current-password" required><button id="togglePassword" type="button" class="secondary" aria-label="Şifreyi göster">Göster</button></div></label><label id="confirmLabel" hidden>Şifre tekrar<input id="confirmPassword" type="password" autocomplete="new-password"></label><button id="submitButton" type="submit">Giriş yap</button></form>
@@ -9,6 +9,16 @@ body{min-height:100dvh;display:grid;place-items:center;padding:24px}main{width:1
 'use strict';
 const el=id=>document.getElementById(id);
 let client,mode='login',verifiedUser=null,busy=false;
+const flowKey='gym-password-flow';
+function rememberFlow(type,user){try{sessionStorage.setItem(flowKey,JSON.stringify({type,id:user.id,at:Date.now()}));}catch{}}
+function forgetFlow(){try{sessionStorage.removeItem(flowKey);}catch{}}
+function rememberedFlow(user){try{const f=JSON.parse(sessionStorage.getItem(flowKey));return f&&f.id===user.id&&Date.now()-f.at<3600000&&['invite','recovery'].includes(f.type)?f.type:null;}catch{return null;}}
+async function passwordView(type){
+ const {data,error}=await client.auth.getUser();
+ if(error||!data.user)throw Error('Bağlantının oturumu sona ermiş. Yeni bir şifre yenileme bağlantısı iste.');
+ verifiedUser=data.user;rememberFlow(type,data.user);view(type==='invite'?'complete':'reset');
+ el('email').value=data.user.email||'';el('fullName').value=data.user.user_metadata?.full_name||'';
+}
 const callback=new URL('./login.html',location.href).href;
 function message(text){el('message').textContent=text;}
 function view(next){
@@ -18,7 +28,7 @@ function view(next){
  el('email').readOnly=['complete','reset'].includes(next);el('passwordLabel').hidden=next==='forgot';el('password').required=next!=='forgot';
  const setting=['complete','reset'].includes(next);el('password').minLength=setting?10:1;el('password').autocomplete=setting?'new-password':'current-password';
  el('confirmLabel').hidden=!setting;el('confirmPassword').required=setting;
- el('forgot').hidden=next!=='login';el('back').hidden=!['forgot','invite'].includes(next);el('signOut').hidden=!['complete','reset','account'].includes(next);
+ el('forgot').hidden=!['login','invite','account'].includes(next);el('back').hidden=!['forgot','invite'].includes(next);el('signOut').hidden=!['complete','reset','account'].includes(next);
  el('title').textContent=({login:'Tekrar hoş geldin.',invite:'Ekibine katıl.',complete:'Hesabını tamamla.',reset:'Yeni şifreni belirle.',forgot:'Şifreni yenile.',account:'Hesabın hazır.'})[next];
  el('intro').textContent=({login:'E-posta adresin ve şifrenle giriş yap.',invite:'Kayıt, koçunun gönderdiği e-posta davetiyle açılır.',complete:'En az 10 karakterli bir şifre belirle.',reset:'En az 10 karakterli yeni bir şifre belirle.',forgot:'Şifre yenileme bağlantısı için e-posta adresini yaz.',account:'Hesap durumunu aşağıda görebilirsin.'})[next];
  el('submitButton').textContent=({login:'Giriş yap',complete:'Kaydı tamamla',reset:'Şifreyi güncelle',forgot:'Yenileme bağlantısı gönder'})[next]||'Devam et';
@@ -27,14 +37,16 @@ async function account(){
  const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Oturum doğrulanamadı. Tekrar giriş yap.');
  verifiedUser=data.user;const result=await client.from('profiles').select('role').eq('id',data.user.id).single();
  view('account');
- if(result.error||!result.data){message('Hesabın doğrulandı. Profil yetkilerin henüz hazır değil; koçunla iletişime geç.');return;}
+ const passwordButton=document.createElement('button');passwordButton.type='button';passwordButton.className='secondary';passwordButton.textContent='Şifre oluştur / değiştir';passwordButton.onclick=()=>passwordView('recovery').catch(error=>message(error.message));
+ if(result.error||!result.data){message('Hesabın doğrulandı. Profil yetkilerin henüz hazır değil; koçunla iletişime geç.');el('message').append(passwordButton);return;}
  const role=result.data.role;
  if(['admin','coach','member'].includes(role)){message(({admin:'Yönetici',coach:'Koç',member:'Üye'})[role]+' girişi başarılı.');const a=document.createElement('a');a.href='./index.html';a.textContent='Antrenman panelini aç →';el('message').append(document.createElement('br'),a);}
  else message('Hesap yetkin tanımlanmamış. Yöneticinle iletişime geç.');
+ el('message').append(document.createElement('br'),passwordButton);
 }
 el('loginTab').onclick=()=>view('login');el('inviteTab').onclick=()=>view('invite');el('back').onclick=()=>view('login');el('forgot').onclick=()=>view('forgot');
 el('togglePassword').onclick=()=>{const show=el('password').type==='password';el('password').type=show?'text':'password';el('togglePassword').textContent=show?'Gizle':'Göster';el('togglePassword').setAttribute('aria-label',show?'Şifreyi gizle':'Şifreyi göster');};
-el('signOut').onclick=async()=>{el('signOut').disabled=true;try{const {error}=await client.auth.signOut();if(error)throw error;verifiedUser=null;el('password').value='';el('confirmPassword').value='';view('login');}catch{message('Çıkış yapılamadı. Tekrar dene.');}finally{el('signOut').disabled=false;}};
+el('signOut').onclick=async()=>{if(busy)return;el('signOut').disabled=true;try{const {error}=await client.auth.signOut();if(error)throw error;verifiedUser=null;forgetFlow();el('password').value='';el('confirmPassword').value='';view('login');}catch{message('Çıkış yapılamadı. Tekrar dene.');}finally{el('signOut').disabled=false;}};
 el('accountForm').onsubmit=async event=>{
  event.preventDefault();if(busy||!client)return;const submittedMode=mode;
  if(['complete','reset'].includes(mode)&&el('password').value!==el('confirmPassword').value){message('Şifreler eşleşmiyor.');return;}
@@ -43,7 +55,7 @@ el('accountForm').onsubmit=async event=>{
  try{
   if(mode==='login'){const {error}=await client.auth.signInWithPassword({email:el('email').value.trim(),password:el('password').value});if(error)throw Error('Giriş yapılamadı. E-posta ve şifreni kontrol et.');await account();}
   else if(mode==='forgot'){const {error}=await client.auth.resetPasswordForEmail(el('email').value.trim(),{redirectTo:callback});if(error)throw Error('Bağlantı gönderilemedi. Biraz sonra tekrar dene.');message('Bu adresle bir hesap varsa yenileme bağlantısı gönderildi. Gelen kutunu ve spam klasörünü kontrol et.');}
-  else {const check=await client.auth.getUser();if(check.error||!verifiedUser||check.data.user?.id!==verifiedUser.id)throw Error('Bağlantının oturumu sona ermiş. Yeni bir bağlantı iste.');const attributes={password:el('password').value};if(mode==='complete')attributes.data={full_name:el('fullName').value.trim()};const {error}=await client.auth.updateUser(attributes);if(error)throw Error('Kaydedilemedi. Şifrenin koşullarını ve bağlantını kontrol edip tekrar dene.');await account();el('message').prepend(document.createTextNode(submittedMode==='complete'?'Kaydın tamamlandı. ':'Şifren güncellendi. '));}
+  else {const check=await client.auth.getUser();if(check.error||!verifiedUser||check.data.user?.id!==verifiedUser.id)throw Error('Bağlantının oturumu sona ermiş. Yeni bir bağlantı iste.');const attributes={password:el('password').value};if(mode==='complete')attributes.data={full_name:el('fullName').value.trim()};const {error}=await client.auth.updateUser(attributes);if(error)throw Error('Kaydedilemedi. Şifrenin koşullarını ve bağlantını kontrol edip tekrar dene.');forgetFlow();await account();el('message').prepend(document.createTextNode(submittedMode==='complete'?'Kaydın tamamlandı. ':'Şifren güncellendi. '));}
   el('password').value='';el('confirmPassword').value='';
  }catch(error){message(error.message);}finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);}
 };
@@ -51,15 +63,32 @@ el('accountForm').onsubmit=async event=>{
  view('login');
  try{
  if(!window.supabase)throw Error('Bağlantı kütüphanesi yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
- const hash=new URLSearchParams(location.hash.slice(1)),query=new URLSearchParams(location.search),type=hash.get('type')||query.get('type');
+ const hash=new URLSearchParams(location.hash.slice(1)),query=new URLSearchParams(location.search);let type=hash.get('type')||query.get('type');
  const linkError=hash.get('error')||query.get('error');
- client=window.supabase.createClient('https://aryzgrgjwjdxumbddank.supabase.co','sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837');
- const session=await client.auth.getSession();history.replaceState(null,'',location.pathname);
- if(linkError||session.error)throw Error('Bağlantı geçersiz veya süresi dolmuş. Koçundan yeni davet iste; şifre için Şifremi unuttum seçeneğini kullan.');
+ client=window.supabase.createClient('https://aryzgrgjwjdxumbddank.supabase.co','sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837',{auth:{detectSessionInUrl:false,flowType:'implicit'}});
+ // Explicitly exchange credentials; never fall back to an unrelated stored session on a bad link.
+ history.replaceState(null,'',location.pathname);
+ if(linkError)throw Error('Bağlantı geçersiz veya süresi dolmuş. Şifremi unuttum seçeneğiyle yeni bağlantı iste.');
+ let result=null;
+ if(query.has('token_hash')){
+  if(!['invite','recovery'].includes(type))throw Error('Bu bağlantı türü desteklenmiyor. Yeni bir davet veya şifre bağlantısı iste.');
+  result=await client.auth.verifyOtp({token_hash:query.get('token_hash'),type});
+ }else if(query.has('code')){
+  result=await client.auth.exchangeCodeForSession(query.get('code'));
+  if(result.data?.redirectType==='recovery')type='recovery';
+ }else if(hash.has('access_token')||hash.has('refresh_token')){
+  if(!hash.get('access_token')||!hash.get('refresh_token'))throw Error('Bağlantı eksik. E-postandaki bağlantıyı yeniden aç.');
+  result=await client.auth.setSession({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token')});
+ }
+ if(result?.error)throw Error('Bağlantı doğrulanamadı veya daha önce kullanıldı. Şifremi unuttum seçeneğiyle yeni bağlantı iste.');
+ const session=await client.auth.getSession();if(session.error)throw Error('Oturum açılamadı. Yeniden giriş yap.');
  if(['invite','recovery'].includes(type)){
- const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Bağlantı doğrulanamadı. Yeni bir davet veya şifre yenileme bağlantısı iste.');
- verifiedUser=data.user;el('email').value=data.user.email||'';view(type==='invite'?'complete':'reset');
- }else if(session.data.session)await account();
+  if(!result)throw Error('Bağlantıda doğrulama bilgisi yok. E-postandaki bağlantıyı yeniden aç.');
+  await passwordView(type);
+ }else if(session.data.session){
+  const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Oturum doğrulanamadı.');
+  const pending=rememberedFlow(data.user);if(pending)await passwordView(pending);else if(query.get('action')==='forgot')view('forgot');else await account();
+ }else if(query.get('action')==='forgot')view('forgot');
  }catch(error){message(error.message);}
 })();
 </script></body></html>
