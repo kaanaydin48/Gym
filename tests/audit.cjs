@@ -6,7 +6,7 @@ function boot(storage=new Map(),options={}){
  const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',style:{},hidden:false,open:false,textContent:'',innerHTML:'',classList:{toggle(){}},addEventListener(){},setAttribute(){},removeAttribute(){},querySelector(){return element(id+' child')},querySelectorAll(){return []},closest(){return element('row')},showModal(){this.open=true},close(){this.open=false},click(){}});return elements.get(id)};
  const ctx={console,crypto:webcrypto,Date,Map,Set,JSON,Math,Number,String,Array,Object,RegExp,Error,Promise,Blob,URL,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,confirm:()=>true,matchMedia:()=>({matches:false}),document:{getElementById:element,querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:{classList:{toggle(){}}},createElement:element},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{getItem:()=>null,setItem(){}},gymAccount:{user:{id:'audit-user',email:'audit@example.invalid',user_metadata:{}},role:'admin',client},addEventListener(){},scrollTo(){}};ctx.window=ctx;
  Object.assign(ctx.gymAccount,options);
- vm.createContext(ctx);for(const f of ['membership.js','motion.js','app.js','program-access.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
+ vm.createContext(ctx);for(const f of ['membership.js','motion.js','app.js','program-access.js','coach-dashboard.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
 }
 module.exports={boot};
 if(require.main===module)(async()=>{

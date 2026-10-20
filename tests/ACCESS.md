@@ -2,6 +2,14 @@
 
 Status: implementation branch, NOT deployed. Production Auth, schema, data and main are unchanged.
 
+## 20 October continuation / deployment block
+
+The coach dashboard is now implemented: member search, active/inactive tracking filters, pending invitations from Auth confirmation state, last workout, active program count, restricted profile details, calendar, kg/reps/RIR, external/bodyweight volume, PRs and private coach notes. Activity status labels tracking only; it does not ban Auth access. The existing invitation resend/cancellation/expiry feature is still outstanding.
+
+All four local suites passed, including 68 actual PostgreSQL/PGlite assertions. A private pre-deployment backup was added to the migration. Production preflight still found 4 workout rows and 1 snapshot, with unchanged checksums from the audit.
+
+The user authorized live publication without further confirmation. However, automatic approval review rejected the production `member_program_access` migration: broad RLS/grant/RPC changes and member-snapshot changes without hosted E2E evidence were judged insufficiently controlled. No migration or frontend release was applied. Do not bypass this block by issuing the same SQL through another endpoint or splitting it to evade review. A real staging verification and a fresh authorized deployment review remain necessary.
+
 ## Behavior
 
 - Members load active assignments joined to active programs. No assignments gives `Henüz antrenman programı atanmadı`. A network error gives an error/retry state, never personal/default programs.

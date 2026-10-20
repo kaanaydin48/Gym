@@ -1,1 +1,1 @@
-{"private":true,"scripts":{"test":"node tests/audit.cjs && node tests/member-access.cjs && node tests/rls.mjs"},"devDependencies":{"@electric-sql/pglite":"0.5.10"}}
+{"private":true,"scripts":{"test":"node tests/audit.cjs && node tests/member-access.cjs && node tests/coach-dashboard.cjs && node tests/rls.mjs"},"devDependencies":{"@electric-sql/pglite":"0.5.10"}}

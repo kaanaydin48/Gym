@@ -4,6 +4,19 @@ begin;
 create schema if not exists gym_private;
 revoke all on schema gym_private from public,anon;
 grant usage on schema gym_private to authenticated;
+-- Recoverable, private pre-deployment snapshot. Contains no Auth credentials.
+create table gym_private.access_deployment_backup(id text primary key, saved_at timestamptz not null default now(),payload jsonb not null);
+alter table gym_private.access_deployment_backup enable row level security;
+revoke all on gym_private.access_deployment_backup from public,anon,authenticated;
+insert into gym_private.access_deployment_backup(id,payload) select 'before_member_access',jsonb_build_object(
+ 'profiles',(select jsonb_agg(to_jsonb(t)) from public.profiles t),
+ 'programs',(select jsonb_agg(to_jsonb(t)) from public.programs t),
+ 'assignments',(select jsonb_agg(to_jsonb(t)) from public.assignments t),
+ 'workout_logs',(select jsonb_agg(to_jsonb(t)) from public.workout_logs t),
+ 'snapshots',(select jsonb_agg(to_jsonb(t)) from public.gym_account_state t),
+ 'save_function',pg_get_functiondef('public.save_gym_state(jsonb,bigint)'::regprocedure),
+ 'policies',(select jsonb_agg(to_jsonb(t)) from pg_policies t where schemaname='public'),
+ 'grants',(select jsonb_agg(to_jsonb(t)) from information_schema.role_table_grants t where table_schema='public'));
 
 alter table public.profiles drop constraint profiles_role_check;
 alter table public.profiles add constraint profiles_role_check check(role in ('admin','coach','member'));
