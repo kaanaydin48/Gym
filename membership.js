@@ -41,7 +41,8 @@ async function refreshMembers(){
  try{
   const result=await memberRequest({action:'list'});
   if(!target.isConnected||request!==memberListRequest)return;
-  const members=result.members||[];
+  if(!result||!Array.isArray(result.members)||!result.members.every(m=>m&&typeof m==='object'&&!Array.isArray(m)))throw Error('Üye listesi beklenmeyen biçimde geldi.');
+  const members=result.members;
   const renderList=()=>{
    const rows=filterMemberDirectory(members,search.value,filter.value);
    const joined=members.filter(m=>m.active).length;
