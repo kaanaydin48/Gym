@@ -135,7 +135,7 @@ function toast(s){$('toast').textContent=s;$('toast').style.display='block';clea
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 const labels=[['calendar','▦','Takvim'],['workout','◈','Antrenman'],['progress','↗','İlerleme'],['programs','☷','Programlar']];
 function go(t){tab=t;render();window.scrollTo(0,0)}
-const themeOptions=[['sage','Adaçayı','#34745b','#eaf3ed'],['cobalt','Kobalt','#3267d6','#eaf0ff'],['lavender','Lavanta','#7957b8','#f0ebfa'],['orange','Sıcak Turuncu','#d67a35','#fff0e3'],['cream','Beyaz–Krem','#e7d9c5','#fffdf8'],['dark','Koyu','#222831','#8bd5b0']];
+const themeOptions=[['sage','Adaçayı','#c4d8ca','#eef4ef'],['cobalt','Kobalt','#c8d6ed','#eef2f8'],['lavender','Lavanta','#dbcee7','#f4eff7'],['orange','Sıcak Turuncu','#f0d0b3','#faf1e8'],['cream','Beyaz–Krem','#eee4d3','#f6f1e8'],['dark','Koyu','#afc8b9','#37433d']];
 function currentTheme(){
  let choice=state.settings.theme;
  try{choice=localStorage.getItem(KEY+':theme')||choice;}catch{}
