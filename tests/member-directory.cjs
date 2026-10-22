@@ -17,8 +17,10 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('membership.js','utf8'
  assert.doesNotMatch(elements.memberList.innerHTML,/Kaan/);
  elements.memberSearch.value='missing';elements.memberSearch.oninput();
  assert.match(elements.memberList.innerHTML,/uygun üye bulunamadı/);
- const failed=context.refreshMembers();requests[2]({error:{}});await failed;
+ const invalid=context.refreshMembers();requests[2]({data:{members:{unexpected:true}}});await invalid;
+ assert.match(elements.memberList.textContent,/beklenmeyen biçimde/);
+ const failed=context.refreshMembers();requests[3]({error:{}});await failed;
  assert.match(elements.memberList.textContent,/tekrar deneyebilirsin/);
- context.gymAccount.role='member';await context.refreshMembers();assert.equal(requests.length,3);
+ context.gymAccount.role='member';await context.refreshMembers();assert.equal(requests.length,4);
  console.log('PASS: directory filters, Turkish search, escaping, stale responses, empty states, retry and role guard');
 })().catch(e=>{console.error(e);process.exit(1)});
