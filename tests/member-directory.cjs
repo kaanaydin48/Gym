@@ -1,0 +1,26 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const elements={};for(const id of ['memberList','memberSearch','memberFilter','memberCounts'])elements[id]={isConnected:true,value:id==='memberFilter'?'all':'',textContent:'',innerHTML:''};
+const requests=[];const context={document:{getElementById:id=>elements[id]},gymAccount:{role:'admin',client:{functions:{invoke:()=>new Promise(resolve=>requests.push(resolve))}}}};
+vm.createContext(context);vm.runInContext(fs.readFileSync('membership.js','utf8'),context);
+(async()=>{
+ const members=[{fullName:'İpek <img>',email:'ipek@example.invalid',active:false},{fullName:'Kaan Aydın',email:'kaan@example.invalid',active:true}];
+ assert.equal(context.filterMemberDirectory(members,' ipek ','pending').length,1);
+ assert.equal(context.filterMemberDirectory(members,'KAAN AYDIN','joined').length,1);
+ assert.equal(context.filterMemberDirectory(members,'kaan','pending').length,0);
+ const first=context.refreshMembers(),second=context.refreshMembers();
+ requests[1]({data:{members}});await second;
+ assert.match(elements.memberCounts.textContent,/2 üye/);
+ assert.match(elements.memberList.innerHTML,/&lt;img&gt;/);
+ requests[0]({data:{members:[]}});await first;
+ assert.match(elements.memberCounts.textContent,/2 üye/,'Late response must not replace current results');
+ elements.memberFilter.value='pending';elements.memberFilter.onchange();
+ assert.doesNotMatch(elements.memberList.innerHTML,/Kaan/);
+ elements.memberSearch.value='missing';elements.memberSearch.oninput();
+ assert.match(elements.memberList.innerHTML,/uygun üye bulunamadı/);
+ const invalid=context.refreshMembers();requests[2]({data:{members:{unexpected:true}}});await invalid;
+ assert.match(elements.memberList.textContent,/beklenmeyen biçimde/);
+ const failed=context.refreshMembers();requests[3]({error:{}});await failed;
+ assert.match(elements.memberList.textContent,/tekrar deneyebilirsin/);
+ context.gymAccount.role='member';await context.refreshMembers();assert.equal(requests.length,4);
+ console.log('PASS: directory filters, Turkish search, escaping, stale responses, empty states, retry and role guard');
+})().catch(e=>{console.error(e);process.exit(1)});

@@ -18,9 +18,37 @@ async function memberRequest(body){
 }
 function openMembers(){
  if(gymAccount.role!=='admin')return;
- show(`<h2>Üye yönetimi</h2><p>Yeni üyeler yalnızca e-posta davetiyle katılır.</p><form id="memberInvite"><label>Ad soyad<input name="fullName" required maxlength="100" autocomplete="name"></label><label>E-posta<input name="email" type="email" required maxlength="254" autocomplete="email"></label><button type="submit">Üye daveti gönder</button></form><p id="memberStatus" role="status"></p><h3>Üyeler</h3><input id="memberSearch" placeholder="Ad veya e-posta ara" aria-label="Üye ara"><div id="memberList">Yükleniyor…</div><button type="button" id="refreshMembers" class="secondary">Listeyi yenile</button>`);
+ show(`<h2>Üye yönetimi</h2><p>Yeni üyeler yalnızca e-posta davetiyle katılır.</p><form id="memberInvite"><label>Ad soyad<input name="fullName" required maxlength="100" autocomplete="name"></label><label>E-posta<input name="email" type="email" required maxlength="254" autocomplete="email"></label><button type="submit">Üye daveti gönder</button></form><p id="memberStatus" role="status"></p><h3>Üyeler</h3><p id="memberCounts" role="status"></p><label>Üye ara<input id="memberSearch" placeholder="Ad veya e-posta" type="search"></label><label>Davet durumu<select id="memberFilter"><option value="all">Tüm üyeler</option><option value="pending">Davet bekleyenler</option><option value="joined">Giriş yapmış üyeler</option></select></label><p class="notice">Giriş yapmış olması, üyenin şifre oluşturduğunu veya antrenman kaydettiğini göstermez.</p><div id="memberList" aria-live="polite">Yükleniyor…</div><button type="button" id="refreshMembers" class="secondary">Listeyi yenile</button>`);
  const form=document.getElementById('memberInvite');
  form.onsubmit=async event=>{event.preventDefault();const button=form.querySelector('button');if(button.disabled)return;const fullName=form.elements.fullName.value.trim(),email=form.elements.email.value.trim().toLowerCase();if(!fullName){document.getElementById('memberStatus').textContent='Ad soyad gerekli.';return;}button.disabled=true;document.getElementById('memberStatus').textContent='Davet gönderiliyor…';try{await memberRequest({action:'invite',fullName,email});form.reset();document.getElementById('memberStatus').textContent='Davet gönderildi. Üye e-postasındaki bağlantıyla kaydını tamamlayabilir.';await refreshMembers();}catch(e){document.getElementById('memberStatus').textContent=e.message;}finally{button.disabled=false;}};
  document.getElementById('refreshMembers').onclick=refreshMembers;refreshMembers();
 }
-async function refreshMembers(){const target=document.getElementById('memberList');if(!target)return;target.textContent='Yükleniyor…';try{const result=await memberRequest({action:'list'});const renderList=()=>{const q=document.getElementById('memberSearch').value.toLocaleLowerCase('tr');const rows=(result.members||[]).filter(m=>(m.fullName+' '+m.email).toLocaleLowerCase('tr').includes(q));target.innerHTML=rows.map(m=>`<div class="list-item"><strong>${memberEscape(m.fullName||'İsimsiz üye')}</strong><p>${memberEscape(m.email)}</p><span class="badge">${m.active?'Giriş yaptı':'Davet bekliyor'}</span></div>`).join('')||'<p>Üye bulunamadı.</p>';};if(!target.isConnected)return;document.getElementById('memberSearch').oninput=renderList;renderList();}catch(e){target.textContent=e.message;}}
+let memberListRequest=0;
+function filterMemberDirectory(members,query,status){
+ const normalize=value=>String(value??'').normalize('NFC').toLocaleLowerCase('tr').trim();
+ const terms=normalize(query).split(/\s+/).filter(Boolean);
+ return members.filter(m=>{
+  const text=normalize((m.fullName||'')+' '+(m.email||''));
+  return terms.every(term=>text.includes(term))&&(status==='pending'?!m.active:status==='joined'?!!m.active:true);
+ }).sort((a,b)=>String(a.fullName||a.email||'').localeCompare(String(b.fullName||b.email||''),'tr'));
+}
+async function refreshMembers(){
+ if(gymAccount.role!=='admin')return;
+ const target=document.getElementById('memberList'),search=document.getElementById('memberSearch'),filter=document.getElementById('memberFilter'),counts=document.getElementById('memberCounts');
+ if(!target||!search||!filter||!counts)return;
+ const request=++memberListRequest;
+ target.textContent='Yükleniyor…';counts.textContent='';search.oninput=null;filter.onchange=null;
+ try{
+  const result=await memberRequest({action:'list'});
+  if(!target.isConnected||request!==memberListRequest)return;
+  if(!result||!Array.isArray(result.members)||!result.members.every(m=>m&&typeof m==='object'&&!Array.isArray(m)))throw Error('Üye listesi beklenmeyen biçimde geldi.');
+  const members=result.members;
+  const renderList=()=>{
+   const rows=filterMemberDirectory(members,search.value,filter.value);
+   const joined=members.filter(m=>m.active).length;
+   counts.textContent=`${members.length} üye · ${members.length-joined} davet bekliyor · ${joined} giriş yapmış · ${rows.length} gösteriliyor`;
+   target.innerHTML=rows.map(m=>`<div class="list-item"><strong>${memberEscape(m.fullName||'İsimsiz üye')}</strong><p>${memberEscape(m.email)}</p><span class="badge">${m.active?'Giriş yaptı':'Davet bekliyor'}</span></div>`).join('')||(members.length?'<p>Arama ve filtreye uygun üye bulunamadı.</p>':'<p>Henüz üye yok. Yukarıdaki formdan ilk üyeni davet edebilirsin.</p>');
+  };
+  search.oninput=renderList;filter.onchange=renderList;renderList();
+ }catch(e){if(target.isConnected&&request===memberListRequest){target.textContent=e.message+' Listeyi yenile düğmesiyle tekrar deneyebilirsin.';}}
+}
