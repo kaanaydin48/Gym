@@ -26,11 +26,12 @@ function view(next){
 async function account(){
  const {data,error}=await client.auth.getUser();if(error||!data.user)throw Error('Oturum doğrulanamadı. Tekrar giriş yap.');
  verifiedUser=data.user;const result=await client.from('profiles').select('role').eq('id',data.user.id).single();
+ if(!result.error&&['admin','coach','member'].includes(result.data?.role)){
+  location.replace('./index.html');return;
+ }
  view('account');
  if(result.error||!result.data){message('Hesabın doğrulandı. Profil yetkilerin henüz hazır değil; koçunla iletişime geç.');return;}
- const role=result.data.role;
- if(['admin','coach','member'].includes(role)){message(({admin:'Yönetici',coach:'Koç',member:'Üye'})[role]+' girişi başarılı.');const a=document.createElement('a');a.href='./index.html';a.textContent='Antrenman panelini aç →';el('message').append(document.createElement('br'),a);}
- else message('Hesap yetkin tanımlanmamış. Yöneticinle iletişime geç.');
+ message('Hesap yetkin tanımlanmamış. Yöneticinle iletişime geç.');
 }
 el('loginTab').onclick=()=>view('login');el('inviteTab').onclick=()=>view('invite');el('back').onclick=()=>view('login');el('forgot').onclick=()=>view('forgot');
 el('togglePassword').onclick=()=>{const show=el('password').type==='password';el('password').type=show?'text':'password';el('togglePassword').textContent=show?'Gizle':'Göster';el('togglePassword').setAttribute('aria-label',show?'Şifreyi gizle':'Şifreyi göster');};
