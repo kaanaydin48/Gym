@@ -54,3 +54,21 @@ button.exercise-preview:focus-visible{outline:3px solid #55735e;outline-offset:3
  100%{background-position:0% 0%}
 }
 @media(max-width:430px){.exercise-head{grid-template-columns:minmax(0,1fr) 88px;gap:10px}.exercise-head .exercise-media{width:88px}.exercise-head h3{font-size:19px}.exercise-head small{font-size:12px}}
+
+
+/* Compact coach member directory */
+.member-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 10px}
+.member-heading h3{margin:0}
+.member-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:var(--card,#faf8f5);border:1px solid var(--line,#eee8e1);border-radius:16px;padding:14px;margin-bottom:12px}
+.member-stats>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.member-stats small{font-size:12px;color:var(--muted,#777)}
+.member-stats strong{font-size:26px;line-height:1.1}
+.member-counts{font-size:12px;color:var(--muted,#777);margin:0 0 10px}
+.member-search,.member-filter-label{display:block;margin:8px 0;font-size:13px}
+.member-search input,.member-filter-label select{margin-top:5px;min-height:42px;padding:9px 12px}
+.member-hint{font-size:12px;line-height:1.5;color:var(--muted,#777);margin:10px 0}
+.member-row{padding:13px 0!important;margin:0!important;border-bottom:1px solid var(--line,#eee8e1)}
+.member-row-content{min-width:0}
+.member-row strong{display:block;font-size:15px;overflow-wrap:anywhere}
+.member-row p{font-size:12px;margin:3px 0 7px;overflow-wrap:anywhere;color:var(--muted,#777)}
+.member-row .badge{font-size:11px}
