@@ -78,3 +78,5 @@ button.exercise-preview:focus-visible{outline:3px solid #55735e;outline-offset:3
 
 /* Give completed set checkboxes a distinct green accent. */
 .set-grid input[type=checkbox]{accent-color:#008a50}
+
+#workoutSummary #finishWorkoutButton.is-saved{background:#008a50;color:#fff}

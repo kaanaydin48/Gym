@@ -73,7 +73,7 @@ function updateSaveStatus(){
  const notice=$('unsavedNotice');if(notice){notice.hidden=tab==='workout'||(!dirty&&cloudReady);notice.textContent=text;}
  const status=$('allSaveStatus');if(status)status.textContent=text;
  const button=$('saveAllButton');if(button)button.disabled=saving||cloudReconcile;
- const finish=$('finishWorkoutButton');if(finish){finish.disabled=saving;finish.textContent=saving?'Kaydediliyor…':state.days[selected]?.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓';}
+ const finish=$('finishWorkoutButton');if(finish){finish.classList.toggle('is-saved',!!state.days[selected]?.finished&&!dirty&&!saving);finish.disabled=saving;finish.textContent=saving?'Kaydediliyor…':state.days[selected]?.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓';}
  const side=document.querySelector('.side-bottom');if(side)side.textContent=cloudMessage;
 }
 async function initializeCloud(){
@@ -96,7 +96,7 @@ async function initializeCloud(){
  }catch(e){cloudMessage='Bulut okunamadı. Girdiler korunuyor; bağlantını kontrol edip yeniden dene.';cloudReady=false;}
  render();
 }
-async function saveAll(){
+async function saveAll({silentSuccess=false}={}){
  if(saving)return false;
  if(cloudReconcile){previewImport();return false;}
  if(invalidSets.size){const entry=invalidSets.values().next().value;selected=entry.date;go('workout');toast('Geçersiz set değerini düzelt: '+entry.label);return false;}
@@ -116,7 +116,7 @@ async function saveAll(){
   localStorage.setItem(SYNC_KEY,JSON.stringify({pending:false,revision:cloudRevision}));
   dirty=JSON.stringify(state)!==JSON.stringify(snapshot);
   cloudMessage='Buluta kaydedildi ve doğrulandı · rev '+cloudRevision;
-  toast(dirty?'Buluta kaydedildi. İşlem sırasında yaptığın yeni değişiklikleri de kaydet.':'Tüm girdiler buluta kaydedildi ve doğrulandı.');
+  if(!silentSuccess||dirty)toast(dirty?'Buluta kaydedildi. İşlem sırasında yaptığın yeni değişiklikleri de kaydet.':'Tüm girdiler buluta kaydedildi ve doğrulandı.');
   return true;
  }catch(e){
   dirty=true;
@@ -210,9 +210,8 @@ async function finishWorkout(){
  const d=state.days[selected];if(!d||d.kind!=='workout')return false;
  if(!d.finished){d.finished=Date.now();save();}
  stopRest();
- const saved=await saveAll();
+ const saved=await saveAll({silentSuccess:true});
  render();
- if(saved)toast('Antrenman kaydedildi ✓');
  return saved;
 }
 async function confirmFinishWorkout(){return finishWorkout();}
