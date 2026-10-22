@@ -29,6 +29,15 @@ function boot(storage=new Map()){
  a.e('assignProgram').value='0';a.run('assignWorkout()');
  a.run("updateSet(0,0,'kg','30');updateSet(0,0,'reps','8');updateSet(0,0,'rir','2');updateSet(0,0,'done',true)");
  assert.equal(a.run('totals(state.days[selected]).ext'),480);
+ a.run("updateSet(0,1,'done',true)");
+ assert.equal(a.run('state.days[selected].exercises[0].logs[1].done'),true);
+ assert.equal(a.run('state.days[selected].exercises[0].logs[1].kg'),'');
+ assert.equal(a.run('totals(state.days[selected]).sets'),2);
+ assert.equal(a.run('totals(state.days[selected]).ext'),480);
+ assert.ok(a.run('state.days[selected].started'));
+ a.run("updateSet(0,1,'reps','');updateSet(0,1,'kg','')");
+ assert.equal(a.run('state.days[selected].exercises[0].logs[1].done'),true);
+
  a.run("state.days[selected].note='test note';state.profile.name='Audit';save()");
  assert.equal(await a.run('saveAll()'),true);assert.equal(remote.state.profile.name,'Audit');assert.equal(a.run('dirty'),false);
  let b=boot();await b.ctx.gymReady;assert.equal(b.run('state.profile.name'),'Audit');assert.equal(b.run('state.days[selected].exercises[0].logs[0].kg'),30);
@@ -38,7 +47,12 @@ function boot(storage=new Map()){
  assert.equal(JSON.parse(a.storage.get('gym-tracker-pro-v1:audit-user')).profile.name,'Offline');fail=false;
  let c=boot(a.storage);await c.ctx.gymReady;assert.equal(c.run('cloudReconcile'),true);const calls=rpcCalls;assert.equal(await c.run('saveAll()'),false);assert.equal(rpcCalls,calls);c.run('mergeBackup()');assert.equal(await c.run('saveAll()'),true);
  c.run("updateSet(0,0,'rir','11')");assert.equal(await c.run('saveAll()'),false);c.run("updateSet(0,0,'rir','1')");
- c.run('finishWorkout();confirmFinishWorkout()');assert.ok(c.run('state.days[selected].finished'));
+ await c.run('finishWorkout()');assert.ok(c.run('state.days[selected].finished'));
+ assert.ok(remote.state.days[c.run('selected')].finished);
+ fail=true;c.run("updateSet(0,2,'done',true)");assert.equal(await c.run('finishWorkout()'),false);
+ assert.equal(c.run('dirty'),true);fail=false;assert.equal(await c.run('finishWorkout()'),true);
+ assert.equal(remote.state.days[c.run('selected')].exercises[0].logs[2].done,true);
+
  c.run("selectDate('2099-01-01');setRest()");assert.equal(c.run('state.days[selected].kind'),'rest');c.run('removeDay()');assert.equal(c.run('state.days[selected]'),undefined);
  c.run('editProgram(0);moveExercise(0,1);saveProgram();duplicateProgram(0)');for(const t of ['Full Body','Upper','Lower','Push','Pull','Legs'])c.run(`addTemplate('${t}')`);
  c.run("chooseRest(60);startRest();pauseRest();addRestTime();stopRest()");assert.equal(c.run('restTimer.status'),'idle');

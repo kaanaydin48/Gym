@@ -69,10 +69,11 @@ const SYNC_KEY=KEY+':sync';
 const invalidSets=new Map();
 function save(){dirty=true;updateSaveStatus();return true;}
 function updateSaveStatus(){
- const text=saving?'Buluta kaydediliyor…':dirty?'Kaydedilmemiş / buluta gönderilmemiş değişiklikler var. Profil > Antrenmanı kaydet.':cloudMessage;
- const notice=$('unsavedNotice');if(notice){notice.hidden=!dirty&&cloudReady;notice.textContent=text;}
+ const text=saving?'Buluta kaydediliyor…':dirty?'Kaydedilmemiş değişiklikler var.':cloudMessage;
+ const notice=$('unsavedNotice');if(notice){notice.hidden=tab==='workout'||(!dirty&&cloudReady);notice.textContent=text;}
  const status=$('allSaveStatus');if(status)status.textContent=text;
  const button=$('saveAllButton');if(button)button.disabled=saving||cloudReconcile;
+ const finish=$('finishWorkoutButton');if(finish){finish.disabled=saving;finish.textContent=saving?'Kaydediliyor…':state.days[selected]?.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓';}
  const side=document.querySelector('.side-bottom');if(side)side.textContent=cloudMessage;
 }
 async function initializeCloud(){
@@ -175,12 +176,12 @@ function coachProgramCard(){
 function assignment(){return `<section class="card"><h2>Bu günü planla</h2><label>Program<select id="assignProgram">${coachAssignedProgram&&gymAccount.role==='member'?`<option value="coach">${esc(coachAssignedProgram.name)} · Koçumun programı</option>`:''}${state.programs.map((p,i)=>`<option value="${i}" ${i===state.active?'selected':''}>${esc(p.name)} · v${p.version}</option>`).join('')}</select></label><div class="actions"><button onclick="assignWorkout()">Antrenman ata</button><button class="secondary" onclick="setRest()">☾ Dinlenme günü ekle</button></div></section>`}
 function assignWorkout(){const choice=$('assignProgram').value;const p=choice==='coach'&&gymAccount.role==='member'?coachAssignedProgram:state.programs[+choice];if(!p)return;state.days[selected]={id:uid(),kind:'workout',name:p.name,programId:p.id,version:p.version,exercises:p.exercises.map(e=>({...clone(e),logs:Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}))})),started:null,finished:null,note:''};save();render()}
 function setRest(){state.days[selected]={id:uid(),kind:'rest',note:''};save();render()}
-function workoutView(){const d=state.days[selected];let body='';if(!d)body=assignment();else if(d.kind==='rest')body=`<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Takviminde mor renkle işaretlendi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>`;else{const t=totals(d),target=d.exercises.reduce((n,e)=>n+e.logs.length,0);body=`<section class="card hero" id="workoutSummary"><span class="badge">PROGRAM SÜRÜMÜ ${d.version}</span><h2>${esc(d.name)}</h2><small>${t.sets}/${target} set · ${num(kgDisplay(t.ext))} ${state.settings.unit} harici hacim · ${num(kgDisplay(t.body))} ${state.settings.unit} vücut ağırlığı hacmi</small><div class="progress"><div style="width:${target?t.sets/target*100:0}%"></div></div><div class="actions">${!d.finished?'<button onclick="finishWorkout()">Antrenmanı bitir ✓</button>':`<span class="badge">Tamamlandı${d.started?' · '+Math.round((d.finished-d.started)/60000)+' dk':''}</span>`}</div></section>${d.exercises.map((e,i)=>`<section class="card"><div class="exercise-head"><div><span class="eyebrow">${String(i+1).padStart(2,'0')} / ${esc(e.muscle)}</span><h3 style="margin-top:8px">${esc(e.name)}</h3><small>${esc(e.reps)} tekrar · Hedef RIR ${e.rir} · ${e.rest} sn dinlenme ${e.superset?'· Süperset '+esc(e.superset):''}</small></div>${GymMotion.card(e)}</div><small>${e.factor===2?'Ağırlığı tek dambıl için gir. Hacim iki kol üzerinden hesaplanır.':e.type==='body'?'Toplam vücut + ek ağırlığı gir. Hacim ayrı izlenir.':'Toplam çalışma ağırlığını gir.'}</small><div class="set-grid"><small>SET</small><small>${state.settings.unit.toUpperCase()}</small><small>TEKRAR</small><small>RIR</small><small>BİTTİ</small></div>${e.logs.map((s,j)=>`<div class="set-grid ${s.done?'done':''}"><span class="number">${j+1}</span>${['kg','reps','rir'].map(f=>`<input aria-label="${esc(e.name)} set ${j+1} ${f}" ${invalidSets.has(selected+':'+i+':'+j+':'+f)?'aria-invalid="true"':''} type="number" inputmode="decimal" min="0" ${f==='rir'?'max="10"':''} step="${f==='kg'?'.1':'1'}" value="${s[f]===''?'':f==='kg'?kgDisplay(s[f]):s[f]}" oninput="updateSet(${i},${j},'${f}',this.value,this)">`).join('')}<input aria-label="Set ${j+1} tamamlandı" type="checkbox" ${s.done?'checked':''} onchange="updateSet(${i},${j},'done',this.checked,this)"></div>`).join('')}</section>`).join('')}<section class="card"><label>Antrenman notu<textarea oninput="state.days[selected].note=this.value;save()">${esc(d.note)}</textarea></label><button class="danger" onclick="removeDay()">Bu günün kaydını kaldır</button></section>`}return `<div class="title-row"><div><span class="eyebrow">SET SET GELİŞİM</span><h1>Antrenman</h1></div><input aria-label="Antrenman tarihi" type="date" value="${selected}" onchange="selectDate(this.value)"></div><p class="lead">${fmtDate(selected)} · Girdilerini Profil / Hesabım bölümündeki Antrenmanı kaydet düğmesiyle kaydet.</p>${body}`}
+function workoutView(){const d=state.days[selected];let body='';if(!d)body=assignment();else if(d.kind==='rest')body=`<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Takviminde mor renkle işaretlendi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>`;else{const t=totals(d),target=d.exercises.reduce((n,e)=>n+e.logs.length,0);body=`<section class="card hero" id="workoutSummary"><h2>${esc(d.name)}</h2><small>${t.sets}/${target} set tamamlandı</small><div class="progress"><div style="width:${target?t.sets/target*100:0}%"></div></div><div class="workout-footer"><span class="workout-duration">Antrenman süresi <strong id="workoutClock">${workoutDuration(d)}</strong></span><button id="finishWorkoutButton" onclick="finishWorkout()">${d.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓'}</button></div></section>${d.exercises.map((e,i)=>`<section class="card"><div class="exercise-head"><div><span class="eyebrow">${String(i+1).padStart(2,'0')} / ${esc(e.muscle)}</span><h3 style="margin-top:8px">${esc(e.name)}</h3><small>${esc(e.reps)} tekrar · Hedef RIR ${e.rir} · ${e.rest} sn dinlenme ${e.superset?'· Süperset '+esc(e.superset):''}</small></div>${GymMotion.card(e)}</div><small>${e.factor===2?'Ağırlığı tek dambıl için gir. Hacim iki kol üzerinden hesaplanır.':e.type==='body'?'Toplam vücut + ek ağırlığı gir. Hacim ayrı izlenir.':'Toplam çalışma ağırlığını gir.'}</small><div class="set-grid"><small>SET</small><small>${state.settings.unit.toUpperCase()}</small><small>TEKRAR</small><small>RIR</small><small>BİTTİ</small></div>${e.logs.map((s,j)=>`<div class="set-grid ${s.done?'done':''}"><span class="number">${j+1}</span>${['kg','reps','rir'].map(f=>`<input aria-label="${esc(e.name)} set ${j+1} ${f}" ${invalidSets.has(selected+':'+i+':'+j+':'+f)?'aria-invalid="true"':''} type="number" inputmode="decimal" min="0" ${f==='rir'?'max="10"':''} step="${f==='kg'?'.1':'1'}" value="${s[f]===''?'':f==='kg'?kgDisplay(s[f]):s[f]}" oninput="updateSet(${i},${j},'${f}',this.value,this)">`).join('')}<input aria-label="Set ${j+1} tamamlandı" type="checkbox" ${s.done?'checked':''} onchange="updateSet(${i},${j},'done',this.checked,this)"></div>`).join('')}</section>`).join('')}<section class="card"><label>Antrenman notu<textarea oninput="state.days[selected].note=this.value;save()">${esc(d.note)}</textarea></label><button class="danger" onclick="removeDay()">Bu günün kaydını kaldır</button></section>`}return `<div class="title-row"><div><span class="eyebrow">SET SET GELİŞİM</span><h1>Antrenman</h1></div><input aria-label="Antrenman tarihi" type="date" value="${selected}" onchange="selectDate(this.value)"></div>${body}`}
 // Keep the edited input and next tap target mounted while persisting each change.
 function refreshWorkoutSummary(){
  const d=state.days[selected],host=$('workoutSummary');if(!host||!d)return;
  const t=totals(d),target=d.exercises.reduce((n,e)=>n+e.logs.length,0);
- host.querySelector('small').textContent=`${t.sets}/${target} set · ${num(kgDisplay(t.ext))} ${state.settings.unit} harici hacim · ${num(kgDisplay(t.body))} ${state.settings.unit} vücut ağırlığı hacmi`;
+ host.querySelector('small').textContent=`${t.sets}/${target} set tamamlandı`;
  host.querySelector('.progress > div').style.width=(target?t.sets/target*100:0)+'%';
 }
 function updateSet(i,j,f,v,input){
@@ -192,23 +193,29 @@ function updateSet(i,j,f,v,input){
   input?.removeAttribute('aria-invalid');invalidSets.delete(errorKey);
   v=v===''?'':f==='kg'&&state.settings.unit==='lb'?+v/2.20462262:+v;
  }
- if(f==='done'&&v&&(s.kg===''||s.reps===''||+s.reps<=0||input?.closest('.set-grid')?.querySelector('[aria-invalid="true"]'))){
-  if(input)input.checked=false;toast('Önce geçerli ağırlık ve tekrar gir.');return;
- }
  s[f]=v;
- if(s.done&&(s.kg===''||s.reps===''||+s.reps<=0))s.done=false;
+ const day=state.days[selected];
+ if(!day.started&&!day.finished&&(f==='done'?v:v!==''))day.started=Date.now();
  const row=input?.closest('.set-grid');if(row){row.classList.toggle('done',s.done);row.querySelector('input[type="checkbox"]').checked=s.done;}
  save();refreshWorkoutSummary();
 }
-function finishWorkout(){
- if(invalidSets.size){toast('Önce geçersiz set değerlerini düzelt.');return;}
- show('<h2>Antrenmanı bitir</h2><p>Boş setler tamamlanmış sayılmaz. Kalıcı kayıt için ardından Profil bölümündeki Antrenmanı kaydet düğmesine bas.</p><button onclick="confirmFinishWorkout()">Antrenmanı bitir ✓</button>');
+function workoutDuration(d){
+ if(!d?.started)return '00:00';
+ const seconds=Math.max(0,Math.floor(((d.finished||Date.now())-d.started)/1000));
+ return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
 }
-function confirmFinishWorkout(){
- const d=state.days[selected];if(!d||d.kind!=='workout')return;
- d.finished=Date.now();save();
- $('modal').close();render();toast('Tamamlandı olarak işaretlendi. Profil bölümünden kaydet.');
+async function finishWorkout(){
+ if(saving)return false;
+ if(invalidSets.size){toast('Önce geçersiz set değerlerini düzelt.');return false;}
+ const d=state.days[selected];if(!d||d.kind!=='workout')return false;
+ if(!d.finished){d.finished=Date.now();save();}
+ stopRest();
+ const saved=await saveAll();
+ render();
+ if(saved)toast('Antrenman kaydedildi ✓');
+ return saved;
 }
+async function confirmFinishWorkout(){return finishWorkout();}
 function removeDay(){if(!confirm('Bu günün kaydı kaldırılsın mı? Öncesinde yedek indirmen önerilir.'))return;delete state.days[selected];for(const key of invalidSets.keys())if(key.startsWith(selected+':'))invalidSets.delete(key);save();render()}
 function programsView(){return `<div class="title-row"><div><span class="eyebrow">SANA AİT BİR PLAN</span><h1>Programlarım</h1></div><button onclick="editProgram(-1)">+ Yeni</button></div><p class="lead">Programını değiştir; geçmiş antrenmanların aynı kalsın.</p>${coachProgramCard()}<div class="grid"><div>${state.programs.map((p,i)=>`<section class="card"><span class="badge">${i===state.active?'AKTİF PROGRAM':'PROGRAM'} · v${p.version}</span><h2 style="margin-top:15px">${esc(p.name)}</h2><p class="muted">${p.exercises.length} hareket · ${p.exercises.reduce((n,e)=>n+e.sets,0)} set</p><div class="actions"><button onclick="editProgram(${i})">Düzenle</button><button class="secondary" onclick="state.active=${i};save();render()">Aktif seç</button><button class="secondary" onclick="duplicateProgram(${i})">Çoğalt</button><button class="link" onclick="versions(${i})">Sürümler</button></div></section>`).join('')}</div><div><section class="card"><h2>Hazır şablonlar</h2><p class="muted">Başlangıç noktası olarak ekle, ihtiyaçlarına göre düzenle.</p><div class="actions">${['Full Body','Upper','Lower','Push','Pull','Legs'].map(n=>`<button class="secondary" onclick="addTemplate('${n}')">+ ${n}</button>`).join('')}</div></section><section class="card"><h2>Hareket kütüphanesi</h2><input aria-label="Hareket ara" placeholder="Hareket adı ara…" oninput="filterLibrary(this.value)"><label>Kas grubu<select id="muscleFilter" onchange="filterLibrary('')"><option value="">Tüm kaslar</option>${[...new Set(state.library.map(e=>e.muscle))].map(m=>`<option>${esc(m)}</option>`).join('')}</select></label><label>Ekipman<select id="equipmentFilter" onchange="filterLibrary('')"><option value="">Tüm ekipmanlar</option>${[...new Set(state.library.map(e=>e.equipment))].map(m=>`<option>${esc(m)}</option>`).join('')}</select></label><div id="libraryList">${libraryRows(state.library)}</div><button class="secondary" onclick="customExercise()">+ Özel hareket</button></section></div></div>`}
 function libraryRows(items){return items.map(e=>`<div class="list-item library-motion-row"><div><h3>${esc(e.name)}</h3><span class="pill">${esc(e.muscle)}</span></div>${GymMotion.card(e)}</div>`).join('')||'<p class="empty">Hareket bulunamadı.</p>'}function filterLibrary(q){$('libraryList').innerHTML=libraryRows(state.library.filter(e=>e.name.toLocaleLowerCase('tr').includes(q.toLocaleLowerCase('tr'))&&(!$('muscleFilter').value||e.muscle===$('muscleFilter').value)&&(!$('equipmentFilter').value||e.equipment===$('equipmentFilter').value)));GymMotion.refresh()}
@@ -253,6 +260,7 @@ async function enableRestNotifications(){
 function persistRest(){try{sessionStorage.setItem(REST_KEY,JSON.stringify(restTimer));}catch{}}
 function restRemaining(){return restTimer.status==='running'?Math.max(0,restTimer.endAt-Date.now()):restTimer.remaining;}
 function updateRestClock(){
+ const workoutClock=$('workoutClock');if(workoutClock)workoutClock.textContent=workoutDuration(state.days[selected]);
  const remaining=restRemaining();
  if(restTimer.status==='running'&&remaining===0){restTimer.status='done';restTimer.remaining=0;restTimer.endAt=null;persistRest();renderRestTimer();notifyRestFinished();return;}
  const el=$('restClock');if(el){const seconds=Math.ceil(remaining/1000);el.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
@@ -261,7 +269,7 @@ function renderRestTimer(){
  const host=$('restTimer');if(!host)return;
  const visible=tab==='workout'&&state.days[selected]?.kind==='workout';host.hidden=!visible;document.body.classList.toggle('has-rest-timer',visible);if(!visible)return;
  const active=['running','paused'].includes(restTimer.status),running=restTimer.status==='running';
- host.innerHTML=`<div class="rest-top"><div><small>SET ARASI DİNLENME</small><div id="restMessage" role="status">${restTimer.status==='done'?'Süre doldu ✓':running?'Dinlenme sürüyor':restTimer.status==='paused'?'Duraklatıldı':'Süre seç ve başlat'}</div></div><strong id="restClock" aria-label="Kalan dinlenme süresi"></strong></div><div class="rest-presets" aria-label="Dinlenme süresi">${[60,90,120].map(s=>`<button type="button" ${active?'disabled':''} aria-pressed="${restTimer.duration===s}" onclick="chooseRest(${s})">${s} sn</button>`).join('')}</div><div class="rest-actions"><button class="rest-start" onclick="${running?'pauseRest()':'startRest()'}">${running?'Duraklat':restTimer.status==='paused'?'Devam et':'Başlat'}</button><button class="secondary" onclick="addRestTime()" ${active?'':'disabled'}>+15 sn</button><button class="secondary" onclick="stopRest()" ${restTimer.status==='idle'?'disabled':''}>Bitir</button></div>`;
+ host.innerHTML=`<select aria-label="Dinlenme süresi" onchange="chooseRest(+this.value)" ${active?'disabled':''}>${[60,90,120].map(s=>`<option value="${s}" ${restTimer.duration===s?'selected':''}>${s} sn</option>`).join('')}</select><strong id="restClock" aria-label="Kalan dinlenme süresi"></strong><button class="rest-start" aria-label="${running?'Dinlenmeyi duraklat':'Dinlenmeyi başlat'}" onclick="${running?'pauseRest()':'startRest()'}">${running?'Ⅱ':'▶'}</button><button class="secondary" onclick="addRestTime()" ${active?'':'disabled'}>+15 sn</button><button class="secondary" aria-label="Dinlenmeyi sıfırla" onclick="stopRest()">↺</button>`;
  updateRestClock();
 }
 function chooseRest(seconds){if(![60,90,120].includes(seconds)||['running','paused'].includes(restTimer.status))return;restTimer={duration:seconds,remaining:seconds*1000,endAt:null,status:'idle'};persistRest();renderRestTimer();}
