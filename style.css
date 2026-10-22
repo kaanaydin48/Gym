@@ -80,3 +80,12 @@ button.exercise-preview:focus-visible{outline:3px solid #55735e;outline-offset:3
 .set-grid input[type=checkbox]{accent-color:#008a50}
 
 #workoutSummary #finishWorkoutButton.is-saved{background:#008a50;color:#fff}
+
+/* Profile theme choices. */
+body.theme-sage{--bg:#f7faf8;--card:#fff;--ink:#202c26;--muted:#63726a;--line:#dfe8e2;--green:#34745b;--lime:#34745b;--soft:#eaf3ed;--button-ink:#fff}
+body.theme-cobalt{--bg:#f7f9fd;--card:#fff;--ink:#202633;--muted:#677185;--line:#e0e6f1;--green:#3267d6;--lime:#3267d6;--soft:#eaf0ff;--button-ink:#fff}
+body.theme-lavender{--bg:#faf8fd;--card:#fff;--ink:#2b2535;--muted:#756b81;--line:#e9e2f2;--green:#7957b8;--lime:#7957b8;--soft:#f0ebfa;--button-ink:#fff}
+body.theme-orange{--bg:#fcfaf7;--card:#fff;--ink:#292720;--muted:#726b62;--line:#e8e3dc;--green:#a65017;--lime:#d67a35;--soft:#fff0e3;--button-ink:#231a12}
+body.theme-cream{--bg:#f7f3eb;--card:#fffdf8;--ink:#322d25;--muted:#776d5f;--line:#e6ded0;--green:#766044;--lime:#e7d9c5;--soft:#f2eadc;--button-ink:#322d25}
+body.theme-dark{--bg:#15191f;--card:#222831;--ink:#f2f5f7;--muted:#b0bac5;--line:#38424e;--green:#8bd5b0;--lime:#8bd5b0;--soft:#2c4139;--purple:#bd9ee6;--button-ink:#15281e}
+.theme-picker{margin-top:20px}.theme-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.theme-option,body.dark .theme-option{display:flex;align-items:center;gap:10px;flex-wrap:wrap;text-align:left;padding:14px;background:var(--card);color:var(--ink);border:2px solid var(--line)}.theme-option[aria-pressed=true]{border-color:var(--green);background:var(--soft)}.theme-swatches{display:flex;gap:4px;width:100%}.theme-swatches i{height:22px;width:22px;border-radius:50%;border:1px solid #8884}.theme-check{margin-left:auto;color:var(--green)}.day.selected.work:after{background:var(--button-ink)}
