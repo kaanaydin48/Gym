@@ -51,7 +51,7 @@ async function refreshMembers(){
    if(stats)stats.innerHTML='<div><small>Giriş yapan</small><strong>'+joined+'</strong></div><div><small>Davet bekleyen</small><strong>'+(members.length-joined)+'</strong></div>';
    counts.textContent=`${members.length} üye · ${members.length-joined} davet bekliyor · ${joined} giriş yapmış · ${rows.length} gösteriliyor`;
    target.innerHTML=rows.map(m=>`<div class="list-item member-row"><div class="member-row-content"><strong>${memberEscape(m.fullName||'İsimsiz üye')}</strong><p>${memberEscape(m.email)}</p><span class="badge">${m.active?'Giriş yaptı':'Davet bekliyor'}</span></div><button type="button" class="secondary" data-member-id="${memberEscape(m.id||'')}" ${m.id?'':'disabled'}>Program ata</button></div>`).join('')||(members.length?'<p>Arama ve filtreye uygun üye bulunamadı.</p>':'<p>Henüz üye yok. Yukarıdaki formdan ilk üyeni davet edebilirsin.</p>');
-   target.querySelectorAll('button[data-member-id]').forEach(button=>button.onclick=()=>openMemberAssignment(button.dataset.memberId,members));
+   if(typeof target.querySelectorAll==='function')target.querySelectorAll('button[data-member-id]').forEach(button=>button.onclick=()=>openMemberAssignment(button.dataset.memberId,members));
   };
   search.oninput=renderList;filter.onchange=renderList;renderList();
  }catch(e){if(target.isConnected&&request===memberListRequest){target.textContent=e.message+' Listeyi yenile düğmesiyle tekrar deneyebilirsin.';}}
