@@ -12,9 +12,9 @@
   if(result.error||!['admin','coach','member'].includes(result.data?.role))throw Error('Hesap yetkin bulunamadı. Yöneticinle iletişime geç.');
   window.gymAccount={client,user:data.user,role:result.data.role};
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
-  await load('./membership.js?v=members-2');
+  await load('./membership.js?v=assignment-1');
   await load('./motion.js?v=2');
-  await load('./app.js?v=library-2');
+  await load('./app.js?v=assignment-1');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
