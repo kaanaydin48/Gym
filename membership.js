@@ -1,6 +1,6 @@
 'use strict';
 const memberEscape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function membershipCard(){const a=window.gymAccount;return `<section class="card"><h2>Üyelik hesabım</h2><p>${memberEscape(a.user.email)}</p><span class="badge">${{admin:'Yönetici',coach:'Koç',member:'Üye'}[a.role]}</span><p>Oturumun doğrulandı. Antrenman kayıtların Antrenmanı kaydet düğmesiyle hesabına özel bulut alanına yazılır. Aynı hesapla diğer cihazlarından ulaşabilirsin.</p>${a.role==='admin'?'<button onclick="openMembers()">Üye yönetimi</button> <button class="secondary" onclick="importLegacyAccount()">Eski cihaz kayıtlarımı aktar</button>':''}<button class="secondary" onclick="membershipSignOut()">Çıkış yap</button></section>`;}
+function membershipCard(){const a=window.gymAccount;return `<section class="card"><h2>Üyelik hesabım</h2><p>${memberEscape(a.user.email)}</p><span class="badge">${{admin:'Yönetici',coach:'Koç',member:'Üye'}[a.role]}</span><p>Oturumun doğrulandı. Antrenman kayıtların Antrenmanı kaydet düğmesiyle hesabına özel bulut alanına yazılır. Aynı hesapla diğer cihazlarından ulaşabilirsin.</p>${a.role==='admin'?'<button onclick="openMembers()">Üye yönetimi</button> <button class="secondary" onclick="importLegacyAccount()">Eski cihaz kayıtlarımı aktar</button>':''}<button class="secondary" onclick="membershipSignOut()">Çıkış yap</button>${a.role==='member'?'<section class="card"><h3>Koçumun programı</h3><div id="memberAssignedProgram">Program kontrol ediliyor…</div></section>':''}</section>`;}
 async function membershipSignOut(){if(typeof saving!=='undefined'&&saving){toast('Kayıt işleminin bitmesini bekle.');return;}if(typeof dirty!=='undefined'&&(dirty||draft)&&!confirm('Kaydedilmemiş değişiklikler var. Kaydetmeden çıkılsın mı?'))return;const {error}=await gymAccount.client.auth.signOut();if(error)toast('Çıkış yapılamadı. Tekrar dene.');}
 function importLegacyAccount(){try{const raw=localStorage.getItem('gym-tracker-pro-v1');if(!raw){toast('Bu cihazda eski kayıt bulunamadı.');return;}pending=validateBackup(JSON.parse(raw));previewImport();}catch{toast('Eski kayıt okunamadı. JSON yedeğini kullan.');}}
 async function memberRequest(body){
@@ -64,16 +64,32 @@ async function openMemberAssignment(memberId,members){
  if(!status||!member)return;
  const programs=typeof state!=='undefined'&&Array.isArray(state.programs)?state.programs:[];
  if(!programs.length){status.textContent='Önce Programlar bölümünden bir program oluştur.';return;}
- const choice=prompt('Program seç:\\n'+programs.map((p,i)=>(i+1)+'. '+p.name).join('\\n')+'\\nNumara:', '1');
+ const choice=prompt('Program seç:\n'+programs.map((p,i)=>(i+1)+'. '+p.name).join('\n')+'\nNumara:', '1');
  if(choice===null)return;
  const index=Number(choice)-1;
  if(!Number.isInteger(index)||index<0||index>=programs.length){status.textContent='Geçerli program numarası seç.';return;}
  const p=programs[index];
- if(!confirm(memberEscape(member.fullName||member.email)+' üyesine '+p.name+' programı atansın mı?'))return;
+ if(!p.exercises?.length){status.textContent='Programda hareket bulunamadı.';return;}
+ if(!confirm((member.fullName||member.email)+' üyesine '+p.name+' programı atansın mı?'))return;
  status.textContent='Program atanıyor…';
  try{
   const {error}=await gymAccount.client.from('coach_program_assignments').upsert({member_id:memberId,coach_id:gymAccount.user.id,program:{name:p.name,exercises:p.exercises},updated_at:new Date().toISOString()},{onConflict:'member_id'});
   if(error)throw error;
   status.textContent='Program üyeye atandı: '+p.name;
  }catch(e){status.textContent='Program atanamadı: '+(e.message||'Yetki veya bağlantı hatası');}
+}
+
+async function loadAssignedProgram(){
+ if(gymAccount.role!=='member')return;
+ const el=document.getElementById('memberAssignedProgram');
+ if(!el)return;
+ try{
+  const {data,error}=await gymAccount.client.from('coach_program_assignments').select('program,updated_at').eq('member_id',gymAccount.user.id).maybeSingle();
+  if(!el.isConnected)return;
+  if(error)throw error;
+  if(!data){el.textContent='Koçun henüz program atamadı.';return;}
+  const p=data.program;
+  if(!p||typeof p.name!=='string'||!Array.isArray(p.exercises))throw Error('Program biçimi geçersiz.');
+  el.innerHTML='<strong>'+memberEscape(p.name)+'</strong><p>'+p.exercises.length+' hareket · yalnızca görüntüleme</p>'+p.exercises.map(e=>'<div class="list-item"><strong>'+memberEscape(e.name||'Hareket')+'</strong><p>'+memberEscape(e.sets)+' set · '+memberEscape(e.reps||'')+' tekrar · RIR '+memberEscape(e.rir??'—')+'</p></div>').join('');
+ }catch(e){if(el.isConnected)el.textContent='Atanmış program yüklenemedi: '+(e.message||'Bağlantı hatası');}
 }
