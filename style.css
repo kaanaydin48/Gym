@@ -123,3 +123,11 @@ body.theme-dark{--bg:#24282c;--card:#2e3338;--ink:#e8e9e8;--muted:#b6bdbb;--line
 .calendar-exercise{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
 .calendar-exercise small{white-space:nowrap}
 @media(max-width:680px){.calendar-home .month-card{padding:15px}.calendar-home .day{min-height:49px}.calendar-home .legend{gap:9px;font-size:10px}.cal-stat{padding:12px 9px}.cal-stat strong{font-size:24px}.calendar-detail-metrics{gap:5px}.calendar-detail-metrics strong{font-size:14px}}
+
+.cal-weekly{margin-top:16px;border-radius:20px}
+.cal-weekly h3{margin-bottom:14px}
+.cal-weekrow{display:grid;grid-template-columns:90px minmax(0,1fr) 42px;gap:10px;align-items:center;margin:14px 0;font-size:12px}
+.cal-weekrow>div{height:9px;background:var(--soft);border-radius:12px;overflow:hidden}
+.cal-weekrow>div>i{display:block;height:100%;border-radius:12px}
+.cal-weekrow strong{text-align:right;font-size:11px;font-weight:600}
+@media(max-width:440px){.cal-weekrow{grid-template-columns:76px minmax(0,1fr) 42px;gap:7px}}
