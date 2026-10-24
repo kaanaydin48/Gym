@@ -14,7 +14,7 @@
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
   await load('./membership.js?v=assignment-1');
   await load('./motion.js?v=2');
-  await load('./app.js?v=calendar-20261024');
+  await load('./app.js?v=calendar-20261024b');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
