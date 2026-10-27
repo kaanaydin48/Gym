@@ -67,7 +67,32 @@ let cloudReconcile=false;
 let dirty=false, saving=false, cloudReady=false, cloudRevision=0, cloudMessage='Bulut kontrol ediliyor…';
 const SYNC_KEY=KEY+':sync';
 const invalidSets=new Map();
-function save(){dirty=true;updateSaveStatus();return true;}
+let autoSaveTimer=null;
+function queueCloudSave(){
+ clearTimeout(autoSaveTimer);
+ autoSaveTimer=setTimeout(async()=>{
+  if(!dirty||cloudReconcile||invalidSets.size||draft)return;
+  if(saving){queueCloudSave();return;}
+  if(!cloudReady)return;
+  await saveAll({silentSuccess:true});
+  if(dirty&&!cloudReconcile&&cloudReady)queueCloudSave();
+ },1800);
+}
+function save(){
+ dirty=true;
+ try{
+  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true,revision:cloudRevision}));
+  localStorage.setItem(KEY,JSON.stringify(state));
+  storageError=false;
+ }catch(e){
+  storageError=true;
+  cloudMessage='Cihaz kaydı başarısız! Depolamayı kontrol et.';
+  toast(cloudMessage);
+ }
+ updateSaveStatus();
+ if(!storageError)queueCloudSave();
+ return !storageError;
+}
 function updateSaveStatus(){
  const text=saving?'Buluta kaydediliyor…':dirty?'Kaydedilmemiş değişiklikler var.':cloudMessage;
  const notice=$('unsavedNotice');if(notice){notice.hidden=tab==='workout'||(!dirty&&cloudReady);notice.textContent=text;}
