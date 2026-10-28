@@ -101,6 +101,24 @@ function updateSaveStatus(){
  const finish=$('finishWorkoutButton');if(finish){finish.classList.toggle('is-saved',!!state.days[selected]?.finished&&!dirty&&!saving);finish.disabled=saving;finish.textContent=saving?'Kaydediliyor…':state.days[selected]?.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓';}
  const side=document.querySelector('.side-bottom');if(side)side.textContent=cloudMessage;
 }
+function updateShoulderLegs(){
+ const marker='shoulder-legs-v2-20261028';
+ if(storageError||state.migrations?.includes(marker)||gymAccount.role==='member')return;
+ const i=state.programs.findIndex(p=>p.name==='Omuz + Bacak');
+ if(i<0)return;
+ const specs=[['Seated Dumbbell Shoulder Press',3,'6–10'],['Squat',3,'6–10'],['Dumbbell Lateral Raise',4,'12–20'],['Leg Press',4,'8–12'],['Reverse Pec Deck',3,'12–15'],['Leg Extension',3,'10–15'],['Seated Leg Curl',3,'10–15'],['Standing Calf Raise',2,'12–20']];
+ const p=state.programs[i];
+ p.history.push({version:p.version,name:p.name,exercises:clone(p.exercises),saved:new Date().toISOString()});
+ p.exercises=specs.map(([name,sets,reps])=>{
+  let e=state.library.find(x=>x.name===name);
+  if(!e){e=exercise(name,/Press|Raise|Deck/.test(name)&&name!=='Leg Press'?'Omuz':'Bacak',/Dumbbell/.test(name)?'Dambıl':name==='Squat'?'Barbell':'Makine','external',/Dumbbell/.test(name)?2:1);state.library.push(clone(e));}
+  return {...clone(e),sets,reps,rir:2,rest:name==='Squat'||name==='Leg Press'?150:75};
+ });
+ p.cardio={name:'Koşu Bandı',minutes:10,intensity:'Hafif–orta'};
+ p.version++;
+ state.migrations=[...(state.migrations||[]),marker];
+ save();
+}
 async function initializeCloud(){
  if(saving)return;
  cloudReady=false;
@@ -118,6 +136,7 @@ async function initializeCloud(){
    }else{state=remote;cloudMessage='Buluttan yüklendi · rev '+cloudRevision;}
   }else{cloudRevision=0;dirty=!!local;cloudMessage=local?'Cihaz kayıtları buluta aktarılmayı bekliyor.':'Bulut hazır · Henüz kayıt yok.';}
   cloudReady=true;
+  if(!cloudReconcile)updateShoulderLegs();
  }catch(e){cloudMessage='Bulut okunamadı. Girdiler korunuyor; bağlantını kontrol edip yeniden dene.';cloudReady=false;}
  render();
 }
@@ -235,7 +254,7 @@ function coachProgramCard(){
  return '<section class="card"><span class="badge">KOÇ TARAFINDAN ATANDI</span><h2>'+esc(p.name)+'</h2><p>'+p.exercises.length+' hareket · düzenlenemez</p><div class="actions"><button onclick="go(&quot;workout&quot;)">Antrenmanda seç →</button></div></section>';
 }
 function assignment(){return `<section class="card"><h2>Bu günü planla</h2><label>Program<select id="assignProgram">${coachAssignedProgram&&gymAccount.role==='member'?`<option value="coach">${esc(coachAssignedProgram.name)} · Koçumun programı</option>`:''}${state.programs.map((p,i)=>`<option value="${i}" ${i===state.active?'selected':''}>${esc(p.name)} · v${p.version}</option>`).join('')}</select></label><div class="actions"><button onclick="assignWorkout()">Antrenman ata</button><button class="secondary" onclick="setRest()">☾ Dinlenme günü ekle</button></div></section>`}
-function assignWorkout(){const choice=$('assignProgram').value;const p=choice==='coach'&&gymAccount.role==='member'?coachAssignedProgram:state.programs[+choice];if(!p)return;state.days[selected]={id:uid(),kind:'workout',name:p.name,programId:p.id,version:p.version,exercises:p.exercises.map(e=>({...clone(e),logs:Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}))})),started:null,finished:null,note:''};save();render()}
+function assignWorkout(){const choice=$('assignProgram').value;const p=choice==='coach'&&gymAccount.role==='member'?coachAssignedProgram:state.programs[+choice];if(!p)return;state.days[selected]={id:uid(),kind:'workout',name:p.name,programId:p.id,version:p.version,exercises:p.exercises.map(e=>({...clone(e),logs:Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}))})),started:null,finished:null,note:'',cardio:p.cardio?clone(p.cardio):null};save();render()}
 function setRest(){state.days[selected]={id:uid(),kind:'rest',note:''};save();render()}
 function workoutView(){const d=state.days[selected];let body='';if(!d)body=assignment();else if(d.kind==='rest')body=`<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Takviminde mor renkle işaretlendi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>`;else{const t=totals(d),target=d.exercises.reduce((n,e)=>n+e.logs.length,0);body=`<section class="card hero" id="workoutSummary"><h2>${esc(d.name)}</h2><small>${t.sets}/${target} set tamamlandı</small><div class="progress"><div style="width:${target?t.sets/target*100:0}%"></div></div><div class="workout-footer">${!d.started&&!d.finished?'<button class="workout-start-button" onclick="startWorkout()">▶ Antrenmanı Başlat</button>':''}<span class="workout-duration">Antrenman süresi <strong id="workoutClock">${workoutDuration(d)}</strong></span><button id="finishWorkoutButton" onclick="finishWorkout()">${d.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓'}</button></div></section>${d.exercises.map((e,i)=>`<section class="card"><div class="exercise-head"><div><span class="eyebrow">${String(i+1).padStart(2,'0')} / ${esc(e.muscle)}</span><h3 style="margin-top:8px">${esc(e.name)}</h3>${e.superset?'<small>Süperset '+esc(e.superset)+'</small>':''}</div>${GymMotion.card(e)}</div><div class="set-grid"><small>SET</small><small>${state.settings.unit.toUpperCase()}</small><small>TEKRAR</small><small>RIR</small><small>BİTTİ</small></div>${e.logs.map((s,j)=>`<div class="set-grid ${s.done?'done':''}"><span class="number">${j+1}</span>${['kg','reps','rir'].map(f=>`<input aria-label="${esc(e.name)} set ${j+1} ${f}" ${invalidSets.has(selected+':'+i+':'+j+':'+f)?'aria-invalid="true"':''} type="number" inputmode="decimal" min="0" ${f==='rir'?'max="10"':''} step="${f==='kg'?'.1':'1'}" value="${s[f]===''?'':f==='kg'?kgDisplay(s[f]):s[f]}" oninput="updateSet(${i},${j},'${f}',this.value,this)">`).join('')}<input aria-label="Set ${j+1} tamamlandı" type="checkbox" ${s.done?'checked':''} onchange="updateSet(${i},${j},'done',this.checked,this)"></div>`).join('')}</section>`).join('')}<section class="card"><label>Antrenman notu<textarea oninput="state.days[selected].note=this.value;save()">${esc(d.note)}</textarea></label><button class="danger" onclick="removeDay()">Bu günün kaydını kaldır</button></section>`}return `<div class="title-row"><div><span class="eyebrow">SET SET GELİŞİM</span><h1>Antrenman</h1></div><input aria-label="Antrenman tarihi" type="date" value="${selected}" onchange="selectDate(this.value)"></div>${body}`}
 // Keep the edited input and next tap target mounted while persisting each change.
