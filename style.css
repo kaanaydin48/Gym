@@ -136,3 +136,6 @@ body.theme-dark{--bg:#24282c;--card:#2e3338;--ink:#e8e9e8;--muted:#b6bdbb;--line
 .workout-start-button{background:#e5f2e9;color:#237c4b;flex:1 1 100%;width:100%;font-weight:700;border:1px solid #cce4d2}
 .workout-start-button:hover{background:#d7ebdd}
 .workout-footer:has(.workout-start-button){flex-wrap:wrap}
+
+/* Rest days are inferred but intentionally have no calendar dot. */
+.day.rest::after,.calendar-home .day.rest::after{content:none!important;display:none!important}
