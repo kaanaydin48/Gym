@@ -19,16 +19,31 @@ Deno.serve(async(req:Request)=>{
   if(profile.data?.role!=='admin')return reply(403,{error:'Bu işlem yalnızca yöneticiye açık.'});
   let body;try{body=await req.json();}catch{return reply(400,{error:'Geçersiz istek.'});}
   if(body.action==='list'){
-   const profiles=await service.from('profiles').select('id').eq('role','member');
+   const profiles=await service.from('profiles').select('id,role').in('role',['member','coach']);
    if(profiles.error)return reply(503,{error:'Üye profilleri okunamadı.'});
-   const ids=new Set((profiles.data||[]).map(p=>p.id));const members=[];
+   const roles=new Map((profiles.data||[]).map(p=>[p.id,p.role]));const members=[];
    for(let page=1;;page++){
     const result=await service.auth.admin.listUsers({page,perPage:100});
     if(result.error)return reply(503,{error:'Üye listesi okunamadı.'});
-    for(const u of result.data.users)if(ids.has(u.id))members.push({id:u.id,email:u.email||'',fullName:u.user_metadata?.full_name||'',active:!!u.last_sign_in_at});
+    for(const u of result.data.users)if(roles.has(u.id))members.push({id:u.id,email:u.email||'',fullName:u.user_metadata?.full_name||'',role:roles.get(u.id),active:!!u.last_sign_in_at});
     if(result.data.users.length<100)break;
    }
    return reply(200,{members});
+  }
+  if(body.action==='set-role'){
+   const memberId=typeof body.memberId==='string'?body.memberId:'';
+   const role=body.role;
+   if(!/^[0-9a-f-]{36}$/i.test(memberId)||!['member','coach'].includes(role))return reply(400,{error:'Geçersiz üye veya rol.'});
+   if(memberId===auth.user.id)return reply(403,{error:'Yönetici kendi rolünü değiştiremez.'});
+   const existing=await service.from('profiles').select('role').eq('id',memberId).maybeSingle();
+   if(existing.error)return reply(503,{error:'Üye rolü okunamadı.'});
+   if(!existing.data)return reply(404,{error:'Üye bulunamadı.'});
+   if(existing.data.role==='admin')return reply(403,{error:'Yönetici rolü değiştirilemez.'});
+   if(!['member','coach'].includes(existing.data.role))return reply(400,{error:'Desteklenmeyen mevcut rol.'});
+   const updated=await service.from('profiles').update({role}).eq('id',memberId).eq('role',existing.data.role).select('id,role').maybeSingle();
+   if(updated.error)return reply(503,{error:'Rol güncellenemedi.'});
+   if(!updated.data)return reply(409,{error:'Rol başka bir işlemle değişmiş. Listeyi yenile.'});
+   return reply(200,{ok:true,role:updated.data.role});
   }
   if(body.action!=='invite')return reply(400,{error:'Geçersiz işlem.'});
   const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
