@@ -52,6 +52,27 @@ async function refreshMembers(){
    counts.textContent=`${members.length} üye · ${members.length-joined} davet bekliyor · ${joined} giriş yapmış · ${rows.length} gösteriliyor`;
    target.innerHTML=rows.map(m=>`<div class="list-item member-row"><div class="member-row-content"><strong>${memberEscape(m.fullName||'İsimsiz üye')}</strong><p>${memberEscape(m.email)}</p><span class="badge">${m.active?'Giriş yaptı':'Davet bekliyor'}</span> <span class="badge">${m.role==='coach'?'Koç':'Üye'}</span></div><button type="button" class="secondary" data-member-id="${memberEscape(m.id||'')}" ${m.id?'':'disabled'}>Program ata</button><button type="button" class="secondary" data-role-member="${memberEscape(m.id||'')}" ${m.id?'':'disabled'}>${m.role==='coach'?'Üye yap':'Koç yap'}</button></div>`).join('')||(members.length?'<p>Arama ve filtreye uygun üye bulunamadı.</p>':'<p>Henüz üye yok. Yukarıdaki formdan ilk üyeni davet edebilirsin.</p>');
    if(typeof target.querySelectorAll==='function')target.querySelectorAll('button[data-member-id]').forEach(button=>button.onclick=()=>openMemberAssignment(button.dataset.memberId,members));
+   target.querySelectorAll('button[data-role-member]').forEach(button=>{
+    button.onclick=async()=>{
+     if(gymAccount.role!=='admin')return;
+     const member=members.find(m=>m.id===button.dataset.roleMember);
+     if(!member)return;
+     const next=member.role==='coach'?'member':'coach';
+     if(!confirm((member.fullName||member.email)+' hesabı '+(next==='coach'?'koç':'üye')+' rolüne geçirilsin mi?'))return;
+     const status=document.getElementById('assignmentStatus');
+     button.disabled=true;
+     if(status)status.textContent='Rol güncelleniyor…';
+     try{
+      const result=await memberRequest({action:'set-role',memberId:member.id,role:next});
+      member.role=result.role;
+      if(status)status.textContent='Rol güncellendi. Kullanıcı yeni yetkileri için yeniden giriş yapmalı.';
+      renderList();
+     }catch(e){
+      if(status)status.textContent='Rol değiştirilemedi: '+(e.message||'Bağlantı hatası');
+      button.disabled=false;
+     }
+    };
+   });
   };
   search.oninput=renderList;filter.onchange=renderList;renderList();
  }catch(e){if(target.isConnected&&request===memberListRequest){target.textContent=e.message+' Listeyi yenile düğmesiyle tekrar deneyebilirsin.';}}
