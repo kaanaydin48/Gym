@@ -198,3 +198,6 @@ body .calendar-home .day.selected.work::after{background:#8c8574!important}
    width:24px;height:2px;background:#111;border-radius:2px;
  }
 }
+
+/* Completed workout set checks only: soft green; unchecked controls unchanged. */
+body .set-grid input[type="checkbox"]:checked{accent-color:#78A68B!important;opacity:1}
