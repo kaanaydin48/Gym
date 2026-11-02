@@ -177,7 +177,10 @@ async function retryCloud(){
 window.addEventListener('beforeunload',event=>{if(dirty||draft){event.preventDefault();event.returnValue='';}});
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',4500)}
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
-const labels=[['calendar','▦','Takvim'],['workout','◈','Antrenman'],['progress','↗','Gelişim'],['programs','☷','Programlar']];
+const navIcons={calendar:'<path d="M12 3 3 10v11h7v-7h4v7h7V10z"/><path d="M12 8v6m-3-3h6"/>',workout:'<path d="m6 6 12 12M3 8l5-5M2 6l4-4m12 20 4-4m-5-1 5-5"/>',progress:'<path d="M3 3v18h18M6 16l5-5 4 3 6-8M17 6h4v4"/>',programs:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/>'};
+const labels=[['calendar','Ana Sayfa'],['workout','Antrenman'],['progress','Gelişim'],['programs','Programlar']];
+function navIcon(id){return '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+navIcons[id]+'</svg>';}
+
 function go(t){tab=t;render();window.scrollTo(0,0)}
 /* Single Instagram-minimal theme. Legacy saved theme preferences are ignored, not deleted. */
 function currentTheme(){return 'minimal';}
@@ -187,7 +190,7 @@ function applyTheme(){
  document.body.classList.remove('dark','theme-sage','theme-cobalt','theme-lavender','theme-orange','theme-cream','theme-dark');
 }
 function render(){extendExerciseLibrary();applyTheme();$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
-const nav=labels.map(([id,icon,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${icon}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
+const nav=labels.map(([id,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${navIcon(id)}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
 const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
 const allWork=()=>Object.entries(state.days).filter(([,d])=>d.kind==='workout');
 function totals(d){let ext=0,body=0,sets=0;for(const e of d.exercises||[])for(const s of e.logs||[])if(s.done){sets++;const v=(+s.kg||0)*(+s.reps||0)*(e.factor||1);if(e.type==='body')body+=v;else ext+=v}return {ext,body,sets}}
