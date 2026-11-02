@@ -139,3 +139,36 @@ body.theme-dark{--bg:#24282c;--card:#2e3338;--ink:#e8e9e8;--muted:#b6bdbb;--line
 
 /* Rest days are inferred but intentionally have no calendar dot. */
 .day.rest::after,.calendar-home .day.rest::after{content:none!important;display:none!important}
+
+
+/* Instagram minimal default light theme — scoped to unthemed body only.
+   Named themes and dark mode retain their existing appearance. */
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark){
+  --bg:#ffffff;--card:#ffffff;--ink:#111111;--muted:#737373;
+  --line:#dbdbdb;--green:#111111;--lime:#111111;--soft:#f5f5f5;
+  --purple:#737373;--button-ink:#ffffff;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) .card,
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) .metric{
+  box-shadow:none;border-radius:10px;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) button:not(.secondary):not(.danger):not(.link):not(.day):not(.theme-option):not(.exercise-preview):not(.avatar){
+  background:#111111;color:#ffffff;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) .day.selected{
+  background:#111111;color:#ffffff;border-color:#111111;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) .day.selected.work::after{background:#ffffff}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) .set-grid input[type=checkbox]{accent-color:#111111}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) #mobileNav button.active{
+  background:transparent;color:#111111;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) .hero{
+  background:#ffffff;color:#111111;border:1px solid #dbdbdb;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) aside{
+  background:#ffffff;color:#111111;
+}
+body:not(.dark):not(.theme-sage):not(.theme-cobalt):not(.theme-lavender):not(.theme-orange):not(.theme-cream):not(.theme-dark) nav button.active{
+  background:#f5f5f5;color:#111111;
+}
