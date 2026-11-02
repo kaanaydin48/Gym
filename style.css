@@ -201,3 +201,19 @@ body .calendar-home .day.selected.work::after{background:#8c8574!important}
 
 /* Completed workout set checks only: soft green; unchecked controls unchanged. */
 body .set-grid input[type="checkbox"]:checked{accent-color:#78A68B!important;opacity:1}
+
+/* iOS Soft Compact mobile navigation; no change to routes or data. */
+.nav-icon{display:block;width:22px;height:22px}
+@media(max-width:680px){
+ body #mobileNav{background:#fff!important;border-top:1px solid #e5e5e5;padding:4px 8px max(5px,env(safe-area-inset-bottom));gap:3px}
+ body #mobileNav button,body #mobileNav button.active{
+   display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;
+   gap:3px;margin:0;padding:6px 1px;min-height:54px;
+   background:transparent!important;color:#858585!important;
+   border:0!important;border-radius:12px!important;
+   box-shadow:none!important;font-size:10px;font-weight:500;line-height:1.2;
+ }
+ body #mobileNav button.active{background:#f2f2f2!important;color:#111111!important;font-weight:700}
+ body #mobileNav button.active::after{content:none!important;display:none!important}
+ body #mobileNav b{font-size:0;line-height:1}
+}
