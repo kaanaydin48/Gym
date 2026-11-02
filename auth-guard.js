@@ -14,7 +14,7 @@
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
   await load('./membership.js?v=role-management-fix-20261031');
   await load('./motion.js?v=2');
-  await load('./app.js?v=single-minimal-20261102');
+  await load('./app.js?v=ios-soft-compact-20261102');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
