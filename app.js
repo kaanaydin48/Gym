@@ -177,7 +177,12 @@ async function retryCloud(){
 window.addEventListener('beforeunload',event=>{if(dirty||draft){event.preventDefault();event.returnValue='';}});
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',4500)}
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
-const navIcons={calendar:'<path d="M12 3 3 10v11h7v-7h4v7h7V10z"/><path d="M12 8v6m-3-3h6"/>',workout:'<path d="m6 6 12 12M3 8l5-5M2 6l4-4m12 20 4-4m-5-1 5-5"/>',progress:'<path d="M3 3v18h18M6 16l5-5 4 3 6-8M17 6h4v4"/>',programs:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/>'};
+const navIcons={
+ calendar:'<path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9"/><path d="M9 21v-8h6v8"/>',
+ workout:'<path d="m6.5 6.5 11 11"/><path d="m3 8 5-5M2 6l4-4M16 21l5-5m-3 6 4-4"/>',
+ progress:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/><path d="M16 7h4v4"/>',
+ programs:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/>'
+};
 const labels=[['calendar','Ana Sayfa'],['workout','Antrenman'],['progress','Gelişim'],['programs','Programlar']];
 function navIcon(id){return '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+navIcons[id]+'</svg>';}
 
