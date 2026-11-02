@@ -179,21 +179,13 @@ function toast(s){$('toast').textContent=s;$('toast').style.display='block';clea
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 const labels=[['calendar','▦','Takvim'],['workout','◈','Antrenman'],['progress','↗','Gelişim'],['programs','☷','Programlar']];
 function go(t){tab=t;render();window.scrollTo(0,0)}
-const themeOptions=[['sage','Adaçayı','#c4d8ca','#eef4ef'],['cobalt','Kobalt','#c8d6ed','#eef2f8'],['lavender','Lavanta','#dbcee7','#f4eff7'],['orange','Sıcak Turuncu','#f0d0b3','#faf1e8'],['cream','Beyaz–Krem','#eee4d3','#f6f1e8'],['dark','Koyu','#afc8b9','#37433d']];
-function currentTheme(){
- let choice=state.settings.theme;
- try{choice=localStorage.getItem(KEY+':theme')||choice;}catch{}
- if(choice==='system')return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'orange';
- return themeOptions.some(([id])=>id===choice)?choice:'orange';
+/* Single Instagram-minimal theme. Legacy saved theme preferences are ignored, not deleted. */
+function currentTheme(){return 'minimal';}
+function chooseTheme(){return;}
+function themePicker(){return '';}
+function applyTheme(){
+ document.body.classList.remove('dark','theme-sage','theme-cobalt','theme-lavender','theme-orange','theme-cream','theme-dark');
 }
-function chooseTheme(id){
- if(!themeOptions.some(([key])=>key===id))return;
- state.settings.theme=id;
- try{localStorage.setItem(KEY+':theme',id);}catch{toast('Tema tercihi cihazda saklanamadı.');}
- save();render();
-}
-function themePicker(){return `<section class="card theme-picker"><h2>Görünüm ve tema</h2><div class="theme-options">${themeOptions.map(([id,name,accent,soft])=>`<button class="theme-option" aria-pressed="${currentTheme()===id}" onclick="chooseTheme('${id}')"><span class="theme-swatches" aria-hidden="true"><i style="background:${accent}"></i><i style="background:${soft}"></i><i style="background:${id==='dark'?'#15191f':'#fff'}"></i></span><span>${name}</span><span class="theme-check">${currentTheme()===id?'✓':''}</span></button>`).join('')}</div></section>`;}
-function applyTheme(){const theme=currentTheme();document.body.classList.toggle('dark',theme==='dark');for(const [id] of themeOptions)document.body.classList.toggle('theme-'+id,theme===id);}
 function render(){extendExerciseLibrary();applyTheme();$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
 const nav=labels.map(([id,icon,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${icon}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
 const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
