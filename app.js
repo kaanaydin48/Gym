@@ -61,7 +61,18 @@ RIR 3: Set sonunda düzgün teknikle yaklaşık 3 tekrar daha yapabilecek durumd
  ['Standing Calf Raise','Bacak','Makine','12–15','2–3',90],
  ['Plank','Karın','Vücut ağırlığı','20–30','',60]
  ].map(([name,muscle,equipment,reps,rir,rest],i)=>({id:'beginner-full-body-ex-'+i,name,muscle,equipment,reps,rir:rir==='2–3'?3:rir,rirLabel:rir,rest,restLabel:i===5||i===6?'60–90':String(rest),sets:2,type:i===7?'body':'external',factor:i===5?2:1,superset:'',duration:i===7}))};
-function programNote(p){return p?.note?`<section class="card"><h3>Uygulama ve İlerleme</h3><p style="white-space:pre-line">${esc(p.note)}</p></section>`:'';}
+function programNote(p){
+ if(!p?.note)return '';
+ const labels=['Isınma:','İlk 2 hafta:','3. haftadan itibaren:','Ağırlık artırma:','Plank:','RIR 3:'];
+ const lines=String(p.note).split('\n').map(line=>line.trim()).filter(Boolean);
+ const intro=[],items=[];
+ for(const line of lines){
+  const label=labels.find(label=>line.startsWith(label));
+  if(label)items.push('<li style="margin:0 0 14px;padding-left:4px"><strong style="font-weight:700">'+esc(label)+'</strong> '+esc(line.slice(label.length).trim())+'</li>');
+  else intro.push('<p style="white-space:pre-line;margin:0 0 18px;line-height:1.6">'+esc(line)+'</p>');
+ }
+ return '<section class="card program-guidance"><h3 style="font-weight:700;margin-bottom:18px">Uygulama ve İlerleme:</h3>'+intro.join('')+(items.length?'<ul style="list-style:disc;padding-left:22px;margin:0;line-height:1.6">'+items.join('')+'</ul>':'')+'</section>';
+}
 function beginnerCard(){return `<section class="card"><span class="badge">HER ZAMAN KULLANILABİLİR</span><h2>${esc(beginnerProgram.name)}</h2><p>Haftada 3 gün · 8 hareket · 16 set</p><button onclick="showBeginnerProgram()">Programı görüntüle</button></section>`;}
 function showBeginnerProgram(){show(`<h2>${esc(beginnerProgram.name)}</h2>${programNote(beginnerProgram)}${beginnerProgram.exercises.map(e=>`<div class="list-item"><h3>${esc(e.name)}</h3><p>${e.sets} × ${esc(e.reps)} ${e.duration?'sn':'tekrar'} · RIR ${esc(e.rirLabel||'—')} · ${esc(e.restLabel)} sn dinlenme</p></div>`).join('')}<button onclick="$('modal').close();go('workout')">Antrenmanda seç</button>`);}
 function selectablePrograms(){
