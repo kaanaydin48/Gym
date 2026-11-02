@@ -231,7 +231,7 @@ function themePicker(){return '';}
 function applyTheme(){
  document.body.classList.remove('dark','theme-sage','theme-cobalt','theme-lavender','theme-orange','theme-cream','theme-dark');
 }
-function render(){extendExerciseLibrary();applyTheme();$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
+function render(){extendExerciseLibrary();applyTheme();const profileButton=$('profileButton');if(profileButton){const name=String(state.profile.name||gymAccount.user.user_metadata?.full_name||'Hesabım').trim()||'Hesabım';profileButton.textContent=name;profileButton.setAttribute('aria-label',name+' · Hesabım');}$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
 const nav=labels.map(([id,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${navIcon(id)}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
 const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
 const allWork=()=>Object.entries(state.days).filter(([,d])=>d.kind==='workout');

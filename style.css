@@ -217,3 +217,6 @@ body .set-grid input[type="checkbox"]:checked{accent-color:#78A68B!important;opa
  body #mobileNav button.active::after{content:none!important;display:none!important}
  body #mobileNav b{font-size:0;line-height:1}
 }
+
+/* Full account name in the profile button, including narrow mobile screens. */
+header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overflow-wrap:anywhere}header .avatar{width:auto;max-width:48%;flex:0 1 auto;min-width:44px;border-radius:16px;padding:10px 14px;white-space:normal;overflow-wrap:anywhere;line-height:1.35;text-align:center;font-size:14px}
