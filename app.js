@@ -256,29 +256,30 @@ async function shareDailySummaryStory(){
   const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas kullanılamıyor');
   ctx.fillStyle='#F7F8FC';ctx.fillRect(0,0,1080,1920);
-  // Instagram Story header follows the approved preview: centered title, date and three metrics.
+  const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
+  // One soft rounded white story card, with consistent system typography.
+  ctx.fillStyle='#FFFFFF';rr(42,205,996,1480,42);
   const logs=(d.exercises||[]).flatMap(e=>(e.logs||[]).filter(x=>x.done).map(x=>({kg:(+x.kg||0)*(e.factor||1),reps:+x.reps||0})));
   const totalSets=logs.length,totalVolume=logs.reduce((sum,x)=>sum+x.kg*x.reps,0);
   const mins=d.started&&d.finished?Math.max(0,Math.round((d.finished-d.started)/60000)):null;
   const title=d.name||'Antrenman';
-  ctx.textAlign='center';ctx.fillStyle='#202020';ctx.font='bold 58px system-ui, sans-serif';
-  ctx.fillText(title.length>28?title.slice(0,27)+'…':title,540,156);
-  ctx.fillStyle='#777';ctx.font='32px system-ui, sans-serif';ctx.fillText(fmtDate(selected),540,215);
-  const roundRect=(x,y,w,h,r)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
-  ctx.fillStyle='#FFFFFF';roundRect(65,260,950,190,26);
+  ctx.textAlign='center';ctx.fillStyle='#202020';ctx.font='700 57px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
+  ctx.fillText(title.length>28?title.slice(0,27)+'…':title,540,316);
+  ctx.fillStyle='#777';ctx.font='32px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';ctx.fillText(fmtDate(selected),540,378);
+  ctx.fillStyle='#F7F8FC';rr(82,430,916,172,26);
   const metrics=[{value:String(totalSets),label:'Set'},{value:mins===null?'—':mins+' dk',label:'Süre'},{value:num(kgDisplay(totalVolume))+' '+state.settings.unit,label:'Hacim'}];
-  metrics.forEach((m,i)=>{const x=65+(i+.5)*(950/3);ctx.fillStyle='#202020';ctx.font='bold '+(m.value.length>9?37:46)+'px system-ui, sans-serif';ctx.fillText(m.value,x,335);ctx.fillStyle='#777';ctx.font='30px system-ui, sans-serif';ctx.fillText(m.label,x,391);});
+  metrics.forEach((m,i)=>{const x=82+(i+.5)*(916/3);ctx.fillStyle='#202020';ctx.font='700 '+(m.value.length>9?36:44)+'px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';ctx.fillText(m.value,x,500);ctx.fillStyle='#777';ctx.font='29px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';ctx.fillText(m.label,x,552);});
   ctx.textAlign='start';
-  const copy=svg.cloneNode(true);copy.setAttribute('xmlns','http://www.w3.org/2000/svg');copy.removeAttribute('style');copy.setAttribute('width','900');copy.setAttribute('height','1200');
-  // Inline SVG text uses the device system font when rasterized.
+  const copy=svg.cloneNode(true);copy.setAttribute('xmlns','http://www.w3.org/2000/svg');copy.removeAttribute('style');
+  copy.querySelectorAll('text').forEach(t=>{t.setAttribute('font-family','-apple-system, BlinkMacSystemFont, Arial, sans-serif');t.style.fontFamily='Arial, sans-serif';});
   const raw=new XMLSerializer().serializeToString(copy),url=URL.createObjectURL(new Blob([raw],{type:'image/svg+xml;charset=utf-8'}));
   try{
    const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
    const box=svg.viewBox.baseVal,ratio=(box.width||390)/(box.height||440);
-   const maxW=960,maxH=1190;const drawW=Math.min(maxW,maxH*ratio),drawH=drawW/ratio;
-   ctx.drawImage(img,(1080-drawW)/2,490+(1190-drawH)/2,drawW,drawH);
+   const maxW=940,maxH=940,drawW=Math.min(maxW,maxH*ratio),drawH=drawW/ratio;
+   ctx.drawImage(img,(1080-drawW)/2,625+(940-drawH)/2,drawW,drawH);
   }finally{URL.revokeObjectURL(url);}
-  ctx.fillStyle='#777';ctx.font='27px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText('GYM TRADER PRO',540,1820);ctx.textAlign='start';
+  ctx.fillStyle='#777';ctx.font='28px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';ctx.textAlign='center';ctx.fillText('GYM TRADER PRO',540,1600);ctx.textAlign='start';
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Görsel oluşturulamadı');
   const file=new File([blob],'gym-trader-pro-hikaye-'+selected+'.png',{type:'image/png'});
   if(navigator.canShare?.({files:[file]})&&navigator.share){try{await navigator.share({files:[file],title:'Gym Trader Pro · Antrenman Özeti'});return;}catch(err){if(err.name==='AbortError')return;}}
