@@ -278,3 +278,5 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 @media(max-width:400px){.daily-summary-sheet{padding:10px}.daily-summary-head strong{font-size:17px}}
 
 #workoutSummary{position:relative}#workoutSummary h2{padding-right:102px}#workoutSummary .workout-summary-top-button{position:absolute;top:16px;right:16px;z-index:2;background:#f3f3f3;color:#202020;border:1px solid #e5e5e5;border-radius:12px;padding:10px 13px;font-size:13px;font-weight:700;min-height:40px;box-shadow:none}#workoutSummary .workout-summary-top-button:focus-visible{outline:2px solid #777;outline-offset:2px}
+
+.daily-summary-head-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}.daily-summary-head-actions .daily-summary-share{width:auto;height:38px;border-radius:12px;padding:0 12px;font-size:13px;font-weight:700;background:#e8edf4;color:#202020}.daily-summary-head-actions .daily-summary-share:disabled{opacity:.6}.daily-summary-head>div:first-child{min-width:0}.daily-summary-head strong{overflow-wrap:anywhere}
