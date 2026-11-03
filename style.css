@@ -247,3 +247,12 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .regional-chart-item{flex:1 0 52px;min-width:52px;max-width:130px;display:flex;flex-direction:column;align-items:center;gap:5px;height:184px;justify-content:flex-end}
 .regional-chart-value{font-size:11px;font-weight:700;white-space:nowrap}.regional-chart-track{height:140px;width:100%;display:flex;align-items:end}.regional-chart-track i{display:block;width:100%;background:#303030;border-radius:7px 7px 0 0}
 .regional-chart-item small{font-size:10px;color:#777}.regional-chart-note{color:#777;font-size:12px;line-height:1.5;margin:13px 0}
+
+
+/* Soft regional list: replace heavy black inherited button styling */
+.regional-card .regional-row,.regional-card .regional-row:hover,.regional-card .regional-row:focus{background:#f8f7f5!important;color:#252525!important;border:1px solid #eae5df!important;box-shadow:none!important}
+.regional-card .regional-row b{color:#252525!important}
+.regional-card .regional-muscle{color:#e9a06d!important}
+.regional-card .regional-change{background:#efefed!important;color:#525252!important;font-size:11px;max-width:47%;text-align:right}
+.regional-card .regional-chevron{color:#858585!important}
+.regional-card .regional-row{min-height:50px}
