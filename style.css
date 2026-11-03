@@ -265,5 +265,5 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 
 .day.manual-rest{background:transparent;color:inherit;border-color:transparent;font-weight:inherit}
 .day.manual-rest.selected{background:var(--soft);border-color:var(--green)}
-.day.manual-rest:after{content:'';position:absolute;bottom:4px;top:auto;right:auto;left:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#9656c9}
+.calendar-home .day.manual-rest:after{content:"";position:absolute;bottom:6px;top:auto;right:auto;left:calc(50% - 3.5px);width:7px;height:7px;border-radius:100%;background:var(--purple)}
 .day.rest:after{display:none}
