@@ -276,3 +276,5 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .daily-summary-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#ececea;border-radius:13px;margin:16px 0}.daily-summary-tabs button{border-radius:10px;padding:11px 5px;background:transparent;color:#555;font-weight:600;font-size:13px}.daily-summary-tabs button.active{background:#fff;color:#202020;box-shadow:0 1px 4px #0002}
 .daily-summary-chart{background:#f8f9fc;border-radius:14px;padding:5px;overflow:hidden}.daily-summary-hint{font-size:12px;text-align:center;color:#777;line-height:1.5;margin:10px 0 0}
 @media(max-width:400px){.daily-summary-sheet{padding:10px}.daily-summary-head strong{font-size:17px}}
+
+#workoutSummary{position:relative}#workoutSummary h2{padding-right:102px}#workoutSummary .workout-summary-top-button{position:absolute;top:16px;right:16px;z-index:2;background:#f3f3f3;color:#202020;border:1px solid #e5e5e5;border-radius:12px;padding:10px 13px;font-size:13px;font-weight:700;min-height:40px;box-shadow:none}#workoutSummary .workout-summary-top-button:focus-visible{outline:2px solid #777;outline-offset:2px}
