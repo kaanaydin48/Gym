@@ -69,58 +69,58 @@ window.GymMotion=(()=>{
  }
  document.addEventListener('visibilitychange',syncPause);
  media?.addEventListener?.('change',event=>{paused=event.matches;syncPause();});
-// Each pose has a head centre, a body path and an optional equipment path on a 32-unit grid.
- const poses = {
-  'dumbbell-bench-press':[25,18,'M22 20H10L6 25V29 M19 20L16 14L17 8','M6 23H28M9 24V29M26 24V29 M13 7H21M13 5V9M21 5V9'],
-  'incline-dumbbell-bench-press':[22,12,'M20 15L12 23H7L5 29 M18 17L14 13L16 6','M7 25H13L25 13M12 26V29 M12 5H20M12 3V7M20 3V7'],
-  'barbell-bench-press':[24,18,'M21 20H10L6 25V29 M18 20L14 14V9','M5 23H28M8 24V29M26 24V29 M3 8H26M6 5V11M23 5V11'],
-  'chest-fly-machine':[16,8,'M16 12V22M16 15L10 13L8 9M16 15L22 13L24 9M16 22L12 24V29M16 22L20 24V29','M5 7V17L10 19M27 7V17L22 19M12 23H20'],
-  'dips':[17,6,'M17 10L15 18L18 24L12 26M17 12L22 15L18 20','M7 20H24M9 20V29M24 20V29'],
-  'cable-triceps-pushdown':[12,6,'M13 10L11 20L8 29M11 20L16 29M14 12L16 16L20 22','M25 3V6L20 21M17 22H23'],
-  'overhead-cable-triceps-extension':[16,12,'M16 16L14 22L10 29M14 22L21 28M16 16L15 6L21 4','M3 27L20 4M2 24V29'],
-  'dumbbell-curl':[14,6,'M14 10V20L9 29M14 20L19 29M14 12L19 17L23 12','M19 10L26 14M20 8L18 12M27 12L25 16'],
-  'hammer-curl':[14,6,'M14 10V20L9 29M14 20L19 29M14 12L19 18L23 13','M24 8V16M21 8H27M21 16H27'],
-  'lat-pulldown':[16,10,'M16 14V21M16 15L10 12L6 7M16 15L22 12L26 7M16 21L11 23V29M16 21L21 23V29','M16 2V4M4 8L8 5H24L28 8M12 24H20'],
-  'seated-cable-row':[9,9,'M10 13L9 21L18 22L24 26M10 14L12 18L17 17','M17 17L29 20V28M4 24H13M6 25V29'],
-  'dumbbell-shoulder-press':[16,10,'M16 14V22M16 15L8 14V7M16 15L24 14V7M16 22L11 29M16 22L21 29','M4 6H12M4 4V8M12 4V8M20 6H28M20 4V8M28 4V8'],
-  'lateral-raise':[16,7,'M16 11V20M16 13L9 12L4 11M16 13L23 12L28 11M16 20L11 29M16 20L21 29','M3 9V13M29 9V13'],
-  'leg-press':[7,12,'M8 16L12 23L18 17L24 14M8 17L10 20H14','M3 13L8 25H14M21 10L26 17M24 12L29 6M14 28L29 13'],
-  'leg-curl':[6,18,'M9 19L19 20L23 18L25 10M10 20L7 24H3','M3 22H21M5 23V29M19 23V29M23 10H28'],
-  'goblet-squat':[14,7,'M14 11L12 19L20 22L14 28H19M14 12L19 15L19 11','M18 8H22M20 8V13M18 13H22'],
-  'plank':[25,12,'M22 15L13 17L4 22M21 15L23 22H29','M3 24H29'],
-  'chest-press-machine':[10,8,'M10 12V21L18 22V29M10 14L17 15H23','M6 12V24H14M8 25V29M24 12V18L28 23V29'],
-  'cable-crossover':[16,7,'M16 11V20L12 29M16 20L21 29M15 13L10 16L17 19M17 13L22 16L15 19','M2 4V23M30 4V23M2 5L15 18M30 5L17 18'],
-  'pull-up':[16,8,'M16 12V20L12 26L16 28M16 20L20 26L17 29M16 13L8 12L7 5M16 13L24 12L25 5','M3 4H29'],
-  'assisted-pull-up':[16,8,'M16 12V19L13 24H19M16 13L9 12L8 5M16 13L23 12L24 5','M4 4H28M11 26H21L26 22V5'],
-  'single-arm-dumbbell-row':[24,10,'M21 13L11 17L7 28M11 17L15 23H20M21 13L24 22M19 14L14 13L13 19','M16 24H29M18 25V29M27 25V29M10 20H16M10 18V22M16 18V22'],
-  'chest-supported-row':[22,8,'M20 12L11 21L6 28M18 14L11 14L13 20','M8 25L24 12M12 23V29M22 16V29M10 21H16M10 19V23M16 19V23'],
-  'reverse-pec-deck':[16,8,'M16 12V22M16 14L10 15L4 12M16 14L22 15L28 12M16 22L12 28M16 22L20 28','M3 9V14M29 9V14M4 9L12 4M28 9L20 4M13 23H19'],
-  'cable-lateral-raise':[16,7,'M16 11V21L12 29M16 21L21 29M16 13L22 12L28 10','M3 23V29L28 11'],
-  'face-pull':[10,8,'M10 12L8 20L5 29M8 20L15 28M11 13L16 14L14 9','M14 9L20 11L29 8M14 12L20 11M29 4V24'],
-  'smith-squat':[15,9,'M15 13L11 19L19 22L14 28H19M15 14L19 16L20 12','M4 3V29M28 3V29M3 12H29M7 9V15M25 9V15'],
-  'bulgarian-split-squat':[15,6,'M15 10L14 18L22 20L21 28H26M14 18L11 23L5 20M15 12L18 19','M2 21H8M3 22V28M16 20H20'],
-  'romanian-deadlift':[23,10,'M20 12L10 15L13 21L10 28H15M20 13L19 23','M11 24H28M14 21V27M25 21V27'],
-  'leg-extension':[9,8,'M10 12L11 21H19L27 18M10 14L13 19','M6 12V24H18M8 24V29M24 20L28 18'],
-  'hip-thrust':[6,14,'M9 16L18 16L24 18L23 27H28M10 16L13 19L17 16','M2 19H10M4 20V28M16 12A4 4 0 1 0 16.1 12Z'],
-  'cable-glute-kickback':[21,9,'M19 13L13 18L15 28M13 18L8 20L3 16M19 14L25 16','M27 6V28M4 17L26 26'],
-  'standing-calf-raise':[14,7,'M14 11V21L13 25L16 28H20M14 13L19 16L21 12','M10 11H18M22 8V29M15 30H25'],
-  'seated-calf-raise':[10,8,'M10 12V20H19L18 25L22 28M10 14L14 17H18','M4 23H12M6 24V29M16 18H23M21 30H28'],
-  'preacher-curl':[11,8,'M12 12L10 21H16V29M13 13L20 19L24 12','M15 16L22 22M19 21V29M5 23H12M22 11H27M22 9V13M27 9V13'],
-  'incline-dumbbell-curl':[9,9,'M10 13L14 21H20L22 28M11 14L10 20L6 16','M5 10L12 24H20M14 25V29M3 15H8'],
-  'rope-triceps-pushdown':[11,6,'M12 10L10 20L7 29M10 20L16 29M13 12L16 16L19 22M14 12L18 15L24 21','M25 3L22 16L19 22M22 16L25 21'],
-  'dead-bug':[6,21,'M9 22L18 22L21 15H27M17 22L28 25M10 21L13 12M10 21L4 15','M3 27H29'],
-  'cable-crunch':[17,15,'M15 17L10 13L9 20L15 25H6M13 14L19 19L19 14','M24 3L19 13M4 28H19'],
-  'reverse-crunch':[6,22,'M9 23L17 21L21 16L17 11L23 8M10 23L14 25H23','M3 27H28'],
-  'squat':[15,7,'M15 11L11 19L19 21L14 28H19M15 12L20 14L20 10','M4 10H27M7 7V13M24 7V13'],
-  'seated-leg-curl':[9,8,'M10 12V20H20L15 26M10 14L15 17','M6 12V23H19M8 24V29M13 27H18'],
-  'seated-shoulder-press':[16,10,'M16 14V21M16 15L8 14V6M16 15L24 14V6M16 21L11 23V29M16 21L21 23V29','M4 5H12M4 3V7M12 3V7M20 5H28M20 3V7M28 3V7M12 24H20']
+ // Equipment silhouettes on a shared 32-unit grid. Mat exercises use floor-contact marks.
+ const glyphs = {
+  'lat-pulldown': 'M16 3v7 M4 20l5-4 5-1h4l5 1 5 4 M4 20l4-3 M24 17l4 3',
+  'seated-cable-row': 'M22 16h7 M21 16 7 6v20z',
+  'dumbbell-bench-press': 'M5 22h22 M8 23v5 M24 23v5 M7 9h17 M8 6v6 M12 5v8 M20 5v8 M24 6v6',
+  'incline-dumbbell-bench-press': 'M4 24h7L26 13 M10 25v4 M22 17v11 M4 9h15 M5 6v6 M9 5v8 M15 5v8 M19 6v6',
+  'barbell-bench-press': 'M2 10h28 M6 6v8 M10 4v12 M22 4v12 M26 6v8 M8 19v9 M24 19v9 M5 21h22',
+  'chest-fly-machine': 'M6 7v9l6 5 M26 7v9l-6 5 M4 8v7 M28 8v7 M13 25h6',
+  'dips': 'M4 12l10-6 M4 12v13 M14 6v12 M17 18l11-7 M17 18v10 M28 11v12',
+  'cable-triceps-pushdown': 'M16 3v11 M13 17l3-3 3 3 M4 19h24 M4 17v4 M28 17v4',
+  'overhead-cable-triceps-extension': 'M3 28l10-12 M13 16l5-4 7-1 M14 16l6 2 7-2 M24 9l2 4 M26 14l2 4',
+  'dumbbell-curl': 'M5 23 25 9 M4 19l5 7 M7 16l6 9 M19 7l6 9 M23 5l5 7',
+  'hammer-curl': 'M16 5v22 M10 5h12 M8 9h16 M8 23h16 M10 27h12',
+  'dumbbell-shoulder-press': 'M3 12h10 M4 8v8 M12 8v8 M19 12h10 M20 8v8 M28 8v8',
+  'lateral-raise': 'M3 15l9-6 M3 12l4 6 M9 7l4 6 M20 9l9 6 M19 13l4-6 M25 18l4-6',
+  'leg-press': 'M3 16l4 8h7 M8 28h18 M13 24 28 9 M15 8l8 8 M17 6l8 8',
+  'leg-curl': 'M3 20l10-3 9 2 M5 21v6 M20 20v7 M21 17l5-8 M23 8h5',
+  'goblet-squat': 'M16 8v16 M9 7h14 M7 11h18 M10 23h12 M11 27h10',
+  'plank': 'M3 23h26 M4 18h5 M22 16h5v2h-5z',
+  'chest-press-machine': 'M6 10v13h9 M8 24v4 M24 27V12l-5-5 M15 9h6 M15 8v5',
+  'cable-crossover': 'M3 26V5h4 M29 26V5h-4 M5 7l17 15 M27 7 10 22 M8 21l3 3 M21 24l3-3',
+  'pull-up': 'M3 12l5-4h16l5 4 M8 8v8 M24 8v8',
+  'assisted-pull-up': 'M3 8l5-3h17l3 3 M26 6v20h-7 M8 22h11v3H8z',
+  'single-arm-dumbbell-row': 'M3 19h14 M5 20v7 M15 20v7 M19 12h10 M20 8v8 M27 8v8',
+  'chest-supported-row': 'M4 23 25 7 M9 21v6 M21 12v15 M15 21h13 M16 18v6 M27 18v6',
+  'reverse-pec-deck': 'M3 12v6 M29 12v6 M4 12l9-7h6l9 7 M14 15h4v9h-4z M12 27h8',
+  'cable-lateral-raise': 'M3 25h5 M5 23 22 10 M21 9l8-3-3 9z',
+  'face-pull': 'M28 8l-11 6 M17 14l-5-3-7 1 M17 14l-3 6-7 4 M4 10l2 4 M6 22l2 4',
+  'smith-squat': 'M4 3v25 M28 3v25 M3 14h26 M8 10v8 M24 10v8 M2 28h6 M24 28h6',
+  'bulgarian-split-squat': 'M2 16h15 M4 18v8 M14 18v8 M25 9v15 M21 10h8 M21 22h8',
+  'romanian-deadlift': 'M2 19l28-6 M5 15l2 9 M9 12l3 13 M20 9l3 13 M25 9l2 9',
+  'leg-extension': 'M4 7v14h12 M7 22v6 M16 19l9-4 M24 12l3 6 M22 13l3 6',
+  'hip-thrust': 'M2 13h9 M4 14v10 M10 14v10 M13 20h17 M16 16v8 M20 14v12 M26 15v10',
+  'cable-glute-kickback': 'M2 22l12-6 M14 12l9-5 5 10-9 5z M17 12l5 8',
+  'standing-calf-raise': 'M6 8h13 M8 8v4 M17 8v4 M20 8h6v19H14 M6 24h9v3H6z',
+  'seated-calf-raise': 'M3 18h8 M6 19v8 M7 27h19 M15 12h10 M19 13v9 M21 24h7',
+  'preacher-curl': 'M7 12l13 8 M14 17v11 M4 23h6 M15 7l4 2 3-3 5 2 M15 5l-2 5 M27 5l-2 6',
+  'incline-dumbbell-curl': 'M6 6l8 17h8 M13 24v4 M20 24v4 M19 12l9-4 M18 9l3 6 M26 5l3 6',
+  'rope-triceps-pushdown': 'M16 3v8 M16 11l-3 8-6 6 M16 11l3 8 6 6 M5 23l4 4 M23 27l4-4',
+  'dead-bug': 'M3 25h26 M6 17l4-4 M12 17l5-5 M21 10l4-4',
+  'cable-crunch': 'M25 3l-7 8 M18 11l-7 3-2 6 M18 11l1 5-4 5 M4 27h17',
+  'reverse-crunch': 'M3 26h26 M11 19q8 0 10-8 M9 15q5 0 7-5',
+  'squat': 'M2 15h28 M6 10v10 M10 7v16 M22 7v16 M26 10v10',
+  'seated-leg-curl': 'M5 6v13h13 M8 20v8 M19 19l-4 7 M12 25l5 3 M13 15h9',
+  'seated-shoulder-press': 'M2 8h11 M3 5v6 M12 5v6 M19 8h11 M20 5v6 M29 5v6 M13 16v8h8 M16 24v4'
  };
  const iconAliases=new Map([['machine chest press','chest-press-machine'],['dumbbell lateral raise','lateral-raise'],['seated leg curl','seated-leg-curl'],['squat','squat'],['seated dumbbell shoulder press','seated-shoulder-press']]);
  function icon(name,x=0,y=0,size=26){
-  const key=normalize(name),pose=poses[byName.get(key)||iconAliases.get(key)];
-  if(!pose)return '';
-  const [cx,cy,body,equipment]=pose;
-  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="${x ? '#414141' : 'currentColor'}" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><circle cx="${cx}" cy="${cy}" r="2.5"/><path d="${body}"/><path d="${equipment}" stroke-width="1.25"/></svg>`;
+  const key=normalize(name);
+  const path=glyphs[byName.get(key)||iconAliases.get(key)];
+  if(!path)return '';
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="${x ? '#414141' : 'currentColor'}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
  }
  return {card,open,refresh,toggle,names,icon};
 })();
