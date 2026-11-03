@@ -116,11 +116,11 @@ window.GymMotion=(()=>{
   'seated-shoulder-press':[16,10,'M16 14V21M16 15L8 14V6M16 15L24 14V6M16 21L11 23V29M16 21L21 23V29','M4 5H12M4 3V7M12 3V7M20 5H28M20 3V7M28 3V7M12 24H20']
  };
  const iconAliases=new Map([['machine chest press','chest-press-machine'],['dumbbell lateral raise','lateral-raise'],['seated leg curl','seated-leg-curl'],['squat','squat'],['seated dumbbell shoulder press','seated-shoulder-press']]);
- function icon(name,x=0,y=0){
+ function icon(name,x=0,y=0,size=26){
   const key=normalize(name),pose=poses[byName.get(key)||iconAliases.get(key)];
   if(!pose)return '';
   const [cx,cy,body,equipment]=pose;
-  return `<svg x="${x}" y="${y}" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="${x ? '#414141' : 'currentColor'}" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><circle cx="${cx}" cy="${cy}" r="2.5"/><path d="${body}"/><path d="${equipment}" stroke-width="1.25"/></svg>`;
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="${x ? '#414141' : 'currentColor'}" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><circle cx="${cx}" cy="${cy}" r="2.5"/><path d="${body}"/><path d="${equipment}" stroke-width="1.25"/></svg>`;
  }
  return {card,open,refresh,toggle,names,icon};
 })();
