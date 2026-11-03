@@ -248,6 +248,35 @@ function showDailySummary(){const d=state.days[selected];if(!d||!d.finished)retu
 function switchDailySummaryLayout(v){dailySummaryLayout=v==='sankey'?'sankey':'radial';localStorage.setItem('gym-daily-summary-layout',dailySummaryLayout);dailySummaryExercise=-1;renderDailySummaryModal();}
 function pickDailySummaryExercise(i){dailySummaryExercise=dailySummaryExercise===i?-1:i;renderDailySummaryModal();}
 function closeDailySummary(){document.getElementById('dailySummaryOverlay')?.remove();}
+async function shareDailySummaryStory(){
+ const overlay=document.getElementById('dailySummaryOverlay'),svg=overlay?.querySelector('.daily-summary-chart svg'),d=state.days[selected];
+ if(!svg||!d)return;
+ const btn=overlay.querySelector('.daily-summary-share');if(btn){btn.disabled=true;btn.textContent='Hazırlanıyor…';}
+ try{
+  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;
+  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas kullanılamıyor');
+  ctx.fillStyle='#F7F8FC';ctx.fillRect(0,0,1080,1920);
+  ctx.fillStyle='#777';ctx.font='600 32px system-ui, sans-serif';ctx.fillText('GYM TRADER PRO',72,112);
+  ctx.fillStyle='#202020';ctx.font='bold 64px system-ui, sans-serif';const title=d.name||'Antrenman';ctx.fillText(title.length>24?title.slice(0,23)+'…':title,72,202);
+  ctx.fillStyle='#777';ctx.font='32px system-ui, sans-serif';ctx.fillText(fmtDate(selected),72,258);
+  const copy=svg.cloneNode(true);copy.setAttribute('xmlns','http://www.w3.org/2000/svg');copy.removeAttribute('style');copy.setAttribute('width','900');copy.setAttribute('height','1200');
+  // Inline SVG text uses the device system font when rasterized.
+  const raw=new XMLSerializer().serializeToString(copy),url=URL.createObjectURL(new Blob([raw],{type:'image/svg+xml;charset=utf-8'}));
+  try{
+   const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
+   const box=svg.viewBox.baseVal,ratio=(box.width||390)/(box.height||440);
+   const maxW=960,maxH=1380;const drawW=Math.min(maxW,maxH*ratio),drawH=drawW/ratio;
+   ctx.drawImage(img,(1080-drawW)/2,320+(1380-drawH)/2,drawW,drawH);
+  }finally{URL.revokeObjectURL(url);}
+  ctx.fillStyle='#777';ctx.font='27px system-ui, sans-serif';ctx.textAlign='center';ctx.fillText('Günlük Antrenman Özeti',540,1820);ctx.textAlign='start';
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Görsel oluşturulamadı');
+  const file=new File([blob],'gym-trader-pro-hikaye-'+selected+'.png',{type:'image/png'});
+  if(navigator.canShare?.({files:[file]})&&navigator.share){try{await navigator.share({files:[file],title:'Gym Trader Pro · Antrenman Özeti'});return;}catch(err){if(err.name==='AbortError')return;}}
+  const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),2000);
+  toast('Hikâye görseli kaydedildi. Instagram’da paylaşabilirsin.');
+ }catch(err){console.error('Story share failed',err);toast('Paylaşım görseli hazırlanamadı. Tekrar dene.');}
+ finally{if(btn){btn.disabled=false;btn.textContent='Paylaş ↗';}}
+}
 function renderDailySummaryModal(){
  const d=state.days[selected];if(!d||!d.finished)return;
  const palette=['#E6A078','#8AAFC9','#B09ED1','#8CBCA7','#DCA6AF','#D2BC83','#8DBDBB','#B9A4C1','#A6BBD8','#C3B4A0'];
@@ -303,7 +332,7 @@ function renderDailySummaryModal(){
   svg='<svg viewBox="0 0 440 '+sh+'" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;max-height:75vh" role="img" aria-label="Üç antrenman bilgisi toplam hacimde birleşir ve hareketlere dağılır">'+ribbons+sourceBoxes+middleNode+exerciseBoxes+'</svg>';
  }
  let overlay=document.getElementById('dailySummaryOverlay');if(!overlay){overlay=document.createElement('div');overlay.id='dailySummaryOverlay';document.body.appendChild(overlay);}
- overlay.innerHTML='<div class="daily-summary-sheet"><div class="daily-summary-head"><div><strong>'+esc(d.name)+'</strong><small>Günlük Antrenman Özeti · '+fmtDate(selected)+'</small></div><button type="button" onclick="closeDailySummary()" aria-label="Kapat">×</button></div><div class="daily-summary-tabs"><button class="'+(radial?'active':'')+'" onclick="switchDailySummaryLayout(\'radial\')">Serbest Akış</button><button class="'+(!radial?'active':'')+'" onclick="switchDailySummaryLayout(\'sankey\')">Hacim Akışı</button></div><div class="daily-summary-chart">'+(n?svg:'<p>Tamamlanmış set bulunamadı.</p>')+'</div><p class="daily-summary-hint">Hareket seçmek için kutuya dokun. Aynı kutuya tekrar dokunarak genel özete dön.</p></div>';
+ overlay.innerHTML='<div class="daily-summary-sheet"><div class="daily-summary-head"><div><strong>'+esc(d.name)+'</strong><small>Günlük Antrenman Özeti · '+fmtDate(selected)+'</small></div><div class="daily-summary-head-actions"><button type="button" class="daily-summary-share" onclick="shareDailySummaryStory()" aria-label="Instagram hikâyesi için paylaş">Paylaş ↗</button><button type="button" onclick="closeDailySummary()" aria-label="Kapat">×</button></div></div><div class="daily-summary-tabs"><button class="'+(radial?'active':'')+'" onclick="switchDailySummaryLayout(\'radial\')">Serbest Akış</button><button class="'+(!radial?'active':'')+'" onclick="switchDailySummaryLayout(\'sankey\')">Hacim Akışı</button></div><div class="daily-summary-chart">'+(n?svg:'<p>Tamamlanmış set bulunamadı.</p>')+'</div><p class="daily-summary-hint">Hareket seçmek için kutuya dokun. Aynı kutuya tekrar dokunarak genel özete dön.</p></div>';
 }
 
 function calendarView(){
