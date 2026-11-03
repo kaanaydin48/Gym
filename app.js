@@ -349,7 +349,7 @@ function renderDailySummaryModal(){
     `<text x="258" y="${y+16}" font-size="10" font-weight="600" fill="#292929">${esc(e.name.length>27?e.name.slice(0,26)+'…':e.name)}</text>
      <text x="258" y="${y+34}" font-size="12" font-weight="700" fill="#222">${num(kgDisplay(e.volume))} ${esc(state.settings.unit)}<tspan dx="4" font-size="8" font-weight="400" fill="#686868">Maks. ${num(kgDisplay(e.max))} ${esc(state.settings.unit)}</tspan></text>
      <rect x="258" y="${y+44}" width="95" height="4" rx="2" fill="#E7E7E7"/><rect x="258" y="${y+44}" width="${95*share/100}" height="4" rx="2" fill="${color}"/>
-     <text x="358" y="${y+49}" font-size="9" fill="#555">${label}</text>${GymMotion.icon(e.name,404,y+18)}<title>${esc(e.name)} · ${label}</title></g>`;
+     <text x="358" y="${y+49}" font-size="9" fill="#555">${label}</text>${GymMotion.icon(e.name,389,y+9,43)}<title>${esc(e.name)} · ${label}</title></g>`;
 
   });
   const middleNode='<rect x="176" y="'+midTop+'" width="27" height="94" rx="10" fill="#80B6E8" opacity=".9"/><rect x="153" y="'+(midY-25)+'" width="80" height="50" rx="9" fill="#fff" stroke="#D6E4F2"/><text x="193" y="'+(midY-8)+'" font-size="9" text-anchor="middle" fill="#777">TOPLAM HACİM</text><text x="193" y="'+(midY+10)+'" font-size="13" font-weight="700" text-anchor="middle" fill="#222">'+totalLabel+'</text>';
