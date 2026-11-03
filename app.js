@@ -216,7 +216,7 @@ function toast(s){$('toast').textContent=s;$('toast').style.display='block';clea
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 const navIcons={
  calendar:'<path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9"/><path d="M9 21v-8h6v8"/>',
- workout:'<path d="m6.5 6.5 11 11"/><path d="m3 8 5-5M2 6l4-4M16 21l5-5m-3 6 4-4"/>',
+ workout:'<path d="M6 12h12M4 8v8M7 6v12M17 6v12M20 8v8"/>',
  progress:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/><path d="M16 7h4v4"/>',
  programs:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/>'
 };
@@ -240,7 +240,7 @@ const num=n=>Math.round(n).toLocaleString('tr-TR');
 const kgDisplay=n=>state.settings.unit==='lb'?Math.round(n*2.20462262*100)/100:n;
 function summary(){let a=allWork(),sets=a.reduce((n,[,d])=>n+totals(d).sets,0);return `<div class="metrics"><div class="metric"><small>TAMAMLANAN ANTRENMAN</small><strong>${a.filter(([,d])=>d.finished).length}</strong><small>Toplam kayıt</small></div><div class="metric"><small>ÇALIŞMA SETİ</small><strong>${sets}</strong><small>Tamamlandı olarak işaretli</small></div><div class="metric"><small>DİNLENME GÜNÜ</small><strong>${Object.keys(state.days).filter(k=>k<today&&state.days[k]?.kind==='rest').length}</strong><small>Toparlanma da gelişimdir</small></div><div class="metric"><small>PROGRAM SAYISI</small><strong>${selectablePrograms().length}</strong><small>${esc(gymAccount.role==='member'?beginnerProgram.name:state.programs[state.active]?.name||'Program seç')}</small></div></div>`}
 function firstWorkoutDate(){return Object.keys(state.days).filter(k=>state.days[k]?.kind==='workout').sort()[0]||null;}
-function isAutomaticRestDay(key){const first=firstWorkoutDate();return !!first&&key>=first&&key<today&&state.days[key]?.kind!=='workout';}
+function isAutomaticRestDay(key){const first=firstWorkoutDate();if(!first)return false;const monthStart=first.slice(0,7)+'-01';return key>=monthStart&&key<today&&!state.days[key];}
 function calendarView(){
  const d=state.days[selected],start=(month.getDay()+(state.settings.week==='monday'?6:0))%7,count=new Date(month.getFullYear(),month.getMonth()+1,0).getDate(),week=state.settings.week==='monday'?['Pzt','Sal','Çar','Per','Cum','Cmt','Paz']:['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
  let cells=week.map(w=>'<div class="weekday">'+w+'</div>').join('')+'<div></div>'.repeat(start);
@@ -253,7 +253,7 @@ function calendarView(){
  let streak=0,probe=new Date(first);while(true){const k=dateKey(probe);if(state.days[k]?.finished&&state.days[k]?.kind==='workout')streak++;else if(k!==today)break;probe.setDate(probe.getDate()-1);if(streak>365)break;}
  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);const weekEntries=Object.entries(state.days).filter(([k])=>k>=dateKey(weekStart)&&k<=dateKey(weekEnd));const rested=Array.from({length:7},(_,i)=>{const x=new Date(weekStart);x.setDate(x.getDate()+i);return dateKey(x)}).filter(isAutomaticRestDay).length;const planned=weekEntries.filter(([,v])=>v.kind==='workout'&&!v.finished).length;const summaryBar='<section class="card cal-weekly"><h3>Bu hafta dağılımı</h3><div class="cal-weekrow"><span>Antrenman</span><div><i style="width:'+(weekly/7*100)+'%;background:#8d8068"></i></div><strong>'+weekly+' gün</strong></div><div class="cal-weekrow"><span>Dinlenme</span><div><i style="width:'+(rested/7*100)+'%;background:var(--purple)"></i></div><strong>'+rested+' gün</strong></div><div class="cal-weekrow"><span>Planlı</span><div><i style="width:'+(planned/7*100)+'%;background:#83a88a"></i></div><strong>'+planned+' gün</strong></div></section>';const stats='<div class="calendar-stats"><div class="cal-stat"><small>Bu hafta</small><strong>'+weekly+'</strong><small>antrenman</small></div><div class="cal-stat"><small>Aylık toplam</small><strong>'+monthly+'</strong><small>antrenman</small></div><div class="cal-stat"><small>Seri</small><strong>'+streak+'</strong><small>gün</small></div></div>';
  let panel;
- if(!d)panel=assignment().replace('</div></section>','<button class="secondary" onclick="copyPreviousWorkout()">▢ Önceki antrenmanı kopyala</button></div></section>');
+ if(!d)panel=assignment();
  else if(d.kind==='rest')panel='<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Toparlanma günü olarak kaydedildi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>';
  else {
   const t=totals(d),minutes=d.started&&d.finished?Math.round((d.finished-d.started)/60000):null;
