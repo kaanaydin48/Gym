@@ -13,8 +13,8 @@
   window.gymAccount={client,user:data.user,role:result.data.role};
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
   await load('./membership.js?v=role-management-fix-20261031');
-  await load('./motion.js?v=2');
-  await load('./app.js?v=rest-purple-20261103');
+  await load('./motion.js?v=a2-icons-20261104');
+  await load('./app.js?v=a2-icons-20261104');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
