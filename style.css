@@ -220,3 +220,17 @@ body .set-grid input[type="checkbox"]:checked{accent-color:#78A68B!important;opa
 
 /* Full account name in the profile button, including narrow mobile screens. */
 header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overflow-wrap:anywhere}header .avatar{width:auto;max-width:48%;flex:0 1 auto;min-width:44px;border-radius:16px;padding:10px 14px;white-space:normal;overflow-wrap:anywhere;line-height:1.35;text-align:center;font-size:14px}
+
+
+/* Bölgesel gelişim: antrasit kontrol, hafif turuncu kas vurgusu */
+.regional-card{min-width:0}.regional-list{margin-top:15px;display:grid;gap:7px}
+.regional-row{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:9px 12px;background:#fff7f0;color:#1c1c1e;border:1px solid #f5e7dc;border-radius:14px;text-align:left}
+.regional-row b{flex:1}.regional-muscle{color:#e99c63;font-size:22px}.regional-change{color:#27743c;background:#e8f7e8;border-radius:30px;padding:5px 9px;font-size:12px;font-weight:700}.regional-chevron{font-size:24px;color:#333}
+.regional-open{overflow:hidden}.regional-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center}.regional-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.42)}
+.regional-sheet{position:relative;width:100%;max-width:720px;height:75dvh;max-height:95dvh;background:#fff;border-radius:26px 26px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 40px #0002;color:#1c1c1e;overflow:hidden}.regional-sheet.expanded{height:95dvh}
+.regional-handle{width:48px;height:5px;border-radius:5px;background:#c9c9c9;margin:9px auto 5px;flex-shrink:0;touch-action:pan-y}
+.regional-sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 20px}.regional-sheet-head h2{margin:0 0 4px;color:#1c1c1e}.regional-close{background:#f2f2f2;color:#1c1c1e;border-radius:50%;width:38px;height:38px;min-height:38px;padding:0;font-size:24px}
+.regional-tabs{display:flex;background:#f1f1f1;border-radius:13px;margin:5px 16px 12px;padding:3px;gap:3px}.regional-tabs button{flex:1;min-height:38px;padding:7px 2px;border-radius:10px;background:transparent;color:#333;font-size:13px}.regional-tabs button.active{background:#1c1c1e;color:#fff}
+.regional-sheet-body{overflow:auto;overscroll-behavior:contain;padding:4px 18px 28px;flex:1}.regional-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.regional-kpis>div{border:1px solid #e9e9e9;border-radius:14px;padding:13px 8px;display:grid;gap:5px}.regional-kpis strong{font-size:15px}.regional-kpis small{font-size:11px}
+.regional-mini-chart{height:145px;display:flex;align-items:end;gap:9px;padding:12px 8px;border-bottom:1px solid #ccc}.regional-mini-chart>div{height:100%;flex:1;display:flex;align-items:end}.regional-mini-chart i{display:block;width:100%;background:#303030;border-radius:5px 5px 0 0}
+.regional-exercises details{border-bottom:1px solid #e9e9e9;padding:12px 3px}.regional-exercises summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}.regional-exercises summary small{color:#777}.regional-exercises .growth-chart{max-width:100%}
