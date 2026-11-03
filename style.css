@@ -263,8 +263,7 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .plan-day-actions .rest-day-action{background:#f2f2f2;color:#151515;border-color:transparent}
 .plan-day-actions .rest-day-action span{margin-right:5px}
 
-/* Explicitly scheduled rest days: visible purple tile, automatic rest stays unmarked */
-.day.manual-rest{background:#eee6fa;color:#65449b;border:1px solid #d8c7ef;font-weight:700}
-.day.manual-rest.selected{background:#e7d8f8;border-color:#9d7bc9}
-.day.manual-rest:after{content:'☾';position:absolute;right:3px;top:1px;font-size:11px;line-height:1;color:#7954ad}
+.day.manual-rest{background:transparent;color:inherit;border-color:transparent;font-weight:inherit}
+.day.manual-rest.selected{background:var(--soft);border-color:var(--green)}
+.day.manual-rest:after{content:'';position:absolute;bottom:4px;top:auto;right:auto;left:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#9656c9}
 .day.rest:after{display:none}
