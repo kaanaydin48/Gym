@@ -241,6 +241,51 @@ const kgDisplay=n=>state.settings.unit==='lb'?Math.round(n*2.20462262*100)/100:n
 function summary(){let a=allWork(),sets=a.reduce((n,[,d])=>n+totals(d).sets,0);return `<div class="metrics"><div class="metric"><small>TAMAMLANAN ANTRENMAN</small><strong>${a.filter(([,d])=>d.finished).length}</strong><small>Toplam kayıt</small></div><div class="metric"><small>ÇALIŞMA SETİ</small><strong>${sets}</strong><small>Tamamlandı olarak işaretli</small></div><div class="metric"><small>DİNLENME GÜNÜ</small><strong>${Object.keys(state.days).filter(k=>k<today&&state.days[k]?.kind==='rest').length}</strong><small>Toparlanma da gelişimdir</small></div><div class="metric"><small>PROGRAM SAYISI</small><strong>${selectablePrograms().length}</strong><small>${esc(gymAccount.role==='member'?beginnerProgram.name:state.programs[state.active]?.name||'Program seç')}</small></div></div>`}
 function firstWorkoutDate(){return Object.keys(state.days).filter(k=>state.days[k]?.kind==='workout').sort()[0]||null;}
 function isAutomaticRestDay(key){const first=firstWorkoutDate();if(!first)return false;const monthStart=first.slice(0,7)+'-01';return key>=monthStart&&key<today&&!state.days[key];}
+
+let dailySummaryLayout=localStorage.getItem('gym-daily-summary-layout')==='sankey'?'sankey':'radial';
+let dailySummaryExercise=-1;
+function showDailySummary(){const d=state.days[selected];if(!d||!d.finished)return;dailySummaryExercise=-1;renderDailySummaryModal();}
+function switchDailySummaryLayout(v){dailySummaryLayout=v==='sankey'?'sankey':'radial';localStorage.setItem('gym-daily-summary-layout',dailySummaryLayout);dailySummaryExercise=-1;renderDailySummaryModal();}
+function pickDailySummaryExercise(i){dailySummaryExercise=dailySummaryExercise===i?-1:i;renderDailySummaryModal();}
+function closeDailySummary(){document.getElementById('dailySummaryOverlay')?.remove();}
+function renderDailySummaryModal(){
+ const d=state.days[selected];if(!d||!d.finished)return;
+ const palette=['#E6A078','#8AAFC9','#B09ED1','#8CBCA7','#DCA6AF','#D2BC83','#8DBDBB','#B9A4C1','#A6BBD8','#C3B4A0'];
+ const exercises=(d.exercises||[]).map(e=>{const logs=(e.logs||[]).filter(s=>s.done),volume=logs.reduce((n,s)=>n+(+s.kg||0)*(+s.reps||0)*(e.factor||1),0);return {name:e.name,volume,max:Math.max(0,...logs.map(s=>(+s.kg||0)*(e.factor||1))),sets:logs.length,reps:logs.reduce((n,s)=>n+(+s.reps||0),0)};}).filter(e=>e.sets);
+ const volume=exercises.reduce((n,e)=>n+e.volume,0),sets=exercises.reduce((n,e)=>n+e.sets,0);
+ const minutes=d.started&&d.finished?Math.max(0,Math.round((d.finished-d.started)/60000)):null;
+ const active=dailySummaryExercise>=0?exercises[dailySummaryExercise]:null;
+ const duration=minutes===null?'—':minutes+' dk';
+ const totalLabel=num(kgDisplay(volume))+' '+state.settings.unit;
+ const n=exercises.length, radial=dailySummaryLayout==='radial';
+ const H=Math.max(radial?390:350,n*59+34),W=390;
+ const centerX=radial?195:74,centerY=H/2;
+ const hub='<circle cx="'+centerX+'" cy="'+centerY+'" r="70" fill="#fff" stroke="#E7E3DF" stroke-width="2"/>'+
+ '<text x="'+centerX+'" y="'+(centerY-27)+'" text-anchor="middle" font-size="11" fill="#777">'+esc(active?active.name:d.name)+'</text>'+
+ '<text x="'+centerX+'" y="'+(centerY+4)+'" text-anchor="middle" font-size="'+(active?19:29)+'" font-weight="700" fill="#202020">'+(active?num(kgDisplay(active.volume))+' '+state.settings.unit:sets+' SET')+'</text>'+
+ '<text x="'+centerX+'" y="'+(centerY+25)+'" text-anchor="middle" font-size="12" fill="#555">'+(active?'Maks. '+num(kgDisplay(active.max))+' '+state.settings.unit:duration)+'</text>'+
+ '<text x="'+centerX+'" y="'+(centerY+43)+'" text-anchor="middle" font-size="11" fill="#777">'+(active?active.sets+' set · '+active.reps+' tekrar':radial?totalLabel:'')+'</text>';
+ let paths='',cards='';
+ exercises.forEach((e,i)=>{
+  const color=palette[i%palette.length],dim=dailySummaryExercise>=0&&dailySummaryExercise!==i,opacity=dim?'.16':'.83';
+  let x,y,cx,cy;
+  if(radial){const angle=-Math.PI/2+(2*Math.PI*i/n);cx=centerX+Math.cos(angle)*150;cy=centerY+Math.sin(angle)*Math.min(160,H/2-32);x=Math.max(2,Math.min(W-126,cx-62));y=Math.max(2,Math.min(H-49,cy-23));}
+  else{x=264;y=10+i*59;cx=x;cy=y+23;}
+  const targetX=radial?x+62:cx,targetY=radial?y+23:cy;
+  const dx=targetX-centerX,dy=targetY-centerY,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
+  const startX=centerX+70*ux,startY=centerY+70*uy,endX=radial?targetX-25*ux:251,endY=radial?targetY-17*uy:targetY;
+  const width=3+17*(volume?e.volume/Math.max(...exercises.map(a=>a.volume),1):0);
+  const bend=radial?(i%2?9:-9):0;
+  const midX=(startX+endX)/2+nx*bend,midY=(startY+endY)/2+ny*bend;
+  paths+='<path d="M'+(startX+nx*width/2)+' '+(startY+ny*width/2)+' Q'+midX+' '+midY+' '+(endX+nx*2)+' '+(endY+ny*2)+' L'+(endX-nx*2)+' '+(endY-ny*2)+' Q'+midX+' '+midY+' '+(startX-nx*width/2)+' '+(startY-ny*width/2)+'Z" fill="'+color+'" opacity="'+opacity+'"/>';
+  cards+='<g role="button" tabindex="0" aria-label="'+esc(e.name)+'" onclick="pickDailySummaryExercise('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();pickDailySummaryExercise('+i+')}" style="cursor:pointer;opacity:'+(dim?'.5':'1')+'"><rect x="'+x+'" y="'+y+'" width="124" height="47" rx="9" fill="#fff" stroke="'+(dailySummaryExercise===i?color:'#E7E3DF')+'" stroke-width="'+(dailySummaryExercise===i?2:1)+'"/><rect x="'+(x+3)+'" y="'+(y+6)+'" width="4" height="35" rx="2" fill="'+color+'"/><text x="'+(x+12)+'" y="'+(y+17)+'" font-size="10" font-weight="600" fill="#292929">'+esc(e.name.length>19?e.name.slice(0,18)+'…':e.name)+'</text><text x="'+(x+12)+'" y="'+(y+34)+'" font-size="12" font-weight="700" fill="#292929">'+num(kgDisplay(e.volume))+' '+state.settings.unit+'</text><title>'+esc(e.name)+' · Maks. '+num(kgDisplay(e.max))+' '+state.settings.unit+'</title></g>';
+ });
+ const middle=radial?'':'<path d="M144 '+(centerY-19)+' C164 '+(centerY-19)+' 174 '+(centerY-18)+' 191 '+(centerY-18)+' L191 '+(centerY+18)+' C174 '+(centerY+18)+' 164 '+(centerY+19)+' 144 '+(centerY+19)+'Z" fill="#A9C6F0" opacity=".65"/><rect x="168" y="'+(centerY-23)+'" width="87" height="46" rx="10" fill="#fff" stroke="#D6E4F2"/><text x="211.5" y="'+(centerY-6)+'" text-anchor="middle" font-size="9" fill="#777">TOPLAM HACİM</text><text x="211.5" y="'+(centerY+11)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#202020">'+totalLabel+'</text>';
+ const svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;max-height:75vh" role="img" aria-label="Günlük antrenman hacim grafiği">'+paths+middle+hub+cards+'</svg>';
+ let overlay=document.getElementById('dailySummaryOverlay');if(!overlay){overlay=document.createElement('div');overlay.id='dailySummaryOverlay';document.body.appendChild(overlay);}
+ overlay.innerHTML='<div class="daily-summary-sheet"><div class="daily-summary-head"><div><strong>'+esc(d.name)+'</strong><small>Günlük Antrenman Özeti · '+fmtDate(selected)+'</small></div><button type="button" onclick="closeDailySummary()" aria-label="Kapat">×</button></div><div class="daily-summary-tabs"><button class="'+(radial?'active':'')+'" onclick="switchDailySummaryLayout(\'radial\')">Serbest Akış</button><button class="'+(!radial?'active':'')+'" onclick="switchDailySummaryLayout(\'sankey\')">Hacim Akışı</button></div><div class="daily-summary-chart">'+(n?svg:'<p>Tamamlanmış set bulunamadı.</p>')+'</div><p class="daily-summary-hint">Hareket seçmek için kutuya dokun. Aynı kutuya tekrar dokunarak genel özete dön.</p></div>';
+}
+
 function calendarView(){
  const d=state.days[selected],start=(month.getDay()+(state.settings.week==='monday'?6:0))%7,count=new Date(month.getFullYear(),month.getMonth()+1,0).getDate(),week=state.settings.week==='monday'?['Pzt','Sal','Çar','Per','Cum','Cmt','Paz']:['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
  let cells=week.map(w=>'<div class="weekday">'+w+'</div>').join('')+'<div></div>'.repeat(start);
@@ -257,7 +302,7 @@ function calendarView(){
  else if(d.kind==='rest')panel='<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Toparlanma günü olarak kaydedildi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>';
  else {
   const t=totals(d),minutes=d.started&&d.finished?Math.round((d.finished-d.started)/60000):null;
-  panel='<section class="card day-plan"><div class="row"><h2>'+esc(d.name)+' · v'+esc(d.version||1)+'</h2><span class="badge">'+(d.finished?'✓ TAMAMLANDI':d.started?'DEVAM EDİYOR':'PLANLANDI')+'</span></div><div class="calendar-detail-metrics"><div><strong>'+(d.exercises||[]).length+'</strong><small>hareket</small></div><div><strong>'+t.sets+'</strong><small>set</small></div><div><strong>'+(minutes===null?'—':minutes+' dk')+'</strong><small>süre</small></div><div><strong>'+num(t.ext)+'</strong><small>kg hacim</small></div></div>'+(d.finished?'<div class="calendar-exercises"><h3>Kısa özet</h3>'+(d.exercises||[]).filter(e=>(e.logs||[]).some(log=>log.done)).slice(0,4).map(e=>'<div class="calendar-exercise"><span>'+esc(e.name)+'</span><small>'+e.logs.filter(log=>log.done).length+' set</small></div>').join('')+'</div>':'')+'<div class="actions"><button onclick="go(\'workout\')">Antrenmanı görüntüle</button><button class="secondary" onclick="duplicateWorkoutNextDay()">↻ Tekrar planla</button></div></section>';
+  panel='<section class="card day-plan"><div class="row"><h2>'+esc(d.name)+' · v'+esc(d.version||1)+'</h2><span class="badge">'+(d.finished?'✓ TAMAMLANDI':d.started?'DEVAM EDİYOR':'PLANLANDI')+'</span></div><div class="calendar-detail-metrics"><div><strong>'+(d.exercises||[]).length+'</strong><small>hareket</small></div><div><strong>'+t.sets+'</strong><small>set</small></div><div><strong>'+(minutes===null?'—':minutes+' dk')+'</strong><small>süre</small></div><div><strong>'+num(t.ext)+'</strong><small>kg hacim</small></div></div>'+(d.finished?'<div class="calendar-exercises"><h3>Kısa özet</h3>'+(d.exercises||[]).filter(e=>(e.logs||[]).some(log=>log.done)).slice(0,4).map(e=>'<div class="calendar-exercise"><span>'+esc(e.name)+'</span><small>'+e.logs.filter(log=>log.done).length+' set</small></div>').join('')+'</div>':'')+'<div class="actions">'+(d.finished?'<button onclick="showDailySummary()">Özet</button>':'')+'<button onclick="go(\'workout\')">Antrenmanı görüntüle</button><button class="secondary" onclick="duplicateWorkoutNextDay()">↻ Tekrar planla</button></div></section>';
  }
  return '<div class="calendar-home"><section class="card month-card"><div class="row"><h2>'+month.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})+'</h2><div class="month-controls"><button class="link" aria-label="Önceki ay" onclick="shiftMonth(-1)">‹</button><button class="link" aria-label="Sonraki ay" onclick="shiftMonth(1)">›</button></div></div><div class="calendar">'+cells+'</div><div class="legend"><span><i style="background:#8d8068"></i>Antrenman</span><span><i style="background:#83a88a"></i>Planlandı</span><span><i style="background:var(--purple)"></i>Dinlenme</span></div></section>'+stats+'<section aria-label="Seçili günün planı"><div class="row selected-date"><h3>'+fmtDate(selected)+'</h3><button class="link" onclick="month=new Date(new Date().getFullYear(),new Date().getMonth(),1);selectDate(today)">Bugüne dön</button></div>'+panel+'</section>'+summaryBar+'</div>';
 }
