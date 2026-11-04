@@ -232,7 +232,7 @@ function applyTheme(){
  document.body.classList.remove('dark','theme-sage','theme-cobalt','theme-lavender','theme-orange','theme-cream','theme-dark');
 }
 function render(){extendExerciseLibrary();applyTheme();const profileButton=$('profileButton');if(profileButton){const name=String(state.profile.name||gymAccount.user.user_metadata?.full_name||'Hesabım').trim()||'Hesabım';profileButton.textContent=name;profileButton.setAttribute('aria-label',name+' · Hesabım');}$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
-const nav=labels.map(([id,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${navIcon(id)}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
+const nav=labels.map(([id,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${navIcon(id)}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();requestAnimationFrame(drawHomeFlowRibbons);if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
 const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
 const allWork=()=>Object.entries(state.days).filter(([,d])=>d.kind==='workout');
 function totals(d){let ext=0,body=0,sets=0;for(const e of d.exercises||[])for(const s of e.logs||[])if(s.done){sets++;const v=(+s.kg||0)*(+s.reps||0)*(e.factor||1);if(e.type==='body')body+=v;else ext+=v}return {ext,body,sets}}
@@ -388,7 +388,7 @@ function calendarView(){
  else if(d.kind==='rest')panel='<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Toparlanma günü olarak kaydedildi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>';
  else {
   const t=totals(d),minutes=d.started&&d.finished?Math.round((d.finished-d.started)/60000):null;
-  panel='<section class="card day-plan"><div class="row"><h2>'+esc(d.name)+' · v'+esc(d.version||1)+'</h2><span class="badge">'+(d.finished?'✓ TAMAMLANDI':d.started?'DEVAM EDİYOR':'PLANLANDI')+'</span></div><div class="calendar-detail-metrics"><div><strong>'+(d.exercises||[]).length+'</strong><small>hareket</small></div><div><strong>'+t.sets+'</strong><small>set</small></div><div><strong>'+(minutes===null?'—':minutes+' dk')+'</strong><small>süre</small></div><div><strong>'+num(t.ext)+'</strong><small>kg hacim</small></div></div>'+(d.finished?calendarFlowSummary(d):'')+'<div class="actions"><button onclick="go(\'workout\')">Antrenmanı görüntüle</button><button class="secondary" onclick="duplicateWorkoutNextDay()">↻ Tekrar planla</button></div></section>';
+  panel='<section class="card day-plan"><div class="row"><h2>'+esc(d.name)+' · v'+esc(d.version||1)+'</h2><span class="badge">'+(d.finished?'✓ TAMAMLANDI':d.started?'DEVAM EDİYOR':'PLANLANDI')+'</span></div><div class="calendar-detail-metrics"><div><strong>'+(d.exercises||[]).length+'</strong><small>hareket</small></div><div><strong>'+t.sets+'</strong><small>set</small></div><div><strong>'+(minutes===null?'—':minutes+' dk')+'</strong><small>süre</small></div><div><strong>'+num(t.ext)+'</strong><small>kg hacim</small></div></div>'+'<div class="actions"><button onclick="go(\'workout\')">Antrenmanı görüntüle</button><button class="secondary" onclick="duplicateWorkoutNextDay()">↻ Tekrar planla</button></div></section>';
  }
  return '<div class="calendar-home"><section class="card month-card"><div class="row"><h2>'+month.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})+'</h2><div class="month-controls"><button class="link" aria-label="Önceki ay" onclick="shiftMonth(-1)">‹</button><button class="link" aria-label="Sonraki ay" onclick="shiftMonth(1)">›</button></div></div><div class="calendar">'+cells+'</div><div class="legend"><span><i style="background:#8d8068"></i>Antrenman</span><span><i style="background:#83a88a"></i>Planlandı</span><span><i style="background:#9680BC"></i>Dinlenme</span></div></section>'+stats+'<section aria-label="Seçili günün planı"><div class="row selected-date"><h3>'+fmtDate(selected)+'</h3><button class="link" onclick="month=new Date(new Date().getFullYear(),new Date().getMonth(),1);selectDate(today)">Bugüne dön</button></div>'+panel+'</section>'+homeInsights()+summaryBar+'</div>';
 }
@@ -492,12 +492,12 @@ function saveProgram(){if(gymAccount.role==='member')return;const p=draft.p;if(!
 function versions(i){const p=state.programs[i];show(`<h2>${esc(p.name)} · Sürümler</h2><p>Güncel sürüm: ${p.version}</p>${p.history.map(v=>`<div class="list-item"><b>v${v.version} · ${esc(v.name)}</b><p>${v.exercises.map(e=>`${esc(e.name)} (${e.sets} set)`).join('<br>')}</p></div>`).join('')||'<p class="empty">Henüz önceki sürüm yok.</p>'}`)}
 function customExercise(){if(gymAccount.role==='member')return;show(`<h2>Özel hareket</h2><label>Ad<input id="customName"></label><label>Kas grubu<input id="customMuscle"></label><label>Ekipman<input id="customEquipment"></label><label>Hacim hesabı<select id="customType"><option value="1">Toplam ağırlık × tekrar</option><option value="2">Tek dambıl × 2 × tekrar</option><option value="body">Vücut ağırlığı (ayrı hacim)</option></select></label><button onclick="saveCustom()">Hareketi ekle</button>`)}
 function saveCustom(){if(gymAccount.role==='member')return;if(!$('customName').value.trim()||!$('customMuscle').value.trim()||!$('customEquipment').value.trim()){toast('Tüm alanları doldur.');return}const type=$('customType').value;state.library.push(exercise($('customName').value,$('customMuscle').value,$('customEquipment').value,type==='body'?'body':'external',type==='2'?2:1));save();$('modal').close();render()}
-let growthPeriod='week',growthExercise='';
+let growthPeriod='today',growthExercise='';
 function growthBounds(period=growthPeriod,now=new Date()){
  const end=new Date(now.getFullYear(),now.getMonth(),now.getDate()),start=new Date(end);
- if(period==='all'){const first=growthRows()[0];if(first){const [y,m,d]=first[0].split('-').map(Number);start.setFullYear(y,m-1,d)}else start.setTime(end.getTime())}else if(period==='week')start.setDate(start.getDate()-(state.settings.week==='sunday'?start.getDay():(start.getDay()+6)%7));else start.setDate(1);
+ if(period==='all'){const first=growthRows()[0];if(first){const [y,m,d]=first[0].split('-').map(Number);start.setFullYear(y,m-1,d)}else start.setTime(end.getTime())}else if(period==='week')start.setDate(start.getDate()-(state.settings.week==='sunday'?start.getDay():(start.getDay()+6)%7));else if(period==='month')start.setDate(1);
  const previousStart=new Date(start),previousEnd=new Date(end);
- if(period==='all'){previousStart.setTime(start.getTime());previousEnd.setTime(start.getTime()-86400000)}else if(period==='week'){previousStart.setDate(start.getDate()-7);previousEnd.setDate(end.getDate()-7)}else{previousStart.setMonth(start.getMonth()-1);previousEnd.setDate(1);previousEnd.setMonth(end.getMonth()-1);previousEnd.setDate(Math.min(end.getDate(),new Date(end.getFullYear(),end.getMonth(),0).getDate()))}
+ if(period==='today'){previousStart.setDate(start.getDate()-1);previousEnd.setDate(end.getDate()-1)}else if(period==='all'){previousStart.setTime(start.getTime());previousEnd.setTime(start.getTime()-86400000)}else if(period==='week'){previousStart.setDate(start.getDate()-7);previousEnd.setDate(end.getDate()-7)}else{previousStart.setMonth(start.getMonth()-1);previousEnd.setDate(1);previousEnd.setMonth(end.getMonth()-1);previousEnd.setDate(Math.min(end.getDate(),new Date(end.getFullYear(),end.getMonth(),0).getDate()))}
  return {start:dateKey(start),end:dateKey(end),previousStart:dateKey(previousStart),previousEnd:dateKey(previousEnd)};
 }
 function growthRows(){return allWork().filter(([date,d])=>date<=dateKey(new Date())&&totals(d).sets>0).sort(([a],[b])=>a.localeCompare(b))}
@@ -520,7 +520,7 @@ function growthRecords(rows,bounds){
  if(date>=bounds.start&&date<=bounds.end){if(weight!==null)records.push({date,name:e.name,label:'En yüksek ağırlık',value:`${num(kgDisplay(weight))} ${state.settings.unit}`});const pr=repRecords.at(-1);if(pr)records.push({date,name:e.name,label:'Aynı ağırlıkta tekrar rekoru',value:`${num(kgDisplay(pr.kg))} ${state.settings.unit} × ${pr.reps}`})}
  }return records.reverse();
 }
-function setGrowthPeriod(period){growthFlowExpanded=false;growthPeriod=['week','month','all'].includes(period)?period:'week';render()}
+function setGrowthPeriod(period){growthFlowExpanded=false;growthPeriod=['today','week','month','all'].includes(period)?period:'today';render()}
 function setGrowthExercise(name){growthExercise=name;const b=growthBounds();$('growthPerformance').innerHTML=growthPerformance(growthRows().filter(([date])=>date>=b.start&&date<=b.end),name)}
 
 let regionalSelected='',regionalTab='summary';
@@ -635,12 +635,12 @@ function growthFlowCard(rows){
  ${growthFlowExpanded&&data.movements.length>5?'<button class="secondary" onclick="toggleGrowthFlow()">Daha az göster</button>':''}</section>`;
 }
 
-function homePeriodLabel(){return growthPeriod==='all'?'Tüm geçmiş':growthPeriod==='month'?'Bu ay':'Bu hafta'}
-function homePeriodControls(){return `<div class="home-period" aria-label="Kas grupları ve rekor dönemi">${[['week','Bu hafta'],['month','Bu ay'],['all','Tüm geçmiş']].map(([id,label])=>`<button class="${growthPeriod===id?'active':''}" aria-pressed="${growthPeriod===id}" onclick="setGrowthPeriod('${id}')">${label}</button>`).join('')}</div>`}
+function homePeriodLabel(){return growthPeriod==='today'?'Bugün':growthPeriod==='all'?'Tüm geçmiş':growthPeriod==='month'?'Bu ay':'Bu hafta'}
+function homePeriodControls(){return `<div class="home-period" aria-label="Hacim akışı dönemi">${[['today','Bugün'],['week','Bu hafta'],['month','Bu ay'],['all','Tüm geçmiş']].map(([id,label])=>`<button class="${growthPeriod===id?'active':''}" aria-pressed="${growthPeriod===id}" onclick="setGrowthPeriod('${id}')">${label}</button>`).join('')}</div>`}
 function homeRecordMarkup(record){return `<div class="home-record"><div class="row wrap"><b>${esc(record.name)}</b><strong>${esc(record.value)}</strong></div><small>${fmtDate(record.date)} · ${esc(record.label)}</small></div>`}
 function homeInsights(){
- const all=growthRows(),bounds=growthBounds(),rows=all.filter(([date])=>date>=bounds.start&&date<=bounds.end),records=growthRecords(all,bounds);
- return `<div class="home-insights">${regionalProgressCard(rows,[],all)}<section class="card home-records"><h2><span class="home-record-icon" aria-hidden="true">${metricIcon('trophy')}</span>Kişisel rekorlar</h2>${records.length?homeRecordMarkup(records[0]):'<p class="muted">Bu dönemde yeni rekor yok.</p>'}<button class="link record-history-link" onclick="openRecordHistory()">Rekor geçmişi ›</button></section></div>`;
+ const all=growthRows(),records=growthRecords(all,growthBounds('all'));
+ return `<div class="home-insights">${calendarFlowSummary()}<section class="card home-records"><h2><span class="home-record-icon" aria-hidden="true">${metricIcon('trophy')}</span>Kişisel rekorlar</h2>${records.length?homeRecordMarkup(records[0]):'<p class="muted">Bu dönemde yeni rekor yok.</p>'}<button class="link record-history-link" onclick="openRecordHistory()">Rekor geçmişi ›</button></section></div>`;
 }
 function openRecordHistory(){
  const records=growthRecords(growthRows(),growthBounds('all')),groups=new Map();
@@ -706,33 +706,38 @@ function previewImport(){const conflicts=Object.keys(pending.days).filter(k=>sta
 if(gymAccount.role==='member')refreshCoachProgram();
 
 
-function calendarFlowData(){
- const day=state.days[selected];
- return growthFlowData(day?[[selected,day]]:[]);
+function calendarFlowRows(){
+ const b=growthBounds();
+ return growthRows().filter(([date,d])=>d.finished&&date>=b.start&&date<=b.end);
 }
+function calendarFlowData(){return growthFlowData(calendarFlowRows())}
 function openCalendarFlowExercise(index){
- const data=calendarFlowData(),item=data.movements[index];
- if(!item)return;
- const unit=esc(state.settings.unit),share=data.volume?item.volume/data.volume*100:0;
- show(`<h2>${esc(item.name)}</h2><svg viewBox="0 0 80 80" width="80" height="80" aria-hidden="true">${GymMotion.icon(item.name,0,0,80)}</svg><p>${item.sets} tamamlanmış set</p><p>Harici hacim <b>${num(kgDisplay(item.volume))} ${unit}</b></p><p>Antrenmandaki payı <b>%${num(share)}</b></p><p>Maksimum ağırlık <b>${num(kgDisplay(item.max))} ${unit}</b></p>`);
+ const data=calendarFlowData(),item=data.movements[index];if(!item)return;
+ const unit=esc(state.settings.unit),share=data.volume?item.volume/data.volume*100:0,b=growthBounds();
+ show(`<h2>${esc(item.name)}</h2><div class="period-flow-detail-icon">${GymMotion.icon(item.name,0,0,80)}</div><p>${fmtDate(b.start)}${b.start===b.end?'':' – '+fmtDate(b.end)}</p><p>${item.sets} tamamlanmış set</p><p>Harici hacim <b>${num(kgDisplay(item.volume))} ${unit}</b></p><p>Dönemdeki payı <b>%${share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1})}</b></p><p>Maksimum ağırlık <b>${num(kgDisplay(item.max))} ${unit}</b></p>`);
 }
-function calendarFlowSummary(day){
- const data=growthFlowData([[selected,day]]);
- if(!data.sets)return '<div class="calendar-exercises"><h3>Kısa özet</h3><p class="muted">Tamamlanmış set bulunamadı.</p></div>';
+function calendarFlowSummary(){
+ const rows=calendarFlowRows(),data=growthFlowData(rows),b=growthBounds(),unit=esc(state.settings.unit);
  const colors=['#8AAFC9','#B09ED1','#E6A078','#8CBCA7','#DCA6AF','#D2BC83'];
- const chart=items=>{
-  const height=Math.max(180,items.length*82),middle=height/2;
-  let defs='',paths='',rows='',offset=middle-35;
-  items.forEach((item,i)=>{
-   const index=data.movements.indexOf(item),share=data.volume?item.volume/data.volume*100:0,color=colors[index%colors.length],y=(height-items.length*82)/2+i*82;
-   const width=share*.7,origin=offset+width/2;offset+=width;
-   const id='calendar-flow-'+items.length+'-'+index;
-   defs+=`<linearGradient id="${id}"><stop stop-color="${color}" stop-opacity=".85"/><stop offset=".55" stop-color="${color}" stop-opacity=".5"/><stop offset="1" stop-color="${color}" stop-opacity=".12"/></linearGradient>`;
-   paths+=`<path d="M8 ${origin} C48 ${origin} 60 ${y+30} 112 ${y+30}" fill="none" stroke="url(#${id})" stroke-width="${width}"/>`;
-   rows+=`<g role="button" tabindex="0" onclick="openCalendarFlowExercise(${index})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCalendarFlowExercise(${index})}" aria-label="${esc(item.name)} detayları"><title>${esc(item.name)}</title><rect x="112" y="${y}" width="278" height="78" fill="transparent"/><text x="118" y="${y+24}" font-size="12" font-weight="600" fill="var(--ink,#222)">${esc(item.name.length>26?item.name.slice(0,25)+'…':item.name)}</text><text x="118" y="${y+43}" font-size="10.5" fill="var(--muted,#666)">Hacim ${num(kgDisplay(item.volume))} ${esc(state.settings.unit)} · Maks. ${num(kgDisplay(item.max))} ${esc(state.settings.unit)}</text><rect x="118" y="${y+59}" width="150" height="5" rx="2.5" fill="var(--line,#e7e7e7)"/><rect x="118" y="${y+59}" width="${share*1.5}" height="5" rx="2.5" fill="${color}"/><text x="276" y="${y+65}" font-size="11" fill="var(--muted,#666)">%${num(share)}</text>${GymMotion.icon(item.name,340,y+12,44)}</g>`;
-  });
-  return `<svg viewBox="0 0 390 ${height}" aria-label="Seçilen antrenmanın hareketlere göre hacim dağılımı"><defs>${defs}</defs><rect x="2" y="${middle-35}" width="5" height="70" rx="2.5" fill="var(--line,#ddd)"/>${paths}<text x="2" y="${middle-59}" font-size="9" fill="var(--muted,#666)">TOPLAM HACİM</text><text x="2" y="${middle-43}" font-size="12" font-weight="700" fill="var(--ink,#222)">${num(kgDisplay(data.volume))} ${esc(state.settings.unit)}</text>${rows}</svg>`;
- };
- const contents=chart(data.movements);
- return `<div class="calendar-exercises calendar-flow"><h3>Kısa özet</h3><small class="muted">Hacim akışı</small><div class="calendar-flow-content">${contents}</div>${data.volume?'':'<small class="muted">Harici ağırlık hacmi yok; hareketlere dokunarak setleri görebilirsin.</small>'}</div>`;
+ const date=b.start===b.end?fmtDate(b.end):fmtDate(b.start)+' – '+fmtDate(b.end);
+ const allNames=[...new Set(growthFlowData(growthRows()).movements.map(x=>x.name))].sort();
+ const items=data.movements.map((item,i)=>{
+  const color=colors[allNames.indexOf(item.name)%colors.length],share=data.volume?item.volume/data.volume*100:0;
+  return `<button type="button" class="period-flow-item" style="--flow-color:${color}" data-flow-share="${share}" onclick="openCalendarFlowExercise(${i})" aria-label="${esc(item.name)} detayları"><span class="period-flow-name">${esc(item.name)}</span><span class="period-flow-values"><strong>${num(kgDisplay(item.volume))} ${unit}</strong><small>Maks. ${num(kgDisplay(item.max))} ${unit}</small></span><span class="period-flow-meter"><span class="period-flow-track"><i style="width:${share}%"></i></span><small>%${share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1})}</small></span><span class="period-flow-icon" aria-hidden="true">${GymMotion.icon(item.name,0,0,56)}</span></button>`;
+ }).join('');
+ return `<section class="card period-flow-card"><h2>Hacim akışı</h2>${homePeriodControls()}<p class="period-flow-date" aria-live="polite">${date}</p><p class="period-flow-count">${rows.length} antrenman · ${data.sets} tamamlanan set</p>${data.sets?`<div class="period-flow"><svg class="period-flow-ribbons" aria-hidden="true"></svg><div class="period-flow-total"><small>TOPLAM HACİM</small><strong>${num(kgDisplay(data.volume))} ${unit}</strong></div><div class="period-flow-items">${items}</div></div>${data.volume?'':'<p class="muted">Bu dönemde harici ağırlık hacmi yok.</p>'}`:`<p class="empty">${growthPeriod==='today'?'Bugün':'Bu dönemde'} henüz tamamlanmış antrenman yok.</p>`}</section>`;
 }
+function drawHomeFlowRibbons(){
+ const host=document.querySelector('.period-flow');if(!host)return;
+ const svg=host.querySelector('.period-flow-ribbons'),items=host.querySelector('.period-flow-items'),w=host.clientWidth,h=host.clientHeight,x=items.offsetLeft,mid=h/2;
+ if(!w||!h)return;
+ let offset=mid-34,defs='',paths='';
+ host.querySelectorAll('.period-flow-item').forEach((row,i)=>{
+  const share=+row.dataset.flowShare||0,width=share*.68,origin=offset+width/2,y=row.offsetTop+row.offsetHeight*.4;offset+=width;
+  const color=row.style.getPropertyValue('--flow-color'),id='home-flow-ribbon-'+i;
+  defs+=`<linearGradient id="${id}"><stop stop-color="${color}" stop-opacity=".83"/><stop offset="1" stop-color="${color}" stop-opacity=".15"/></linearGradient>`;
+  if(width)paths+=`<path d="M6 ${origin} C${x*.45} ${origin} ${x*.55} ${y} ${x} ${y}" fill="none" stroke="url(#${id})" stroke-width="${width}"/>`;
+ });
+ svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=`<defs>${defs}</defs><rect x="0" y="${mid-34}" width="5" height="68" rx="2.5" fill="var(--line)"/>${paths}`;
+}
+window.addEventListener('resize',()=>requestAnimationFrame(drawHomeFlowRibbons));

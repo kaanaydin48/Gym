@@ -2,18 +2,23 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const source=fs.readFileSync('app.js','utf8');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const state={settings:{unit:'kg',week:'monday'},days:{},bodyweights:[{date:'2026-11-01',kg:74}]};
-const context={state,esc,num:String,kgDisplay:Number,fmtDate:String,dateKey:d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),allWork:()=>Object.entries(state.days),metricIcon:()=>'<svg></svg>',totals:d=>({sets:d.exercises.reduce((n,e)=>n+e.logs.filter(s=>s.done).length,0)}),show:html=>context.modal=html};
+const context={state,esc,num:String,kgDisplay:Number,fmtDate:String,dateKey:d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),allWork:()=>Object.entries(state.days),metricIcon:()=>'<svg></svg>',totals:d=>({sets:d.exercises.reduce((n,e)=>n+e.logs.filter(s=>s.done).length,0)}),show:html=>context.modal=html,GymMotion:{icon:()=>''},window:{addEventListener(){}}};
 vm.createContext(context);vm.runInContext(source.slice(source.indexOf('let growthPeriod='),source.indexOf('function drawChart()')),context);
+vm.runInContext(source.slice(source.indexOf('function calendarFlowRows()')),context);
 const run=s=>vm.runInContext(s,context);
 const day=(weight,reps)=>({kind:'workout',finished:1,exercises:[{name:'Row',muscle:'Sırt',type:'external',factor:1,logs:[{kg:weight,reps,done:true},{kg:999,reps:99,done:false}]}]});
 state.days={'2020-01-01':day(60,8),'2020-01-02':day(70,8),'2020-01-03':day(70,10)};
 const before=JSON.stringify(state);run("growthPeriod='all';regionalSelected='Sırt'");
-let html=context.homeInsights();assert.match(html,/Kas grupları/);assert.match(html,/3 set/);assert.match(html,/70 kg × 10/);assert(!/Geçmiş antrenmanlar|Vücut ağırlığı|Bölgesel Gelişim/.test(html));
-assert.equal(context.homeMuscles().length,6);assert.match(html,/0 set/);
+let html=context.homeInsights();assert.match(html,/Hacim akışı/);assert(!html.includes('Kas grupları'));assert.match(html,/70 kg × 10/);assert(!/Geçmiş antrenmanlar|Vücut ağırlığı|Bölgesel Gelişim/.test(html));
+assert.equal(context.homeMuscles().length,6);assert.equal((html.match(/class="period-flow-item"/g)||[]).length,1);
 const rows=context.growthRows();let chart=context.regionalExerciseChart(rows,'Row','weight');assert.match(chart,/70 kg × 10/);assert(!chart.includes('999'));
 chart=context.regionalExerciseChart(rows,'Row','volume');assert.match(chart,/700/);chart=context.regionalExerciseChart(rows,'Row','reps');assert.match(chart,/En yüksek tekrar/);
 context.openRecordHistory();assert.equal((context.modal.match(/<details/g)||[]).length,1);assert.match(context.modal,/başlangıç rekorudur/);
 assert.equal(JSON.stringify(state),before,'Read-only summaries must preserve all account records');
-state.days={};assert.match(context.homeInsights(),/Bu dönemde yeni rekor yok/);assert.match(context.regionalExerciseChart([],'Row','weight'),/tamamlanmış set yok/);
+state.days={};assert.match(context.homeInsights(),/henüz tamamlanmış antrenman yok/);assert.match(context.regionalExerciseChart([],'Row','weight'),/tamamlanmış set yok/);
 assert(!source.match(/const labels=.*\['progress'/));assert(source.includes("tab=t==='progress'?'calendar':t"));
 console.log('PASS: muscle counts, empty groups, max/reps/volume charts, incomplete-set exclusion, grouped records, data preservation and legacy navigation');
+
+let bounds=context.growthBounds('today',new Date(2026,10,5));assert.equal(bounds.start,'2026-11-05');assert.equal(bounds.end,bounds.start);assert.equal(bounds.previousStart,'2026-11-04');
+bounds=context.growthBounds('week',new Date(2026,10,5));assert.equal(bounds.start,'2026-11-02');bounds=context.growthBounds('month',new Date(2026,10,5));assert.equal(bounds.start,'2026-11-01');
+state.days={'2020-01-01':day(10,10),'2020-01-02':{...day(99,99),finished:null}};assert.equal(context.calendarFlowData().volume,100);assert.equal(context.calendarFlowData().max,10);console.log('PASS: today/week/month boundaries and completed-workout-only flow aggregation');
