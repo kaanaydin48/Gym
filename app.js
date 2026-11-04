@@ -697,19 +697,18 @@ function calendarFlowSummary(day){
  if(!data.sets)return '<div class="calendar-exercises"><h3>Kısa özet</h3><p class="muted">Tamamlanmış set bulunamadı.</p></div>';
  const colors=['#8AAFC9','#B09ED1','#E6A078','#8CBCA7','#DCA6AF','#D2BC83'];
  const chart=items=>{
-  const height=items.length*70,middle=height/2;
+  const height=Math.max(180,items.length*82),middle=height/2;
   let defs='',paths='',rows='',offset=middle-35;
   items.forEach((item,i)=>{
-   const index=data.movements.indexOf(item),share=data.volume?item.volume/data.volume*100:0,color=colors[index%colors.length],y=i*70;
+   const index=data.movements.indexOf(item),share=data.volume?item.volume/data.volume*100:0,color=colors[index%colors.length],y=(height-items.length*82)/2+i*82;
    const width=share*.7,origin=offset+width/2;offset+=width;
    const id='calendar-flow-'+items.length+'-'+index;
    defs+=`<linearGradient id="${id}"><stop stop-color="${color}" stop-opacity=".85"/><stop offset=".55" stop-color="${color}" stop-opacity=".5"/><stop offset="1" stop-color="${color}" stop-opacity=".12"/></linearGradient>`;
    paths+=`<path d="M8 ${origin} C48 ${origin} 60 ${y+30} 112 ${y+30}" fill="none" stroke="url(#${id})" stroke-width="${width}"/>`;
-   rows+=`<g role="button" tabindex="0" onclick="openCalendarFlowExercise(${index})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCalendarFlowExercise(${index})}" aria-label="${esc(item.name)} detayları"><title>${esc(item.name)}</title><rect x="112" y="${y}" width="278" height="66" fill="transparent"/><text x="118" y="${y+24}" font-size="12" font-weight="600" fill="var(--ink,#222)">${esc(item.name.length>26?item.name.slice(0,25)+'…':item.name)}</text><rect x="118" y="${y+41}" width="150" height="5" rx="2.5" fill="var(--line,#e7e7e7)"/><rect x="118" y="${y+41}" width="${share*1.5}" height="5" rx="2.5" fill="${color}"/><text x="276" y="${y+47}" font-size="11" fill="var(--muted,#666)">%${num(share)}</text>${GymMotion.icon(item.name,340,y+12,44)}</g>`;
+   rows+=`<g role="button" tabindex="0" onclick="openCalendarFlowExercise(${index})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCalendarFlowExercise(${index})}" aria-label="${esc(item.name)} detayları"><title>${esc(item.name)}</title><rect x="112" y="${y}" width="278" height="78" fill="transparent"/><text x="118" y="${y+24}" font-size="12" font-weight="600" fill="var(--ink,#222)">${esc(item.name.length>26?item.name.slice(0,25)+'…':item.name)}</text><text x="118" y="${y+43}" font-size="10.5" fill="var(--muted,#666)">Hacim ${num(kgDisplay(item.volume))} ${esc(state.settings.unit)} · Maks. ${num(kgDisplay(item.max))} ${esc(state.settings.unit)}</text><rect x="118" y="${y+59}" width="150" height="5" rx="2.5" fill="var(--line,#e7e7e7)"/><rect x="118" y="${y+59}" width="${share*1.5}" height="5" rx="2.5" fill="${color}"/><text x="276" y="${y+65}" font-size="11" fill="var(--muted,#666)">%${num(share)}</text>${GymMotion.icon(item.name,340,y+12,44)}</g>`;
   });
-  return `<svg viewBox="0 0 390 ${height}" aria-label="Seçilen antrenmanın hareketlere göre hacim dağılımı"><defs>${defs}</defs><rect x="2" y="${middle-35}" width="5" height="70" rx="2.5" fill="var(--line,#ddd)"/>${paths}${rows}</svg>`;
+  return `<svg viewBox="0 0 390 ${height}" aria-label="Seçilen antrenmanın hareketlere göre hacim dağılımı"><defs>${defs}</defs><rect x="2" y="${middle-35}" width="5" height="70" rx="2.5" fill="var(--line,#ddd)"/>${paths}<text x="2" y="${middle-59}" font-size="9" fill="var(--muted,#666)">TOPLAM HACİM</text><text x="2" y="${middle-43}" font-size="12" font-weight="700" fill="var(--ink,#222)">${num(kgDisplay(data.volume))} ${esc(state.settings.unit)}</text>${rows}</svg>`;
  };
- const compact=chart(data.movements.slice(0,4));
- const contents=data.movements.length>4?`<details class="calendar-flow-expand"><summary><span class="calendar-flow-more">Tüm hareketleri göster ›</span><span class="calendar-flow-less">Daha az göster</span></summary><div class="calendar-flow-full">${chart(data.movements)}</div></details><div class="calendar-flow-compact">${compact}</div>`:compact;
+ const contents=chart(data.movements);
  return `<div class="calendar-exercises calendar-flow"><h3>Kısa özet</h3><small class="muted">Hacim akışı</small><div class="calendar-flow-content">${contents}</div>${data.volume?'':'<small class="muted">Harici ağırlık hacmi yok; hareketlere dokunarak setleri görebilirsin.</small>'}</div>`;
 }
