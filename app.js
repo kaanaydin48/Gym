@@ -288,6 +288,11 @@ async function shareDailySummaryStory(){
  }catch(err){console.error('Story share failed',err);toast('Paylaşım görseli hazırlanamadı. Tekrar dene.');}
  finally{if(btn){btn.disabled=false;btn.textContent='Paylaş ↗';}}
 }
+const metricIcon=(kind)=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+({
+  trophy:'<path d="M7 3h10v5a5 5 0 0 1-10 0V3ZM7 5H3v2a4 4 0 0 0 4 4m10-6h4v2a4 4 0 0 1-4 4M12 13v5m-4 3h8m-9 0v-3h10v3"/>',
+  chart:'<path d="M4 20v-5m5 5V10m5 10V6m5 14V3" stroke-width="3"/>',
+  weight:'<path d="M2 9v6m20-6v6M5 5h3v14H5zM16 5h3v14h-3zM8 10h8m-8 4h8"/>'
+ }[kind])+'</svg>';
 function renderDailySummaryModal(){
  const d=state.days[selected];if(!d||!d.finished)return;
  const palette=['#E6A078','#8AAFC9','#B09ED1','#8CBCA7','#DCA6AF','#D2BC83','#8DBDBB','#B9A4C1','#A6BBD8','#C3B4A0'];
@@ -358,11 +363,6 @@ function renderDailySummaryModal(){
  let overlay=document.getElementById('dailySummaryOverlay');if(!overlay){overlay=document.createElement('div');overlay.id='dailySummaryOverlay';document.body.appendChild(overlay);}
  const peak=exercises.reduce((best,e)=>!best||e.volume>best.volume?e:best,null);
  const volumePerSet=sets?volume/sets:0,maxWeight=Math.max(0,...exercises.map(e=>e.max));
- const metricIcon=(kind)=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+({
-  trophy:'<path d="M7 3h10v5a5 5 0 0 1-10 0V3ZM7 5H3v2a4 4 0 0 0 4 4m10-6h4v2a4 4 0 0 1-4 4M12 13v5m-4 3h8m-9 0v-3h10v3"/>',
-  chart:'<path d="M4 20v-5m5 5V10m5 10V6m5 14V3" stroke-width="3"/>',
-  weight:'<path d="M2 9v6m20-6v6M5 5h3v14H5zM16 5h3v14h-3zM8 10h8m-8 4h8"/>'
- }[kind])+'</svg>';
  const summaryFooter=radial||!peak?'':`<div class="daily-summary-performance">
   <div class="summary-peak"><div class="summary-metric-label"><i class="summary-trophy">${metricIcon('trophy')}</i><small>En yüksek hacim</small></div><div class="summary-peak-value"><strong>${esc(peak.name)}</strong><b>${num(kgDisplay(peak.volume))} ${esc(state.settings.unit)}</b></div></div>
   <div><div class="summary-metric-label"><i class="summary-chart-icon">${metricIcon('chart')}</i><small>Hacim / set</small></div><b>${num(kgDisplay(volumePerSet))} ${esc(state.settings.unit)}</b></div>
@@ -520,7 +520,7 @@ function growthRecords(rows,bounds){
  if(date>=bounds.start&&date<=bounds.end){if(weight!==null)records.push({date,name:e.name,label:'En yüksek ağırlık',value:`${num(kgDisplay(weight))} ${state.settings.unit}`});const pr=repRecords.at(-1);if(pr)records.push({date,name:e.name,label:'Aynı ağırlıkta tekrar rekoru',value:`${num(kgDisplay(pr.kg))} ${state.settings.unit} × ${pr.reps}`})}
  }return records.reverse();
 }
-function setGrowthPeriod(period){growthPeriod=['week','month','all'].includes(period)?period:'week';render()}
+function setGrowthPeriod(period){growthFlowExpanded=false;growthPeriod=['week','month','all'].includes(period)?period:'week';render()}
 function setGrowthExercise(name){growthExercise=name;const b=growthBounds();$('growthPerformance').innerHTML=growthPerformance(growthRows().filter(([date])=>date>=b.start&&date<=b.end),name)}
 
 let regionalSelected='',regionalTab='summary';
@@ -554,11 +554,76 @@ function renderRegionalSheet(){
  const sheet=overlay.querySelector('.regional-sheet');let y=0;sheet.querySelector('.regional-handle').addEventListener('touchstart',e=>{y=e.touches[0].clientY},{passive:true});sheet.querySelector('.regional-handle').addEventListener('touchend',e=>{const diff=e.changedTouches[0].clientY-y;if(diff>90)closeRegional();else if(diff< -45)sheet.classList.add('expanded')},{passive:true});
 }
 
+let growthFlowExpanded=false;
+function growthFlowData(rows){
+ const movements=new Map(),programs=new Map();
+ let sets=0,volume=0,max=0;
+ for(const [,day] of rows){
+  if(!day.finished)continue;
+  const programKey=day.programId||day.name||'Antrenman';
+  const program=programs.get(programKey)||{name:day.name||'Antrenman',volume:0};
+  for(const exercise of day.exercises||[]){
+   const key=exercise.name.trim().toLocaleLowerCase('tr')+'|'+(exercise.type||'external');
+   const item=movements.get(key)||{name:exercise.name,volume:0,max:0,sets:0};
+   for(const set of exercise.logs||[]){
+    if(!set.done)continue;
+    sets++;item.sets++;
+    const weight=(+set.kg||0)*(exercise.factor||1);
+    const amount=exercise.type==='body'?0:weight*(+set.reps||0);
+    item.volume+=amount;program.volume+=amount;volume+=amount;
+    if(exercise.type!=='body'){item.max=Math.max(item.max,weight);max=Math.max(max,weight);}
+   }
+   if(item.sets)movements.set(key,item);
+  }
+  programs.set(programKey,program);
+ }
+ return {sets,volume,max,movements:[...movements.values()].sort((a,b)=>b.volume-a.volume),programs:[...programs.values()].sort((a,b)=>b.volume-a.volume)};
+}
+function currentGrowthFlow(){
+ const bounds=growthBounds();
+ return growthFlowData(growthRows().filter(([date])=>date>=bounds.start&&date<=bounds.end));
+}
+function toggleGrowthFlow(){growthFlowExpanded=!growthFlowExpanded;render()}
+function openGrowthFlowExercise(index){
+ const data=currentGrowthFlow(),item=data.movements[index];
+ if(!item)return;
+ const unit=esc(state.settings.unit),share=data.volume?item.volume/data.volume*100:0;
+ show(`<h2>${esc(item.name)}</h2><div class="growth-flow-detail-icon">${GymMotion.icon(item.name,0,0,80)}</div><p>${item.sets} tamamlanmış set</p><p>Harici hacim <b>${num(kgDisplay(item.volume))} ${unit}</b></p><p>Dönemdeki payı <b>%${num(share)}</b></p><p>Maksimum ağırlık <b>${num(kgDisplay(item.max))} ${unit}</b></p>`);
+}
+function growthFlowCard(rows){
+ const data=growthFlowData(rows);
+ if(!data.sets)return '<section class="card growth-flow-card"><h2>Hacim Akışı</h2><p class="empty">Bu dönemde bitirilmiş antrenman yok.</p></section>';
+ const colors=['#E6A078','#8AAFC9','#B09ED1','#8CBCA7','#DCA6AF','#D2BC83'];
+ const money=value=>num(kgDisplay(value))+' '+esc(state.settings.unit);
+ const compact=(items,count)=>items.length>count?[...items.slice(0,count),{name:'Diğer hareketler',volume:items.slice(count).reduce((n,e)=>n+e.volume,0),other:true}]:items;
+ const targets=growthFlowExpanded?data.movements:compact(data.movements,5);
+ const sources=data.programs.length>4?[...data.programs.slice(0,3),{name:'Diğer antrenmanlar',volume:data.programs.slice(3).reduce((n,e)=>n+e.volume,0)}]:data.programs;
+ const height=Math.max(280,targets.length*62+12,sources.length*62+12),middle=height/2;
+ let ribbons='',boxes='';
+ sources.forEach((item,i)=>{
+  const y=middle-sources.length*31+i*62,color=colors[i%colors.length];
+  const width=data.volume?item.volume/data.volume*70:0;
+  ribbons+=`<path d="M112 ${y+25} C140 ${y+25} 140 ${middle} 176 ${middle}" fill="none" stroke="${color}" stroke-width="${width}" opacity=".48"/>`;
+  const label=item.name.length>18?item.name.slice(0,17)+'…':item.name;
+  boxes+=`<g><title>${esc(item.name)}</title><rect x="2" y="${y}" width="110" height="50" rx="9" fill="var(--card,#fff)" stroke="#e4e1de"/><rect x="5" y="${y+8}" width="3" height="34" rx="2" fill="${color}"/><text x="13" y="${y+20}" font-size="10" fill="var(--ink,#222)">${esc(label)}</text><text x="13" y="${y+38}" font-size="11" font-weight="700" fill="var(--ink,#222)">${money(item.volume)}</text></g>`;
+ });
+ targets.forEach((item,i)=>{
+  const y=6+i*62,color=colors[i%colors.length],share=data.volume?item.volume/data.volume*100:0;
+  ribbons+=`<path d="M198 ${middle} C224 ${middle} 224 ${y+25} 248 ${y+25}" fill="none" stroke="${color}" stroke-width="${share*.7}" opacity=".48"/>`;
+  const action=item.other?'toggleGrowthFlow()':`openGrowthFlowExercise(${i})`;
+  boxes+=`<g role="button" tabindex="0" onclick="${action}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${action}}" aria-label="${esc(item.name)} detayları" style="cursor:pointer"><title>${esc(item.name)}</title><rect x="248" y="${y}" width="190" height="54" rx="9" fill="var(--card,#fff)" stroke="#e4e1de"/><rect x="251" y="${y+7}" width="3" height="40" rx="2" fill="${color}"/><text x="260" y="${y+15}" font-size="9.5" font-weight="600" fill="var(--ink,#222)">${esc(item.name.length>23?item.name.slice(0,22)+'…':item.name)}</text><text x="260" y="${y+31}" font-size="12" font-weight="700" fill="var(--ink,#222)">${money(item.volume)}</text><rect x="260" y="${y+41}" width="95" height="4" rx="2" fill="#e7e7e7"/><rect x="260" y="${y+41}" width="${share*.95}" height="4" rx="2" fill="${color}"/><text x="361" y="${y+46}" font-size="9" fill="var(--muted,#666)">%${num(share)}</text>${item.other?'<text x="412" y="'+(y+33)+'" font-size="20" fill="#666">›</text>':GymMotion.icon(item.name,392,y+12,40)}</g>`;
+ });
+ const peak=data.movements[0];
+ return `<section class="card growth-flow-card"><h2>Hacim Akışı</h2><svg viewBox="0 0 440 ${height}" role="img" aria-label="Seçilen dönemde antrenman ve hareketlere göre harici hacim dağılımı">${ribbons}${boxes}<rect x="156" y="${middle-29}" width="82" height="58" rx="10" fill="var(--card,#fff)" stroke="#dce4eb"/><text x="197" y="${middle-8}" text-anchor="middle" font-size="9" fill="var(--muted,#666)">TOPLAM HACİM</text><text x="197" y="${middle+13}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink,#222)">${money(data.volume)}</text></svg>
+ <div class="daily-summary-performance"><div class="summary-peak"><div class="summary-metric-label"><i class="summary-trophy">${metricIcon('trophy')}</i><small>En yüksek hacim</small></div><div class="summary-peak-value"><strong>${esc(peak.name)}</strong><b>${money(peak.volume)}</b></div></div><div><div class="summary-metric-label"><i class="summary-chart-icon">${metricIcon('chart')}</i><small>Hacim / set</small></div><b>${money(data.volume/data.sets)}</b></div><div><div class="summary-metric-label"><i class="summary-weight-icon">${metricIcon('weight')}</i><small>Maksimum ağırlık</small></div><b>${money(data.max)}</b></div></div>
+ ${growthFlowExpanded&&data.movements.length>5?'<button class="secondary" onclick="toggleGrowthFlow()">Daha az göster</button>':''}</section>`;
+}
+
 function progressView(){
  const bounds=growthBounds(),all=growthRows(),rows=all.filter(([date])=>date>=bounds.start&&date<=bounds.end),previous=all.filter(([date])=>date>=bounds.previousStart&&date<=bounds.previousEnd),now=growthStats(rows),prev=growthStats(previous),names=[...new Set(all.flatMap(([,d])=>d.exercises.map(e=>e.name)))],muscles={};
  if(!names.includes(growthExercise))growthExercise=names[0]||'';
  rows.forEach(([,d])=>d.exercises.forEach(e=>{const n=e.logs.filter(s=>s.done).length;if(n)muscles[e.muscle]=(muscles[e.muscle]||0)+n}));const records=growthRecords(all,bounds);
- return `<div class="growth"><span class="eyebrow">EMEĞİNİN KARŞILIĞI</span><h1>Gelişim</h1><p class="lead">Emeğinin karşılığını gör.</p><div class="growth-period" aria-label="Rapor dönemi"><button class="${growthPeriod==='week'?'':'secondary'}" aria-pressed="${growthPeriod==='week'}" onclick="setGrowthPeriod('week')">Bu hafta</button><button class="${growthPeriod==='month'?'':'secondary'}" aria-pressed="${growthPeriod==='month'}" onclick="setGrowthPeriod('month')">Bu ay</button><button class="${growthPeriod==='all'?'':'secondary'}" aria-pressed="${growthPeriod==='all'}" onclick="setGrowthPeriod('all')">Tüm geçmiş</button></div><p class="muted">${fmtDate(bounds.start)} – ${fmtDate(bounds.end)}<br><small>${growthPeriod==='all'?'İlk kayıtlı antrenmandan bugüne':'Karşılaştırma: '+fmtDate(bounds.previousStart)+' – '+fmtDate(bounds.previousEnd)}</small></p><p class="notice" role="status">${rows.length?`${growthPeriod==='all'?'Tüm geçmişte':growthPeriod==='week'?'Bu hafta':'Bu ay'} <b>${now.workouts} antrenman</b> bitirdin; <b>${now.sets} set</b> tamamladın.`:'Bu dönemde henüz tamamlanmış set yok. Antrenmanlarını kaydettikçe gelişimin burada görünecek.'}</p><div class="growth-stats">${[['Antrenman',now.workouts,growthPeriod==='all'?'Toplam':growthChange(now.workouts,prev.workouts,'antrenman')],['Set',now.sets,growthPeriod==='all'?'Toplam':growthChange(now.sets,prev.sets,'set')],['Harici hacim',num(kgDisplay(now.volume))+' '+esc(state.settings.unit),growthPeriod==='all'?'Toplam':prev.volume>0?`${num((now.volume-prev.volume)/prev.volume*100)}% değişim`:'Önceki dönem verisi yok']].map(([label,value,change])=>`<section class="card"><small>${label}</small><strong>${value}</strong><small>${change}</small></section>`).join('')}</div><small>Set ve hacim, tamamlandı işaretli setlerden hesaplanır. Hacim artışı tek başına güç artışı değildir.</small><div class="grid">${regionalProgressCard(rows,previous,all)}<section class="card"><h2>Kişisel rekorlar</h2><small>Seçili dönemdeki en iyi kayıtlar · İlk kayıt başlangıç rekorudur.</small>${records.map(p=>`<div class="list-item"><div class="row wrap"><b>${esc(p.name)}</b><strong>${esc(p.value)}</strong></div><small>${p.label} · ${fmtDate(p.date)}</small></div>`).join('')||'<p class="empty">Bu dönemde yeni rekor yok.</p>'}</section><section class="card"><h2>Antrenman düzeni</h2><p>${now.workouts} bitirilmiş antrenman · ${rows.length} aktif gün</p><small>Kas grubu başına tamamlanan set · Her set ana kasına sayılır</small>${Object.entries(muscles).map(([m,n])=>`<div class="list-item"><div class="row"><span>${esc(m)}</span><b>${n} set</b></div><div class="bar"><i style="width:${n/Math.max(...Object.values(muscles),1)*100}%"></i></div></div>`).join('')||'<p class="empty">Henüz tamamlanmış set yok.</p>'}</section><section class="card"><h2>Geçmiş antrenmanlar</h2>${rows.slice().reverse().map(([date,d])=>`<details class="list-item"><summary>${fmtDate(date)} · ${esc(d.name)} ${d.finished?'✓':'(devam ediyor)'}</summary>${d.exercises.map(e=>`<h3>${esc(e.name)}</h3>${e.logs.map((s,i)=>`<p>${i+1}. set · ${s.kg===''?'—':num(kgDisplay(s.kg))} ${esc(state.settings.unit)} × ${s.reps===''?'—':s.reps} · RIR ${s.rir===''?'—':s.rir} ${s.done?'✓':''}</p>`).join('')}`).join('')}<button class="secondary" onclick="selected='${date}';go('workout')">Antrenmanı aç</button></details>`).join('')||'<p class="empty">Bu dönemde kayıt yok.</p>'}</section></div><section class="card"><h2>Vücut ağırlığı</h2><div class="row wrap"><input type="date" id="bodyDate" value="${today}" aria-label="Ölçüm tarihi"><input type="number" min="1" step=".1" id="bodyKg" placeholder="kg" aria-label="Vücut ağırlığı kilogram"><button onclick="addBodyweight()">Ekle</button></div>${state.bodyweights.map(x=>`<p>${fmtDate(x.date)} <b>${x.kg} kg</b></p>`).join('')}</section></div>`;
+ return `<div class="growth"><span class="eyebrow">EMEĞİNİN KARŞILIĞI</span><h1>Gelişim</h1><p class="lead">Emeğinin karşılığını gör.</p><div class="growth-period" aria-label="Rapor dönemi"><button class="${growthPeriod==='week'?'':'secondary'}" aria-pressed="${growthPeriod==='week'}" onclick="setGrowthPeriod('week')">Bu hafta</button><button class="${growthPeriod==='month'?'':'secondary'}" aria-pressed="${growthPeriod==='month'}" onclick="setGrowthPeriod('month')">Bu ay</button><button class="${growthPeriod==='all'?'':'secondary'}" aria-pressed="${growthPeriod==='all'}" onclick="setGrowthPeriod('all')">Tüm geçmiş</button></div><p class="muted">${fmtDate(bounds.start)} – ${fmtDate(bounds.end)}<br><small>${growthPeriod==='all'?'İlk kayıtlı antrenmandan bugüne':'Karşılaştırma: '+fmtDate(bounds.previousStart)+' – '+fmtDate(bounds.previousEnd)}</small></p><p class="notice" role="status">${rows.length?`${growthPeriod==='all'?'Tüm geçmişte':growthPeriod==='week'?'Bu hafta':'Bu ay'} <b>${now.workouts} antrenman</b> bitirdin; <b>${now.sets} set</b> tamamladın.`:'Bu dönemde henüz tamamlanmış set yok. Antrenmanlarını kaydettikçe gelişimin burada görünecek.'}</p><div class="growth-stats">${[['Antrenman',now.workouts,growthPeriod==='all'?'Toplam':growthChange(now.workouts,prev.workouts,'antrenman')],['Set',now.sets,growthPeriod==='all'?'Toplam':growthChange(now.sets,prev.sets,'set')],['Harici hacim',num(kgDisplay(now.volume))+' '+esc(state.settings.unit),growthPeriod==='all'?'Toplam':prev.volume>0?`${num((now.volume-prev.volume)/prev.volume*100)}% değişim`:'Önceki dönem verisi yok']].map(([label,value,change])=>`<section class="card"><small>${label}</small><strong>${value}</strong><small>${change}</small></section>`).join('')}</div><small>Set ve hacim, tamamlandı işaretli setlerden hesaplanır. Hacim artışı tek başına güç artışı değildir.</small>${growthFlowCard(rows)}<div class="grid">${regionalProgressCard(rows,previous,all)}<section class="card"><h2>Kişisel rekorlar</h2><small>Seçili dönemdeki en iyi kayıtlar · İlk kayıt başlangıç rekorudur.</small>${records.map(p=>`<div class="list-item"><div class="row wrap"><b>${esc(p.name)}</b><strong>${esc(p.value)}</strong></div><small>${p.label} · ${fmtDate(p.date)}</small></div>`).join('')||'<p class="empty">Bu dönemde yeni rekor yok.</p>'}</section><section class="card"><h2>Antrenman düzeni</h2><p>${now.workouts} bitirilmiş antrenman · ${rows.length} aktif gün</p><small>Kas grubu başına tamamlanan set · Her set ana kasına sayılır</small>${Object.entries(muscles).map(([m,n])=>`<div class="list-item"><div class="row"><span>${esc(m)}</span><b>${n} set</b></div><div class="bar"><i style="width:${n/Math.max(...Object.values(muscles),1)*100}%"></i></div></div>`).join('')||'<p class="empty">Henüz tamamlanmış set yok.</p>'}</section><section class="card"><h2>Geçmiş antrenmanlar</h2>${rows.slice().reverse().map(([date,d])=>`<details class="list-item"><summary>${fmtDate(date)} · ${esc(d.name)} ${d.finished?'✓':'(devam ediyor)'}</summary>${d.exercises.map(e=>`<h3>${esc(e.name)}</h3>${e.logs.map((s,i)=>`<p>${i+1}. set · ${s.kg===''?'—':num(kgDisplay(s.kg))} ${esc(state.settings.unit)} × ${s.reps===''?'—':s.reps} · RIR ${s.rir===''?'—':s.rir} ${s.done?'✓':''}</p>`).join('')}`).join('')}<button class="secondary" onclick="selected='${date}';go('workout')">Antrenmanı aç</button></details>`).join('')||'<p class="empty">Bu dönemde kayıt yok.</p>'}</section></div><section class="card"><h2>Vücut ağırlığı</h2><div class="row wrap"><input type="date" id="bodyDate" value="${today}" aria-label="Ölçüm tarihi"><input type="number" min="1" step=".1" id="bodyKg" placeholder="kg" aria-label="Vücut ağırlığı kilogram"><button onclick="addBodyweight()">Ekle</button></div>${state.bodyweights.map(x=>`<p>${fmtDate(x.date)} <b>${x.kg} kg</b></p>`).join('')}</section></div>`;
 }
 function drawChart(){const name=$('chartExercise').value,mode=$('chartMode').value,range=$('chartRange').value,cutoff=range==='all'?null:Date.now()-(+range)*86400000;const points=allWork().sort(([a],[b])=>a.localeCompare(b)).filter(([date])=>!cutoff||new Date(date+'T23:59:59').getTime()>=cutoff).map(([date,d])=>{const es=d.exercises.filter(e=>e.name===name),sets=es.flatMap(e=>e.logs.filter(s=>s.done&&+s.reps>0&&s.kg!==''&&(mode!=='rm'||e.type==='external'&&+s.reps<=10)));if(!sets.length)return null;let best=sets.reduce((a,s)=>{let value=+s.kg*(mode==='rm'?1+(+s.reps)/30:1);return !a||value>a.value?{value,set:s}:a},null);return {date,...best}}).filter(Boolean);if(!points.length){$('chartArea').innerHTML='<p class="empty">Bu seçim için uygun tamamlanmış set yok.</p>';return}const max=Math.max(...points.map(p=>p.value),1),xy=points.map((p,i)=>[40+(points.length===1?210:i*420/(points.length-1)),165-p.value/max*130]);const last=points.at(-1),prev=points.at(-2);$('chartArea').innerHTML=`<svg class="chart" viewBox="0 0 500 205" role="img" aria-label="Tarihe göre ${esc(name)} performansı"><path d="M40 20V165H480" fill="none" stroke="var(--line)"/><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--green)" stroke-width="3"/>${points.map((p,i)=>`<circle cx="${xy[i][0]}" cy="${xy[i][1]}" r="6" fill="var(--green)"><title>${fmtDate(p.date)} · ${kgDisplay(p.value).toFixed(1)} ${state.settings.unit} · ${p.set.reps} tekrar · RIR ${p.set.rir}</title></circle>`).join('')}<text x="40" y="192">${points[0].date}</text><text x="480" y="192" text-anchor="end">${last.date}</text></svg><div class="row"><span>Rekor <b>${kgDisplay(max).toFixed(1)} ${state.settings.unit}</b></span><span>Son antrenmana göre <b>${prev?(kgDisplay(last.value-prev.value)).toFixed(1)+' '+state.settings.unit:'—'}</b></span></div>${points.map(p=>`<details class="list-item"><summary>${fmtDate(p.date)} · ${kgDisplay(p.value).toFixed(1)} ${state.settings.unit}</summary><p>${p.set.reps} tekrar · RIR ${p.set.rir===''?'Belirtilmedi':p.set.rir} · ${kgDisplay(p.set.kg)} ${state.settings.unit}</p></details>`).join('')}`}
 function addBodyweight(){const kg=+$('bodyKg').value,date=$('bodyDate').value;if(!date||!Number.isFinite(kg)||kg<=0||kg>500){toast('Geçerli tarih ve kilo gir.');return}const old=state.bodyweights.find(x=>x.date===date);if(old&&!confirm('Bu tarihteki kilo ölçümü güncellensin mi?'))return;state.bodyweights=state.bodyweights.filter(x=>x.date!==date);state.bodyweights.push({date,kg});state.bodyweights.sort((a,b)=>a.date.localeCompare(b.date));save();render()}

@@ -295,3 +295,5 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .summary-peak-value b{font-size:12px;border-left:1px solid var(--line,#e7e3df);padding-left:7px;flex:0 0 auto}
 @media(min-width:521px){.daily-summary-performance{gap:10px}.daily-summary-performance>div{padding:12px}.daily-summary-performance small{font-size:12px}.summary-peak-value strong{font-size:14px}.summary-peak-value b{font-size:15px}.daily-summary-performance b{font-size:18px}}
 @media(max-width:360px){.daily-summary-performance>div{padding:7px 5px}.summary-metric-label{gap:3px}.summary-metric-label svg{width:16px;height:16px}.summary-peak-value{gap:4px}.summary-peak-value b{font-size:10px;padding-left:4px}}
+
+.growth-flow-card{margin-top:18px}.growth-flow-card>svg{display:block;width:100%;height:auto}.growth-flow-card .daily-summary-performance{margin:12px 0 0}.growth-flow-detail-icon svg{display:block}
