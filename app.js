@@ -388,7 +388,7 @@ function calendarView(){
  else if(d.kind==='rest')panel='<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Toparlanma günü olarak kaydedildi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>';
  else {
   const t=totals(d),minutes=d.started&&d.finished?Math.round((d.finished-d.started)/60000):null;
-  panel='<section class="card day-plan"><div class="row"><h2>'+esc(d.name)+' · v'+esc(d.version||1)+'</h2><span class="badge">'+(d.finished?'✓ TAMAMLANDI':d.started?'DEVAM EDİYOR':'PLANLANDI')+'</span></div><div class="calendar-detail-metrics"><div><strong>'+(d.exercises||[]).length+'</strong><small>hareket</small></div><div><strong>'+t.sets+'</strong><small>set</small></div><div><strong>'+(minutes===null?'—':minutes+' dk')+'</strong><small>süre</small></div><div><strong>'+num(t.ext)+'</strong><small>kg hacim</small></div></div>'+(d.finished?'<div class="calendar-exercises"><h3>Kısa özet</h3>'+(d.exercises||[]).filter(e=>(e.logs||[]).some(log=>log.done)).slice(0,4).map(e=>'<div class="calendar-exercise"><span>'+esc(e.name)+'</span><small>'+e.logs.filter(log=>log.done).length+' set</small></div>').join('')+'</div>':'')+'<div class="actions"><button onclick="go(\'workout\')">Antrenmanı görüntüle</button><button class="secondary" onclick="duplicateWorkoutNextDay()">↻ Tekrar planla</button></div></section>';
+  panel='<section class="card day-plan"><div class="row"><h2>'+esc(d.name)+' · v'+esc(d.version||1)+'</h2><span class="badge">'+(d.finished?'✓ TAMAMLANDI':d.started?'DEVAM EDİYOR':'PLANLANDI')+'</span></div><div class="calendar-detail-metrics"><div><strong>'+(d.exercises||[]).length+'</strong><small>hareket</small></div><div><strong>'+t.sets+'</strong><small>set</small></div><div><strong>'+(minutes===null?'—':minutes+' dk')+'</strong><small>süre</small></div><div><strong>'+num(t.ext)+'</strong><small>kg hacim</small></div></div>'+(d.finished?calendarFlowSummary(d):'')+'<div class="actions"><button onclick="go(\'workout\')">Antrenmanı görüntüle</button><button class="secondary" onclick="duplicateWorkoutNextDay()">↻ Tekrar planla</button></div></section>';
  }
  return '<div class="calendar-home"><section class="card month-card"><div class="row"><h2>'+month.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})+'</h2><div class="month-controls"><button class="link" aria-label="Önceki ay" onclick="shiftMonth(-1)">‹</button><button class="link" aria-label="Sonraki ay" onclick="shiftMonth(1)">›</button></div></div><div class="calendar">'+cells+'</div><div class="legend"><span><i style="background:#8d8068"></i>Antrenman</span><span><i style="background:#83a88a"></i>Planlandı</span><span><i style="background:#9680BC"></i>Dinlenme</span></div></section>'+stats+'<section aria-label="Seçili günün planı"><div class="row selected-date"><h3>'+fmtDate(selected)+'</h3><button class="link" onclick="month=new Date(new Date().getFullYear(),new Date().getMonth(),1);selectDate(today)">Bugüne dön</button></div>'+panel+'</section>'+summaryBar+'</div>';
 }
@@ -680,3 +680,36 @@ window.gymReady=initializeCloud();
 function previewImport(){const conflicts=Object.keys(pending.days).filter(k=>state.days[k]&&JSON.stringify(state.days[k])!==JSON.stringify(pending.days[k]));show(`<h2>Yedek önizlemesi</h2><p>${Object.keys(pending.days).length} gün · ${pending.programs.length} program · ${conflicts.length} çakışan gün.</p><p>Yeni günler eklenir. Aynı program kimliğindeki mevcut program korunur. Profil ve ayarlar değiştirilmez. Tarihi çakışan vücut ölçümlerinde mevcut değer korunur.</p>${conflicts.map(k=>`<label>${fmtDate(k)}<select data-conflict="${k}"><option value="keep">Cihazdaki kaydı koru</option><option value="import">Yedekteki kaydı kullan</option></select></label>`).join('')}<div class="notice">Birleştirmeden önce mevcut durumun güvenlik yedeği indirilecek.</div><button onclick="mergeBackup()">Seçimlerimle birleştir</button>`)}
 
 if(gymAccount.role==='member')refreshCoachProgram();
+
+
+function calendarFlowData(){
+ const day=state.days[selected];
+ return growthFlowData(day?[[selected,day]]:[]);
+}
+function openCalendarFlowExercise(index){
+ const data=calendarFlowData(),item=data.movements[index];
+ if(!item)return;
+ const unit=esc(state.settings.unit),share=data.volume?item.volume/data.volume*100:0;
+ show(`<h2>${esc(item.name)}</h2><svg viewBox="0 0 80 80" width="80" height="80" aria-hidden="true">${GymMotion.icon(item.name,0,0,80)}</svg><p>${item.sets} tamamlanmış set</p><p>Harici hacim <b>${num(kgDisplay(item.volume))} ${unit}</b></p><p>Antrenmandaki payı <b>%${num(share)}</b></p><p>Maksimum ağırlık <b>${num(kgDisplay(item.max))} ${unit}</b></p>`);
+}
+function calendarFlowSummary(day){
+ const data=growthFlowData([[selected,day]]);
+ if(!data.sets)return '<div class="calendar-exercises"><h3>Kısa özet</h3><p class="muted">Tamamlanmış set bulunamadı.</p></div>';
+ const colors=['#8AAFC9','#B09ED1','#E6A078','#8CBCA7','#DCA6AF','#D2BC83'];
+ const chart=items=>{
+  const height=items.length*70,middle=height/2;
+  let defs='',paths='',rows='',offset=middle-35;
+  items.forEach((item,i)=>{
+   const index=data.movements.indexOf(item),share=data.volume?item.volume/data.volume*100:0,color=colors[index%colors.length],y=i*70;
+   const width=share*.7,origin=offset+width/2;offset+=width;
+   const id='calendar-flow-'+items.length+'-'+index;
+   defs+=`<linearGradient id="${id}"><stop stop-color="${color}" stop-opacity=".85"/><stop offset=".55" stop-color="${color}" stop-opacity=".5"/><stop offset="1" stop-color="${color}" stop-opacity=".12"/></linearGradient>`;
+   paths+=`<path d="M8 ${origin} C48 ${origin} 60 ${y+30} 112 ${y+30}" fill="none" stroke="url(#${id})" stroke-width="${width}"/>`;
+   rows+=`<g role="button" tabindex="0" onclick="openCalendarFlowExercise(${index})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCalendarFlowExercise(${index})}" aria-label="${esc(item.name)} detayları"><title>${esc(item.name)}</title><rect x="112" y="${y}" width="278" height="66" fill="transparent"/><text x="118" y="${y+24}" font-size="12" font-weight="600" fill="var(--ink,#222)">${esc(item.name.length>26?item.name.slice(0,25)+'…':item.name)}</text><rect x="118" y="${y+41}" width="150" height="5" rx="2.5" fill="var(--line,#e7e7e7)"/><rect x="118" y="${y+41}" width="${share*1.5}" height="5" rx="2.5" fill="${color}"/><text x="276" y="${y+47}" font-size="11" fill="var(--muted,#666)">%${num(share)}</text>${GymMotion.icon(item.name,340,y+12,44)}</g>`;
+  });
+  return `<svg viewBox="0 0 390 ${height}" aria-label="Seçilen antrenmanın hareketlere göre hacim dağılımı"><defs>${defs}</defs><rect x="2" y="${middle-35}" width="5" height="70" rx="2.5" fill="var(--line,#ddd)"/>${paths}${rows}</svg>`;
+ };
+ const compact=chart(data.movements.slice(0,4));
+ const contents=data.movements.length>4?`<details class="calendar-flow-expand"><summary><span class="calendar-flow-more">Tüm hareketleri göster ›</span><span class="calendar-flow-less">Daha az göster</span></summary><div class="calendar-flow-full">${chart(data.movements)}</div></details><div class="calendar-flow-compact">${compact}</div>`:compact;
+ return `<div class="calendar-exercises calendar-flow"><h3>Kısa özet</h3><small class="muted">Hacim akışı</small><div class="calendar-flow-content">${contents}</div>${data.volume?'':'<small class="muted">Harici ağırlık hacmi yok; hareketlere dokunarak setleri görebilirsin.</small>'}</div>`;
+}

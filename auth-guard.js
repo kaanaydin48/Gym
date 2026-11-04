@@ -15,7 +15,7 @@
   await load('./membership.js?v=role-management-fix-20261031');
   await load('./contour-icons.js?v=approved-40-v1');
   await load('./motion.js?v=approved-40-v1');
-  await load('./app.js?v=program-icons-removed-20261104');
+  await load('./app.js?v=calendar-flow-20261104');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
@@ -24,3 +24,4 @@
   h.textContent='Hesap açılamadı';p.textContent=error.message;a.href='./login.html';a.textContent='Giriş ekranına dön';main.append(h,p,a);document.body.append(main);document.documentElement.style.visibility='visible';
  }
 })();
+
