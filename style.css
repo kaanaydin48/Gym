@@ -309,3 +309,29 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .calendar-flow-less,.calendar-flow-expand[open] .calendar-flow-more{display:none}
 .calendar-flow-expand[open] .calendar-flow-less{display:inline}
 .calendar-flow svg g[role=button]{cursor:pointer}.calendar-flow svg g[role=button]:focus{outline:2px solid var(--muted);outline-offset:2px}
+
+/* Home insights: compact neutral cards, independent of calendar/flow styling. */
+.home-period{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:12px;margin:0 0 12px;background:var(--card)}
+.home-period button,.home-period button:hover{flex:1;min-width:0;min-height:40px;padding:7px 3px;background:transparent!important;color:var(--muted)!important;font-size:12px;box-shadow:none!important}
+.home-period button.active{background:var(--soft)!important;color:var(--ink)!important}
+.home-muscles .regional-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.home-muscles .regional-row,.home-muscles .regional-row:hover,.home-muscles .regional-row:focus{padding:10px 8px;gap:6px;background:var(--card)!important;border-color:var(--line)!important;color:var(--ink)!important;min-width:0}
+.home-muscles .regional-row b{font-size:13px;color:var(--ink)!important;overflow-wrap:anywhere}
+.home-muscles .regional-muscle{font-size:17px;color:var(--muted)!important}
+.home-muscles .regional-change{background:transparent!important;color:var(--muted)!important;font-size:11px;font-weight:500;padding:0;white-space:nowrap;max-width:none}
+.home-muscles .regional-chevron{font-size:19px;color:var(--muted)!important}
+.home-records h2{display:flex;gap:10px;align-items:center}
+.home-record-icon{display:inline-flex;width:22px;height:22px;color:var(--muted)}
+.home-record-icon svg{width:100%;height:100%;stroke:currentColor}
+.home-record{padding:8px 0;line-height:1.5}.home-record .row{gap:8px}.home-record b{overflow-wrap:anywhere}.home-record small{display:block;margin-top:5px}
+.record-history-link{display:block;margin:8px 0 -8px auto;color:var(--muted)!important;background:transparent!important}
+.regional-sheet{background:var(--card);color:var(--ink)}.regional-sheet-head h2{color:var(--ink)}
+.home-exercises{margin-top:16px;display:grid;gap:10px}
+.home-exercise{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.home-exercise-toggle,.home-exercise-toggle:hover{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 12px;background:var(--card)!important;color:var(--ink)!important;box-shadow:none!important;border-radius:0}
+.home-exercise-toggle b{overflow-wrap:anywhere}.home-exercise-toggle span{color:var(--muted);font-size:22px}
+.home-exercise .regional-tabs{margin:0 10px 12px;background:var(--soft)}
+.home-exercise .regional-tabs button{background:transparent!important;color:var(--muted)!important}
+.home-exercise .regional-tabs button.active{background:var(--line)!important;color:var(--ink)!important}
+.home-exercise-chart{padding:0 12px 10px}.regional-best{border-top:1px solid var(--line);padding-top:12px}
+@media(max-width:360px){.home-muscles .regional-row{gap:4px;padding:8px 5px}.home-muscles .regional-muscle{display:none}.home-muscles .regional-row b{font-size:12px}}

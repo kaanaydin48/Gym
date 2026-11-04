@@ -15,7 +15,7 @@
   await load('./membership.js?v=role-management-fix-20261031');
   await load('./contour-icons.js?v=approved-40-v1');
   await load('./motion.js?v=approved-40-v1');
-  await load('./app.js?v=calendar-flow-details-20261104');
+  await load('./app.js?v=home-insights-neutral-20261105');
   await window.gymReady;
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
