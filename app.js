@@ -357,10 +357,19 @@ function renderDailySummaryModal(){
  }
  let overlay=document.getElementById('dailySummaryOverlay');if(!overlay){overlay=document.createElement('div');overlay.id='dailySummaryOverlay';document.body.appendChild(overlay);}
  const peak=exercises.reduce((best,e)=>!best||e.volume>best.volume?e:best,null);
- const averageSets=n?sets/n:0,volumePerSet=sets?volume/sets:0;
- const summaryFooter=radial||!peak?'':'<div class="daily-summary-performance"><div><small>En yüksek hacim</small><strong>'+esc(peak.name)+'</strong><span>'+num(kgDisplay(peak.volume))+' '+state.settings.unit+'</span></div><div><small>Ortalama set</small><strong>'+averageSets.toLocaleString('tr-TR',{maximumFractionDigits:1})+' set</strong></div><div><small>Hacim / set</small><strong>'+num(kgDisplay(volumePerSet))+' '+state.settings.unit+'</strong></div><div><small>Toplam hacim</small><strong>'+esc(totalLabel)+'</strong></div></div>';
+ const volumePerSet=sets?volume/sets:0,maxWeight=Math.max(0,...exercises.map(e=>e.max));
+ const metricIcon=(kind)=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+({
+  trophy:'<path d="M7 3h10v5a5 5 0 0 1-10 0V3ZM7 5H3v2a4 4 0 0 0 4 4m10-6h4v2a4 4 0 0 1-4 4M12 13v5m-4 3h8m-9 0v-3h10v3"/>',
+  chart:'<path d="M4 20v-5m5 5V10m5 10V6m5 14V3" stroke-width="3"/>',
+  weight:'<path d="M2 9v6m20-6v6M5 5h3v14H5zM16 5h3v14h-3zM8 10h8m-8 4h8"/>'
+ }[kind])+'</svg>';
+ const summaryFooter=radial||!peak?'':`<div class="daily-summary-performance">
+  <div class="summary-peak"><div class="summary-metric-label"><i class="summary-trophy">${metricIcon('trophy')}</i><small>En yüksek hacim</small></div><div class="summary-peak-value"><strong>${esc(peak.name)}</strong><b>${num(kgDisplay(peak.volume))} ${esc(state.settings.unit)}</b></div></div>
+  <div><div class="summary-metric-label"><i class="summary-chart-icon">${metricIcon('chart')}</i><small>Hacim / set</small></div><b>${num(kgDisplay(volumePerSet))} ${esc(state.settings.unit)}</b></div>
+  <div><div class="summary-metric-label"><i class="summary-weight-icon">${metricIcon('weight')}</i><small>Maksimum ağırlık</small></div><b>${num(kgDisplay(maxWeight))} ${esc(state.settings.unit)}</b></div>
+ </div>`;
  const sankeyHeader=radial?'':'<div class="daily-summary-metrics-header"><strong>'+esc(d.name)+'</strong><span>'+fmtDate(selected)+'</span><div class="daily-summary-metrics-grid"><div><b>'+sets+'</b><small>Set</small></div><div><b>'+esc(duration)+'</b><small>Süre</small></div><div><b>'+esc(totalLabel)+'</b><small>Hacim</small></div></div></div>';
- overlay.innerHTML='<div class="daily-summary-sheet"><div class="daily-summary-head"><div><strong>'+esc(d.name)+'</strong><small>Günlük Antrenman Özeti · '+fmtDate(selected)+'</small></div><div class="daily-summary-head-actions"><button type="button" class="daily-summary-share" onclick="shareDailySummaryStory()" aria-label="Instagram hikâyesi için paylaş">Paylaş ↗</button><button type="button" onclick="closeDailySummary()" aria-label="Kapat">×</button></div></div><div class="daily-summary-tabs"><button class="'+(radial?'active':'')+'" onclick="switchDailySummaryLayout(\'radial\')">Serbest Akış</button><button class="'+(!radial?'active':'')+'" onclick="switchDailySummaryLayout(\'sankey\')">Hacim Akışı</button></div><div class="daily-summary-chart">'+sankeyHeader+(n?svg:'<p>Tamamlanmış set bulunamadı.</p>')+'</div>'+summaryFooter+'<p class="daily-summary-hint">Hareket seçmek için kutuya dokun. Aynı kutuya tekrar dokunarak genel özete dön.</p></div>';
+ overlay.innerHTML='<div class="daily-summary-sheet"><div class="daily-summary-head"><div><strong>'+esc(d.name)+'</strong><small>Günlük Antrenman Özeti · '+fmtDate(selected)+'</small></div><div class="daily-summary-head-actions"><button type="button" class="daily-summary-share" onclick="shareDailySummaryStory()" aria-label="Instagram hikâyesi için paylaş">Paylaş ↗</button><button type="button" onclick="closeDailySummary()" aria-label="Kapat">×</button></div></div><div class="daily-summary-tabs"><button class="'+(radial?'active':'')+'" onclick="switchDailySummaryLayout(\'radial\')">Serbest Akış</button><button class="'+(!radial?'active':'')+'" onclick="switchDailySummaryLayout(\'sankey\')">Hacim Akışı</button></div><div class="daily-summary-chart">'+sankeyHeader+(n?svg:'<p>Tamamlanmış set bulunamadı.</p>')+'</div>'+summaryFooter+'</div>';
 }
 
 function calendarView(){
