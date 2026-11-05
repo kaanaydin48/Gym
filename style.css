@@ -364,3 +364,12 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .period-flow-card .home-period button{font-size:12px!important;padding:9px 1px!important}
 .period-flow-total strong{font-size:12px!important;white-space:nowrap}
 @media(max-width:360px){.period-flow-card .home-period button{font-size:11px!important}.period-flow-total strong{font-size:11px!important}}
+
+/* iOS Home Screen: anchor both controls to the visual viewport, not fixed layers. */
+@media(max-width:680px){
+ .ios-pwa-dock #pwaDock{position:absolute;height:0;z-index:6;pointer-events:none}
+ .ios-pwa-dock #pwaDock #mobileNav{position:absolute;bottom:0;left:0;right:0;pointer-events:auto}
+ .ios-pwa-dock #pwaDock #restTimer{position:absolute;bottom:calc(var(--dock-nav-height,76px) + 10px);pointer-events:auto}
+ .ios-pwa-dock #pwaDock.keyboard-open{visibility:hidden;pointer-events:none}
+ .ios-pwa-dock #pwaDock.keyboard-open #mobileNav,.ios-pwa-dock #pwaDock.keyboard-open #restTimer{pointer-events:none}
+}
