@@ -373,3 +373,11 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
  .ios-pwa-dock #pwaDock.keyboard-open{visibility:hidden;pointer-events:none}
  .ios-pwa-dock #pwaDock.keyboard-open #mobileNav,.ios-pwa-dock #pwaDock.keyboard-open #restTimer{pointer-events:none}
 }
+
+/* Approved silky flow in the home summary. */
+.period-flow-item:before{left:0;top:9px;bottom:9px;width:3px}
+.period-flow-card .period-flow-item[aria-pressed="true"]{border-color:var(--flow-color)!important}
+.period-flow-selection{font-size:12px;color:var(--muted);margin:14px 0 0;min-height:20px}
+.period-flow-selection button{font-size:12px;margin:6px 0 0 6px}
+.period-flow-ribbons path,.period-flow-item{transition:opacity .18s ease}
+@media(prefers-reduced-motion:reduce){.period-flow-ribbons path,.period-flow-item{transition:none}}

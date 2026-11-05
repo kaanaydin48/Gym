@@ -1,0 +1,30 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('app.js','utf8');
+const fixture=[['Dumbbell Bench Press',1870,70],['Incline Dumbbell Bench',1530,55],['Chest Fly Makine',80,10],['Dips',0,0],['Cable Triceps Pushdown',840,30],['Overhead Cable Triceps',600,25]];
+const attrs=()=>({attributes:{},setAttribute(k,v){this.attributes[k]=String(v)}});
+const svg={...attrs(),innerHTML:''},detail={innerHTML:''},overlay={innerHTML:''};
+const rows=fixture.map(([name,volume],i)=>({...attrs(),dataset:{flowShare:volume/4920*100},offsetTop:i*85,offsetHeight:78,style:{getPropertyValue:()=> '#af7852'}}));
+const items={offsetLeft:90};
+const host={clientWidth:350,clientHeight:510,dataset:{},querySelector:s=>s==='.period-flow-ribbons'?svg:items,querySelectorAll:()=>rows,parentElement:{querySelector:()=>detail}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ctx={console,state:{settings:{unit:'kg'},days:{'2026-11-05':{name:'Göğüs + Arka kol',kind:'workout',started:1,finished:3600001,exercises:fixture.map(([name,volume,max])=>({name,factor:1,logs:[{kg:max,reps:max?volume/max:10,done:true}]}))}}},selected:'2026-11-05',esc,num:n=>n.toLocaleString('tr-TR'),kgDisplay:Number,fmtDate:String,GymMotion:{icon:()=>''},show:html=>ctx.details=html,localStorage:{getItem:()=> 'sankey'},document:{querySelector:()=>host,getElementById:()=>overlay},window:{addEventListener(){}},growthBounds:()=>({start:'2026-11-05',end:'2026-11-05'}),growthRows:()=>Object.entries(ctx.state.days),growthFlowData:()=>({sets:6,volume:4920,movements:fixture.map(([name,volume,max])=>({name,volume,max,sets:1}))}),growthPeriod:'today',homePeriodControls:()=>''};
+vm.createContext(ctx);
+vm.runInContext(source.slice(source.indexOf('let dailySummaryLayout='),source.indexOf('function calendarView()')),ctx);
+vm.runInContext(source.slice(source.indexOf('function summaryFlowColor(')),ctx);
+const before=JSON.stringify(ctx.state);
+assert.match(ctx.calendarFlowSummary(),/4.920 kg/);
+for(const width of [320,390,768]){
+ host.clientWidth=width;items.offsetLeft=width*.26;ctx.drawHomeFlowRibbons();
+ assert.equal((svg.innerHTML.match(/<path /g)||[]).length,6);
+ assert.equal((svg.innerHTML.match(/stroke-dasharray/g)||[]).length,1);
+ assert(!/NaN|undefined/.test(svg.innerHTML));
+ assert.match(svg.innerHTML,/gradientUnits="userSpaceOnUse"/);
+}
+ctx.pickCalendarFlowExercise(0);assert.equal(rows[0].attributes['aria-pressed'],'true');assert.equal(rows[1].style.opacity,'.7');assert.match(svg.innerHTML,/opacity="0.22"/);assert.match(detail.innerHTML,/openCalendarFlowExercise\(0\)/);
+ctx.openCalendarFlowExercise(0);assert.match(ctx.details,/Dumbbell Bench Press/);
+ctx.pickCalendarFlowExercise(0);assert.equal(rows[0].attributes['aria-pressed'],'false');assert(!svg.innerHTML.includes('opacity="0.22"'));
+ctx.showDailySummary();assert.equal((overlay.innerHTML.match(/stroke="url\(#daily-right-/g)||[]).length,6);assert.equal((overlay.innerHTML.match(/stroke-dasharray/g)||[]).length,1);
+ctx.pickDailySummaryExercise(0);assert.match(overlay.innerHTML,/aria-pressed="true"/);assert.match(overlay.innerHTML,/opacity="0.22"/);
+ctx.pickDailySummaryExercise(0);assert(!overlay.innerHTML.includes('aria-pressed="true"'));assert.match(overlay.innerHTML,/event.key===&#39;Enter&#39;|event.key==='Enter'/);
+assert.equal(JSON.stringify(ctx.state),before);
+console.log('PASS: both summaries, proportional/zero-volume ribbons, focus/deselect, details, keyboard handlers, width geometry and unchanged records');

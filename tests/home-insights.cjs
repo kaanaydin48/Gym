@@ -4,7 +4,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const state={settings:{unit:'kg',week:'monday'},days:{},bodyweights:[{date:'2026-11-01',kg:74}]};
 const context={state,esc,num:String,kgDisplay:Number,fmtDate:String,dateKey:d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),allWork:()=>Object.entries(state.days),metricIcon:()=>'<svg></svg>',totals:d=>({sets:d.exercises.reduce((n,e)=>n+e.logs.filter(s=>s.done).length,0)}),show:html=>context.modal=html,GymMotion:{icon:()=>''},window:{addEventListener(){}}};
 vm.createContext(context);vm.runInContext(source.slice(source.indexOf('let growthPeriod='),source.indexOf('function drawChart()')),context);
-vm.runInContext(source.slice(source.indexOf('function calendarFlowRows()')),context);
+vm.runInContext(source.slice(source.indexOf('function summaryFlowColor(')),context);
 const run=s=>vm.runInContext(s,context);
 const day=(weight,reps)=>({kind:'workout',finished:1,exercises:[{name:'Row',muscle:'Sırt',type:'external',factor:1,logs:[{kg:weight,reps,done:true},{kg:999,reps:99,done:false}]}]});
 state.days={'2020-01-01':day(60,8),'2020-01-02':day(70,8),'2020-01-03':day(70,10)};

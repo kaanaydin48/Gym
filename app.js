@@ -332,25 +332,23 @@ function renderDailySummaryModal(){
   const sourceItems=[{label:'ANTRENMAN',value:d.name,color:'#5A9DE9',y:midY-81},{label:'SET SAYISI',value:sets+' set',color:'#A98BE5',y:midY-23},{label:'SÜRE',value:duration,color:'#85BEA8',y:midY+35}];
   let ribbons='',sourceBoxes='',exerciseBoxes='',rightOffset=midTop;
   let gradients='<defs>';
-  const shades=[['#BDDDF9','#629FE2','#A0D9E8'],['#DED0F5','#AB91D9','#D6B8E5'],['#C9E8DB','#77BFAE','#A9DAC7']];
-  shades.forEach((p,i)=>{gradients+='<linearGradient id="daily-left-'+i+'" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="'+p[0]+'"/><stop offset="50%" stop-color="'+p[1]+'"/><stop offset="100%" stop-color="'+p[2]+'"/></linearGradient>';});
-  const blend=(hex,white)=>{const v=hex.replace('#','');return '#'+[0,2,4].map(j=>Math.round(parseInt(v.slice(j,j+2),16)*(1-white)+255*white).toString(16).padStart(2,'0')).join('');};
-  exercises.forEach((e,i)=>{const c=palette[i%palette.length];gradients+='<linearGradient id="daily-right-'+i+'" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="'+blend(c,.48)+'"/><stop offset="50%" stop-color="'+c+'"/><stop offset="100%" stop-color="'+blend(c,.32)+'"/></linearGradient>';});gradients+='</defs>';
+  sourceItems.forEach((item,i)=>{item.color=summaryFlowColor([1,2,3][i]);gradients+=summaryFlowGradient('daily-left-'+i,item.color,114,176);});
+  exercises.forEach((e,i)=>{gradients+=summaryFlowGradient('daily-right-'+i,summaryFlowColor(i),203,249);});gradients+='</defs>';
 
   sourceItems.forEach((item,i)=>{
    const sy=item.y+23,ty=midTop+15+i*31,width=27;
-   ribbons+='<path d="M 114 '+(sy-width/2)+' C 144 '+(sy-width/2)+' 147 '+(ty-width/2)+' 176 '+(ty-width/2)+' L 176 '+(ty+width/2)+' C 147 '+(ty+width/2)+' 144 '+(sy+width/2)+' 114 '+(sy+width/2)+' Z" fill="url(#daily-left-'+i+')" opacity=".9"/>';
+   ribbons+=`<path d="${summaryFlowPath(114,sy,176,ty)}" fill="none" stroke="url(#daily-left-${i})" stroke-width="${width}"/>`;
    sourceBoxes+='<rect x="3" y="'+item.y+'" width="111" height="46" rx="9" fill="#fff" stroke="#E7E3DF"/><rect x="5" y="'+(item.y+7)+'" width="4" height="32" rx="2" fill="'+item.color+'"/><text x="15" y="'+(item.y+16)+'" font-size="9" fill="#777">'+item.label+'</text><text x="15" y="'+(item.y+33)+'" font-size="12" font-weight="700" fill="#222">'+esc(item.value.length>15?item.value.slice(0,14)+'…':item.value)+'</text>';
   });
-  const scale=volume>0?Math.min(94/volume,28/Math.max(...exercises.map(e=>e.volume),1)):0;
-  let offset=midTop;
+  const bands=exercises.map(e=>Math.max(1.5,volume?e.volume/volume*64:0));
+  let offset=midY-bands.reduce((sum,v)=>sum+v+2,0)/2;
   exercises.forEach((e,i)=>{
-   const y=10+i*76,ey=y+30,band=Math.max(2,e.volume*scale),sy=offset+band/2;offset+=band;
-   const color=palette[i%palette.length],dim=dailySummaryExercise>=0&&dailySummaryExercise!==i;
-   ribbons+='<path d="M 203 '+(sy-band/2)+' C 245 '+(sy-band/2)+' 235 '+(ey-band/2)+' 248 '+(ey-band/2)+' L 248 '+(ey+band/2)+' C 235 '+(ey+band/2)+' 245 '+(sy+band/2)+' 203 '+(sy+band/2)+' Z" fill="url(#daily-right-'+i+')" opacity="'+(dim?'.15':'.88')+'"/>';
+   const y=10+i*76,ey=y+30,band=bands[i],sy=offset+band/2;offset+=band+2;
+   const color=summaryFlowColor(i),dim=dailySummaryExercise>=0&&dailySummaryExercise!==i;
+   ribbons+=`<path d="${summaryFlowPath(203,sy,249,ey)}" fill="none" stroke="url(#daily-right-${i})" stroke-width="${band}" stroke-linecap="round" opacity="${dim?.22:1}" ${e.volume?'':'stroke-dasharray="2 5"'}/>`;
    const share=volume>0?100*e.volume/volume:0;
    const label='%'+share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1});
-   exerciseBoxes+='<g role="button" tabindex="0" aria-label="'+esc(e.name)+'" onclick="pickDailySummaryExercise('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();pickDailySummaryExercise('+i+')}" style="cursor:pointer;opacity:'+(dim?'.45':'1')+'"><rect x="247" y="'+y+'" width="189" height="61" rx="10" fill="#fff" stroke="'+(dailySummaryExercise===i?color:'#E7E3DF')+'" stroke-width="'+(dailySummaryExercise===i?2:1)+'"/><rect x="250" y="'+(y+7)+'" width="3" height="47" rx="1.5" fill="'+color+'"/>'+
+   exerciseBoxes+='<g role="button" tabindex="0" aria-pressed="'+(dailySummaryExercise===i)+'" aria-label="'+esc(e.name)+'" onclick="pickDailySummaryExercise('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();pickDailySummaryExercise('+i+')}" style="cursor:pointer;opacity:'+(dim?'.7':'1')+'"><rect x="247" y="'+y+'" width="189" height="61" rx="10" fill="#fff" stroke="'+(dailySummaryExercise===i?color:'#E7E3DF')+'" stroke-width="'+(dailySummaryExercise===i?2:1)+'"/><rect x="247" y="'+(y+7)+'" width="3" height="47" rx="1.5" fill="'+color+'"/>'+
     `<text x="258" y="${y+16}" font-size="10" font-weight="600" fill="#292929">${esc(e.name.length>27?e.name.slice(0,26)+'…':e.name)}</text>
      <text x="258" y="${y+34}" font-size="12" font-weight="700" fill="#222">${num(kgDisplay(e.volume))} ${esc(state.settings.unit)}<tspan dx="4" font-size="8" font-weight="400" fill="#686868">Maks. ${num(kgDisplay(e.max))} ${esc(state.settings.unit)}</tspan></text>
      <rect x="258" y="${y+44}" width="95" height="4" rx="2" fill="#E7E7E7"/><rect x="258" y="${y+44}" width="${95*share/100}" height="4" rx="2" fill="${color}"/>
@@ -706,6 +704,26 @@ function previewImport(){const conflicts=Object.keys(pending.days).filter(k=>sta
 if(gymAccount.role==='member')refreshCoachProgram();
 
 
+// Approved silky flow: dark tone, balanced width, wide curve, focused selection.
+function summaryFlowColor(index){
+ const colors=['#ce8d60','#719ab9','#9a80bf','#74a48e','#c38794','#b9a35b'];
+ return '#'+colors[index%colors.length].slice(1).match(/../g).map(v=>Math.round(parseInt(v,16)*.85).toString(16).padStart(2,'0')).join('');
+}
+function summaryFlowPath(x,y,endX,endY){
+ const bend=(endX-x)*.9;
+ return `M${x} ${y} C${x+bend} ${y} ${endX-bend} ${endY} ${endX} ${endY}`;
+}
+function summaryFlowGradient(id,color,startX,endX){
+ return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${startX}" y1="0" x2="${endX}" y2="0"><stop offset="0" stop-color="${color}" stop-opacity=".55"/><stop offset="1" stop-color="${color}" stop-opacity="1"/></linearGradient>`;
+}
+function pickCalendarFlowExercise(index){
+ const host=document.querySelector('.period-flow');if(!host)return;
+ host.dataset.selectedFlow=host.dataset.selectedFlow===String(index)?'':String(index);
+ drawHomeFlowRibbons();
+ const detail=host.parentElement.querySelector('.period-flow-selection');
+ const item=calendarFlowData().movements[index];
+ if(detail)detail.innerHTML=host.dataset.selectedFlow===''?'Bir harekete dokunarak akışını vurgula.':`${esc(item.name)} <button type="button" class="secondary" onclick="openCalendarFlowExercise(${index})">Hareket detayları ↗</button>`;
+}
 function calendarFlowRows(){
  const b=growthBounds();
  return growthRows().filter(([date,d])=>d.finished&&date>=b.start&&date<=b.end);
@@ -718,25 +736,27 @@ function openCalendarFlowExercise(index){
 }
 function calendarFlowSummary(){
  const rows=calendarFlowRows(),data=growthFlowData(rows),b=growthBounds(),unit=esc(state.settings.unit);
- const colors=['#8AAFC9','#B09ED1','#E6A078','#8CBCA7','#DCA6AF','#D2BC83'];
  const date=b.start===b.end?fmtDate(b.end):fmtDate(b.start)+' – '+fmtDate(b.end);
  const allNames=[...new Set(growthFlowData(growthRows()).movements.map(x=>x.name))].sort();
  const items=data.movements.map((item,i)=>{
-  const color=colors[allNames.indexOf(item.name)%colors.length],share=data.volume?item.volume/data.volume*100:0;
-  return `<button type="button" class="period-flow-item" style="--flow-color:${color}" data-flow-share="${share}" onclick="openCalendarFlowExercise(${i})" aria-label="${esc(item.name)} detayları"><span class="period-flow-name">${esc(item.name)}</span><span class="period-flow-values"><strong>${num(kgDisplay(item.volume))} ${unit}</strong><small>Maks. ${num(kgDisplay(item.max))} ${unit}</small></span><span class="period-flow-meter"><span class="period-flow-track"><i style="width:${share}%"></i></span><small>%${share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1})}</small></span><span class="period-flow-icon" aria-hidden="true">${GymMotion.icon(item.name,0,0,56)}</span></button>`;
+  const color=summaryFlowColor(Math.max(0,allNames.indexOf(item.name))),share=data.volume?item.volume/data.volume*100:0;
+  return `<button type="button" class="period-flow-item" style="--flow-color:${color}" data-flow-share="${share}" onclick="pickCalendarFlowExercise(${i})" aria-pressed="false" aria-label="${esc(item.name)} akışını vurgula"><span class="period-flow-name">${esc(item.name)}</span><span class="period-flow-values"><strong>${num(kgDisplay(item.volume))} ${unit}</strong><small>Maks. ${num(kgDisplay(item.max))} ${unit}</small></span><span class="period-flow-meter"><span class="period-flow-track"><i style="width:${share}%"></i></span><small>%${share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1})}</small></span><span class="period-flow-icon" aria-hidden="true">${GymMotion.icon(item.name,0,0,56)}</span></button>`;
  }).join('');
- return `<section class="card period-flow-card"><h2>Hacim akışı</h2>${homePeriodControls()}<p class="period-flow-date" aria-live="polite">${date}</p><p class="period-flow-count">${rows.length} antrenman · ${data.sets} tamamlanan set</p>${data.sets?`<div class="period-flow"><svg class="period-flow-ribbons" aria-hidden="true"></svg><div class="period-flow-total"><small>TOPLAM HACİM</small><strong>${num(kgDisplay(data.volume))} ${unit}</strong></div><div class="period-flow-items">${items}</div></div>${data.volume?'':'<p class="muted">Bu dönemde harici ağırlık hacmi yok.</p>'}`:`<p class="empty">${growthPeriod==='today'?'Bugün':'Bu dönemde'} henüz tamamlanmış antrenman yok.</p>`}</section>`;
+ return `<section class="card period-flow-card"><h2>Hacim akışı</h2>${homePeriodControls()}<p class="period-flow-date" aria-live="polite">${date}</p><p class="period-flow-count">${rows.length} antrenman · ${data.sets} tamamlanan set</p>${data.sets?`<div class="period-flow"><svg class="period-flow-ribbons" aria-hidden="true"></svg><div class="period-flow-total"><small>TOPLAM HACİM</small><strong>${num(kgDisplay(data.volume))} ${unit}</strong></div><div class="period-flow-items">${items}</div></div><p class="period-flow-selection" aria-live="polite">Bir harekete dokunarak akışını vurgula.</p>${data.volume?'':'<p class="muted">Bu dönemde harici ağırlık hacmi yok.</p>'}`:`<p class="empty">${growthPeriod==='today'?'Bugün':'Bu dönemde'} henüz tamamlanmış antrenman yok.</p>`}</section>`;
 }
 function drawHomeFlowRibbons(){
  const host=document.querySelector('.period-flow');if(!host)return;
  const svg=host.querySelector('.period-flow-ribbons'),items=host.querySelector('.period-flow-items'),w=host.clientWidth,h=host.clientHeight,x=items.offsetLeft,mid=h/2;
  if(!w||!h)return;
- let offset=mid-34,defs='',paths='';
- host.querySelectorAll('.period-flow-item').forEach((row,i)=>{
-  const share=+row.dataset.flowShare||0,width=share*.68,origin=offset+width/2,y=row.offsetTop+row.offsetHeight*.4;offset+=width;
-  const color=row.style.getPropertyValue('--flow-color'),id='home-flow-ribbon-'+i;
-  defs+=`<linearGradient id="${id}"><stop stop-color="${color}" stop-opacity=".83"/><stop offset="1" stop-color="${color}" stop-opacity=".15"/></linearGradient>`;
-  if(width)paths+=`<path d="M6 ${origin} C${x*.45} ${origin} ${x*.55} ${y} ${x} ${y}" fill="none" stroke="url(#${id})" stroke-width="${width}"/>`;
+ const rows=[...host.querySelectorAll('.period-flow-item')],selected=host.dataset.selectedFlow??'';
+ const widths=rows.map(row=>Math.max(1.5,(+row.dataset.flowShare||0)*.64));
+ let offset=mid-widths.reduce((sum,v)=>sum+v+2,0)/2,defs='',paths='';
+ rows.forEach((row,i)=>{
+  const share=+row.dataset.flowShare||0,width=widths[i],origin=offset+width/2,y=row.offsetTop+row.offsetHeight*.4;offset+=width+2;
+  const color=row.style.getPropertyValue('--flow-color'),id='home-flow-ribbon-'+i,dim=selected!==''&&selected!==String(i);
+  row.style.opacity=dim?'.7':'1';row.setAttribute('aria-pressed',String(selected===String(i)));
+  defs+=summaryFlowGradient(id,color,5,x+2);
+  paths+=`<path d="${summaryFlowPath(5,origin,x+2,y)}" fill="none" stroke="url(#${id})" stroke-width="${width}" stroke-linecap="round" opacity="${dim?.22:1}" ${share?'':'stroke-dasharray="2 5"'}/>`;
  });
  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=`<defs>${defs}</defs><rect x="0" y="${mid-34}" width="5" height="68" rx="2.5" fill="var(--line)"/>${paths}`;
 }
