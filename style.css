@@ -393,3 +393,9 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .home-workout-history button[aria-pressed="true"]{outline:2px solid var(--green)}
 .home-workout-history span{font-size:12px;color:var(--muted)}
 .home-workout-history strong{overflow-wrap:anywhere}
+
+/* Home flow group separators share the card grid; ribbons target cards only. */
+.period-flow-group-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:3px 8px;min-width:0;padding:7px 9px;border-radius:8px;background:color-mix(in srgb,var(--group-color) 14%,var(--card));color:var(--ink);font-size:11px;line-height:1.4}
+.period-flow-group-heading:not(:first-child){margin-top:11px}
+.period-flow-group-heading strong{font-size:11px;letter-spacing:.03em}
+.period-flow-group-heading span{margin-left:auto;font-size:10px;overflow-wrap:anywhere;text-align:right;min-width:0}

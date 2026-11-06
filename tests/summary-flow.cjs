@@ -3,7 +3,7 @@ const source=fs.readFileSync('app.js','utf8');
 const fixture=[['Dumbbell Bench Press',1870,70],['Incline Dumbbell Bench',1530,55],['Chest Fly Makine',80,10],['Dips',0,0],['Cable Triceps Pushdown',840,30],['Overhead Cable Triceps',600,25]];
 const attrs=()=>({attributes:{},setAttribute(k,v){this.attributes[k]=String(v)}});
 const svg={...attrs(),innerHTML:''},detail={innerHTML:''},overlay={innerHTML:''};
-const rows=fixture.map(([name,volume],i)=>({...attrs(),dataset:{flowShare:volume/4920*100},offsetTop:i*85,offsetHeight:78,style:{getPropertyValue:()=> '#af7852'}}));
+const rows=fixture.map(([name,volume],i)=>({...attrs(),dataset:{flowShare:volume/4920*100},offsetTop:32+i*85+(i>=4?43:0),offsetHeight:78,style:{getPropertyValue:()=> '#af7852'}}));
 const items={offsetLeft:90};
 const host={clientWidth:350,clientHeight:510,dataset:{},querySelector:s=>s==='.period-flow-ribbons'?svg:items,querySelectorAll:()=>rows,parentElement:{querySelector:()=>detail}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,6 +19,7 @@ for(const width of [320,390,768]){
  assert.equal((svg.innerHTML.match(/stroke-dasharray/g)||[]).length,1);
  assert(!/NaN|undefined/.test(svg.innerHTML));
  assert.match(svg.innerHTML,/gradientUnits="userSpaceOnUse"/);
+ rows.forEach(row=>assert(svg.innerHTML.includes(`${items.offsetLeft+2} ${row.offsetTop+row.offsetHeight*.4}`)));
 }
 ctx.pickCalendarFlowExercise(0);assert.equal(rows[0].attributes['aria-pressed'],'true');assert.equal(rows[1].style.opacity,'.7');assert.match(svg.innerHTML,/opacity="0.22"/);assert.match(detail.innerHTML,/openCalendarFlowExercise\(0\)/);
 ctx.openCalendarFlowExercise(0);assert.match(ctx.details,/Dumbbell Bench Press/);
