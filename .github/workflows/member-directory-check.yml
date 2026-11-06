@@ -16,5 +16,4 @@ jobs:
         with:
           node-version: '22'
       - run: node --check membership.js
-      - run: node tests/member-directory.cjs
-      - run: node tests/audit.cjs
+      - run: node tests/run-unit.cjs

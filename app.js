@@ -103,22 +103,25 @@ let tab='calendar',selected=today,month=new Date(new Date().getFullYear(),new Da
 let cloudReconcile=false;
 let dirty=false, saving=false, cloudReady=false, cloudRevision=0, cloudMessage='Bulut kontrol ediliyor…';
 const SYNC_KEY=KEY+':sync';
+let localBaseRevision=0;
+try{const meta=JSON.parse(localStorage.getItem(SYNC_KEY));dirty=!!meta?.pending;cloudRevision=meta?.revision??0;localBaseRevision=cloudRevision;}catch{dirty=true;}
 const invalidSets=new Map();
-let autoSaveTimer=null;
+let autoSaveTimer=null, cloudRetryDelay=1800, cloudLoading=false;
 function queueCloudSave(){
  clearTimeout(autoSaveTimer);
  autoSaveTimer=setTimeout(async()=>{
   if(!dirty||cloudReconcile||invalidSets.size||draft)return;
   if(saving){queueCloudSave();return;}
   if(!cloudReady)return;
-  await saveAll({silentSuccess:true});
+  const saved=await saveAll({silentSuccess:true});
+  cloudRetryDelay=saved?1800:Math.min(cloudRetryDelay*2,60000);
   if(dirty&&!cloudReconcile&&cloudReady)queueCloudSave();
- },1800);
+ },cloudRetryDelay);
 }
 function save(){
  dirty=true;
  try{
-  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true,revision:cloudRevision}));
+  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true,revision:localBaseRevision}));
   localStorage.setItem(KEY,JSON.stringify(state));
   storageError=false;
  }catch(e){
@@ -157,7 +160,8 @@ function updateShoulderLegs(){
  save();
 }
 async function initializeCloud(){
- if(saving)return;
+ if(saving||cloudLoading)return;
+ cloudLoading=true;
  cloudReady=false;
  try{
   const {data,error}=await gymAccount.client.from('gym_account_state').select('state,revision').eq('member_id',gymAccount.user.id).maybeSingle();
@@ -169,12 +173,22 @@ async function initializeCloud(){
    if(local && (!meta||meta.pending) && JSON.stringify(state)!==JSON.stringify(remote)){
     // Preserve unsent local data; merging remains explicit and reviewable.
     dirty=true;cloudMessage='Cihaz kayıtları aktarım bekliyor.';
-    pending=remote;cloudReconcile=true; // Review only when explicitly requested from Settings.
-   }else{state=remote;cloudMessage='Buluttan yüklendi · rev '+cloudRevision;}
-  }else{cloudRevision=0;dirty=!!local;cloudMessage=local?'Cihaz kayıtları buluta aktarılmayı bekliyor.':'Bulut hazır · Henüz kayıt yok.';}
+    if(meta?.pending&&meta.revision===data.revision){
+     // The cloud has not advanced since this device's base revision.
+     pending=null;cloudReconcile=false;
+    }else{pending=remote;cloudReconcile=true;} // Changed remote bases still require explicit review.
+   }else{
+    // Persist hydration before marking the device clean, for the next offline boot.
+    localStorage.setItem(KEY,JSON.stringify(remote));
+    localStorage.setItem(SYNC_KEY,JSON.stringify({pending:false,revision:cloudRevision}));
+    state=remote;dirty=false;pending=null;cloudReconcile=false;localBaseRevision=cloudRevision;
+    cloudMessage='Buluttan yüklendi · rev '+cloudRevision;
+   }
+  }else{cloudRevision=0;localBaseRevision=0;dirty=!!local;cloudMessage=local?'Cihaz kayıtları buluta aktarılmayı bekliyor.':'Bulut hazır · Henüz kayıt yok.';}
   cloudReady=true;
-  if(!cloudReconcile)updateShoulderLegs();
+  if(!cloudReconcile){updateShoulderLegs();if(dirty)queueCloudSave();}
  }catch(e){cloudMessage='Bulut okunamadı. Girdiler korunuyor; bağlantını kontrol edip yeniden dene.';cloudReady=false;}
+ finally{cloudLoading=false;}
  render();
 }
 async function saveAll({silentSuccess=false}={}){
@@ -186,7 +200,7 @@ async function saveAll({silentSuccess=false}={}){
  saving=true;updateSaveStatus();
  try{
   // Save a retryable local copy before the network request. A failed request stays pending.
-  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true,revision:cloudRevision}));
+  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true,revision:localBaseRevision}));
   localStorage.setItem(KEY,JSON.stringify(snapshot));storageError=false;
   if(!cloudReady)throw Error('Bulut bağlantısı yok.');
   const {data,error}=await gymAccount.client.rpc('save_gym_state',{payload:snapshot,expected_revision:cloudRevision});
@@ -194,13 +208,17 @@ async function saveAll({silentSuccess=false}={}){
   cloudRevision=data;
   const check=await gymAccount.client.from('gym_account_state').select('revision').eq('member_id',gymAccount.user.id).single();
   if(check.error||check.data.revision!==cloudRevision)throw Error('Kayıt doğrulanamadı.');
-  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:false,revision:cloudRevision}));
+  localBaseRevision=cloudRevision;
   dirty=JSON.stringify(state)!==JSON.stringify(snapshot);
+  // A response acknowledges only its snapshot, never edits made while it was in flight.
+  localStorage.setItem(KEY,JSON.stringify(state));
+  localStorage.setItem(SYNC_KEY,JSON.stringify({pending:dirty,revision:cloudRevision}));
   cloudMessage='Buluta kaydedildi ve doğrulandı · rev '+cloudRevision;
   if(!silentSuccess||dirty)toast(dirty?'Buluta kaydedildi. İşlem sırasında yaptığın yeni değişiklikleri de kaydet.':'Tüm girdiler buluta kaydedildi ve doğrulandı.');
   return true;
  }catch(e){
   dirty=true;
+  if(String(e.message).includes('GYM_CONFLICT'))cloudReady=false;
   cloudMessage=String(e.message).includes('GYM_CONFLICT')?'Başka cihazda yeni kayıt var. Bulutu yeniden kontrol et ve kayıtları birleştir.':'Bulut kaydı doğrulanamadı. Cihaz kopyası korunuyor; yeniden dene.';
   toast(cloudMessage);return false;
  }finally{saving=false;updateSaveStatus();}
@@ -208,9 +226,10 @@ async function saveAll({silentSuccess=false}={}){
 async function retryCloud(){
  if(saving)return;
  // Keep unsaved edits available for explicit reconciliation.
- if(dirty){try{localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true}));localStorage.setItem(KEY,JSON.stringify(state));}catch{toast('Önce JSON yedeği indir; cihaz depolaması kullanılamıyor.');return;}}
+ if(dirty){try{localStorage.setItem(SYNC_KEY,JSON.stringify({pending:true,revision:localBaseRevision}));localStorage.setItem(KEY,JSON.stringify(state));}catch{toast('Önce JSON yedeği indir; cihaz depolaması kullanılamıyor.');return;}}
  await initializeCloud();
 }
+window.addEventListener('online',async()=>{cloudRetryDelay=1800;if(!cloudReady)await retryCloud();if(dirty&&!cloudReconcile)queueCloudSave();});
 window.addEventListener('beforeunload',event=>{if(dirty||draft){event.preventDefault();event.returnValue='';}});
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',4500)}
 function show(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
@@ -655,7 +674,7 @@ function settingsView(){return `<span class="eyebrow">KİŞİSEL ALANIN</span><h
 function downloadObject(o,name){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}function downloadBackup(){downloadObject(state,`gym-tracker-pro-${today}.json`)}
 function validateBackup(o){if(!o||o.schema!=='gym-tracker-pro'||o.version!==1||!Array.isArray(o.programs)||!o.programs.length||!Array.isArray(o.library)||!o.days||typeof o.days!=='object'||Array.isArray(o.days)||!o.profile||!o.settings||!Array.isArray(o.bodyweights))throw Error('Bu dosya bu sürümün yedeği değil. Eski panel yedekleri ayrıca eşleştirilerek aktarılmalı.');const validNum=(n,max=100000)=>n===''||typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=max;function checkExercise(e,logs=false){if(!e||typeof e.name!=='string'||typeof e.muscle!=='string'||typeof e.equipment!=='string'||!['external','body'].includes(e.type)||![1,2].includes(e.factor)||!Number.isInteger(e.sets)||e.sets<1||e.sets>20||!validNum(e.rir,10)||!validNum(e.rest))throw Error('Hareket bilgisi geçersiz.');if(logs&&(!Array.isArray(e.logs)||e.logs.some(s=>!s||typeof s.done!=='boolean'||!validNum(s.kg)||!validNum(s.reps,10000)||!validNum(s.rir,10))))throw Error('Set değerleri geçersiz.')}for(const p of o.programs){if(typeof p.id!=='string'||typeof p.name!=='string'||!Number.isInteger(p.version)||!Array.isArray(p.exercises)||!Array.isArray(p.history))throw Error('Program yapısı geçersiz.');p.exercises.forEach(e=>checkExercise(e))}o.library.forEach(e=>checkExercise(e));for(const [date,d] of Object.entries(o.days)){if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!['rest','workout'].includes(d.kind)||typeof d.id!=='string')throw Error('Gün kaydı geçersiz.');if(d.kind==='workout'){if(!Array.isArray(d.exercises)||typeof d.name!=='string')throw Error('Antrenman geçersiz.');d.exercises.forEach(e=>checkExercise(e,true))}}if(o.bodyweights.some(x=>!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!validNum(x.kg,500)))throw Error('Vücut ölçümü geçersiz.');return o}
 $('importFile').addEventListener('change',async ev=>{const file=ev.target.files[0];if(!file)return;try{if(file.size>10000000)throw Error('Dosya 10 MB sınırını aşıyor.');pending=validateBackup(JSON.parse(await file.text()));previewImport();}catch(e){toast(e.message);pending=null}ev.target.value=''});
-function mergeBackup(){if(!pending)return;downloadBackup();const merged=clone(state);for(const [k,d] of Object.entries(pending.days)){const selector=document.querySelector(`[data-conflict="${k}"]`);if(!merged.days[k]||selector?.value==='import')merged.days[k]=clone(d)}for(const p of pending.programs)if(!merged.programs.some(x=>x.id===p.id))merged.programs.push(clone(p));for(const e of pending.library)if(!merged.library.some(x=>x.id===e.id))merged.library.push(clone(e));for(const b of pending.bodyweights)if(!merged.bodyweights.some(x=>x.date===b.date))merged.bodyweights.push(clone(b));state=merged;pending=null;cloudReconcile=false;save();$('modal').close();render();toast('Birleştirme hazır. Profil bölümünden tüm girdileri kaydet.')}
+function mergeBackup(){if(!pending)return;downloadBackup();const merged=clone(state);for(const [k,d] of Object.entries(pending.days)){const selector=document.querySelector(`[data-conflict="${k}"]`);if(!merged.days[k]||selector?.value==='import')merged.days[k]=clone(d)}for(const p of pending.programs)if(!merged.programs.some(x=>x.id===p.id))merged.programs.push(clone(p));for(const e of pending.library)if(!merged.library.some(x=>x.id===e.id))merged.library.push(clone(e));for(const b of pending.bodyweights)if(!merged.bodyweights.some(x=>x.date===b.date))merged.bodyweights.push(clone(b));state=merged;pending=null;if(cloudReconcile)localBaseRevision=cloudRevision;cloudReconcile=false;save();$('modal').close();render();toast('Birleştirme hazır. Profil bölümünden tüm girdileri kaydet.')}
 // Manual rest timer: separate from workout data and based on wall-clock time.
 const REST_KEY='gym-rest-timer-v1:'+window.gymAccount.user.id;
 let restTimer={duration:90,remaining:90000,endAt:null,status:'idle'};
