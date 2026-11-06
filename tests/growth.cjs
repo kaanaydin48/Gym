@@ -6,4 +6,4 @@ b=context.growthBounds('week',new Date(2026,0,1));assert.equal(b.start,'2025-12-
 const day=(kg,reps,done=true)=>({exercises:[{name:'Bench',type:'external',logs:[{kg,reps,done,rir:2}]}]});
 const rows=[['2026-10-01',day(30,6)],['2026-10-03',day(30,8)],['2026-10-05',day(50,10,false)]];
 const original=JSON.stringify(rows);let records=context.growthRecords(rows,{start:'2026-10-02',end:'2026-10-05'});assert.equal(records.length,1);assert.equal(records[0].value,'30 kg × 8');assert.equal(JSON.stringify(rows),original);
-assert.equal(context.growthPoints(rows,'Bench').length,2);assert.match(context.growthChange(4,0,'set'),/önceki kayıt yok/);assert(!code.includes('Özel tarih'));assert(source.includes("['progress','↗','Gelişim']"));console.log('PASS: month/year boundaries, incomplete sets, repeat PRs, no data mutation, no custom dates');
+assert.equal(context.growthPoints(rows,'Bench').length,2);assert.match(context.growthChange(4,0,'set'),/önceki kayıt yok/);assert(!code.includes('Özel tarih'));assert(!source.includes("['progress','↗','Gelişim']"));console.log('PASS: month/year boundaries, incomplete sets, repeat PRs, no data mutation, no custom dates');

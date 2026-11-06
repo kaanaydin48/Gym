@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const elements={};for(const id of ['memberList','memberSearch','memberFilter','memberCounts'])elements[id]={isConnected:true,value:id==='memberFilter'?'all':'',textContent:'',innerHTML:''};
+const elements={};for(const id of ['memberList','memberSearch','memberFilter','memberCounts'])elements[id]={querySelectorAll:()=>[],isConnected:true,value:id==='memberFilter'?'all':'',textContent:'',innerHTML:''};
 const requests=[];const context={document:{getElementById:id=>elements[id]},gymAccount:{role:'admin',client:{functions:{invoke:()=>new Promise(resolve=>requests.push(resolve))}}}};
 vm.createContext(context);vm.runInContext(fs.readFileSync('membership.js','utf8'),context);
 (async()=>{

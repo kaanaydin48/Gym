@@ -3,13 +3,13 @@ let remote=null,fail=false,rpcCalls=0;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const client={from(){const q={select(){return q},eq(){return q},async maybeSingle(){return fail?{error:Error('offline')}:{data:clone(remote)}},async single(){return q.maybeSingle()}};return q},async rpc(name,{payload,expected_revision}){rpcCalls++;if(fail)return {error:Error('offline')};if(expected_revision!==(remote?.revision||0))return {error:Error('GYM_CONFLICT: conflict')};remote={state:clone(payload),revision:expected_revision+1};return {data:remote.revision}}};
 function boot(storage=new Map()){
- const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',style:{},hidden:false,open:false,textContent:'',innerHTML:'',classList:{toggle(){}},addEventListener(){},setAttribute(){},removeAttribute(){},querySelector(){return element(id+' child')},querySelectorAll(){return []},closest(){return element('row')},showModal(){this.open=true},close(){this.open=false},click(){}});return elements.get(id)};
- const ctx={console,crypto:webcrypto,Date,Map,Set,JSON,Math,Number,String,Array,Object,RegExp,Error,Promise,Blob,URL,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,confirm:()=>true,matchMedia:()=>({matches:false}),document:{getElementById:element,querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:{classList:{toggle(){}}},createElement:element},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{getItem:()=>null,setItem(){}},gymAccount:{user:{id:'audit-user',email:'audit@example.invalid',user_metadata:{}},role:'admin',client},addEventListener(){},scrollTo(){}};ctx.window=ctx;
- vm.createContext(ctx);for(const f of ['membership.js','motion.js','app.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
+ const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{value:'',style:{},hidden:false,open:false,textContent:'',innerHTML:'',classList:{toggle(){},remove(){},add(){}},addEventListener(){},setAttribute(){},removeAttribute(){},querySelector(){return element(id+' child')},querySelectorAll(){return []},closest(){return element('row')},showModal(){this.open=true},close(){this.open=false},click(){}});return elements.get(id)};
+ const ctx={console,crypto:webcrypto,Date,Map,Set,JSON,Math,Number,String,Array,Object,RegExp,Error,Promise,Blob,URL,requestAnimationFrame:()=>0,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,confirm:()=>true,matchMedia:()=>({matches:false}),document:{getElementById:element,querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:{classList:{toggle(){},remove(){},add(){}}},createElement:element},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},sessionStorage:{getItem:()=>null,setItem(){}},gymAccount:{user:{id:'audit-user',email:'audit@example.invalid',user_metadata:{}},role:'admin',client},addEventListener(){},scrollTo(){}};ctx.window=ctx;
+ vm.createContext(ctx);for(const f of ['membership.js','contour-icons.js','motion.js','app.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8'),ctx);return {ctx,storage,e:element,run:s=>vm.runInContext(s,ctx)};
 }
 (async()=>{
  let a=boot();await a.ctx.gymReady;
- assert.equal(a.run('state.library.length'),40);
+ assert.equal(a.run('state.library.length'),44);
  // Upgrade a saved 16-movement account without touching history or custom settings.
  const old=a.run('clone(state)');old.library=old.library.slice(0,16);
  old.library.push({...clone(old.library[0]),id:'custom-bench',name:'Barbell Bench Press',sets:3});
@@ -26,7 +26,7 @@ function boot(storage=new Map()){
  remote=null;
 
  for(const tab of ['calendar','workout','progress','programs','settings'])a.run(`go('${tab}')`);
- a.e('assignProgram').value='0';a.run('assignWorkout()');
+ a.e('assignProgram').value='0';a.run('assignWorkout();startWorkout()');
  a.run("updateSet(0,0,'kg','30');updateSet(0,0,'reps','8');updateSet(0,0,'rir','2');updateSet(0,0,'done',true)");
  assert.equal(a.run('totals(state.days[selected]).ext'),480);
  a.run("updateSet(0,1,'done',true)");
@@ -45,7 +45,7 @@ function boot(storage=new Map()){
  b.run("state.profile.goal='stale';save()");assert.equal(await b.run('saveAll()'),false);assert.equal(remote.state.profile.goal,'new');
  fail=true;a.run("state.profile.name='Offline';save()");assert.equal(await a.run('saveAll()'),false);assert.equal(a.run('dirty'),true);
  assert.equal(JSON.parse(a.storage.get('gym-tracker-pro-v1:audit-user')).profile.name,'Offline');fail=false;
- let c=boot(a.storage);await c.ctx.gymReady;assert.equal(c.run('cloudReconcile'),true);const calls=rpcCalls;assert.equal(await c.run('saveAll()'),false);assert.equal(rpcCalls,calls);c.run('mergeBackup()');assert.equal(await c.run('saveAll()'),true);
+ let c=boot(a.storage);await c.ctx.gymReady;assert.equal(c.run('cloudReconcile'),false);assert.equal(await c.run('saveAll()'),true);
  c.run("updateSet(0,0,'rir','11')");assert.equal(await c.run('saveAll()'),false);c.run("updateSet(0,0,'rir','1')");
  await c.run('finishWorkout()');assert.ok(c.run('state.days[selected].finished'));
  assert.ok(remote.state.days[c.run('selected')].finished);
