@@ -2,7 +2,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const source=fs.readFileSync('app.js','utf8');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const state={settings:{unit:'kg',week:'monday'},days:{},bodyweights:[{date:'2026-11-01',kg:74}]};
-const context={state,esc,num:String,kgDisplay:Number,fmtDate:String,dateKey:d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),allWork:()=>Object.entries(state.days),metricIcon:()=>'<svg></svg>',totals:d=>({sets:d.exercises.reduce((n,e)=>n+e.logs.filter(s=>s.done).length,0)}),show:html=>context.modal=html,GymMotion:{icon:()=>''},window:{addEventListener(){}}};
+const context={state,esc,num:String,kgDisplay:Number,fmtDate:String,dateKey:d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'),allWork:()=>Object.entries(state.days).filter(([,d])=>d.kind==='workout'),metricIcon:()=>'<svg></svg>',totals:d=>({sets:d.exercises.reduce((n,e)=>n+e.logs.filter(s=>s.done).length,0)}),show:html=>context.modal=html,GymMotion:{icon:()=>''},window:{addEventListener(){}}};
 vm.createContext(context);vm.runInContext(source.slice(source.indexOf('let growthPeriod='),source.indexOf('function drawChart()')),context);
 vm.runInContext(source.slice(source.indexOf('function summaryFlowColor(')),context);
 const run=s=>vm.runInContext(s,context);
@@ -22,3 +22,26 @@ console.log('PASS: muscle counts, empty groups, max/reps/volume charts, incomple
 let bounds=context.growthBounds('today',new Date(2026,10,5));assert.equal(bounds.start,'2026-11-05');assert.equal(bounds.end,bounds.start);assert.equal(bounds.previousStart,'2026-11-04');
 bounds=context.growthBounds('week',new Date(2026,10,5));assert.equal(bounds.start,'2026-11-02');bounds=context.growthBounds('month',new Date(2026,10,5));assert.equal(bounds.start,'2026-11-01');
 state.days={'2020-01-01':day(10,10),'2020-01-02':{...day(99,99),finished:null}};assert.equal(context.calendarFlowData().volume,100);assert.equal(context.calendarFlowData().max,10);console.log('PASS: today/week/month boundaries and completed-workout-only flow aggregation');
+
+// Latest workout is independent of the calendar and excludes unfinished/rest days.
+context.render=()=>{};context.$=()=>({close(){}});
+run("growthPeriod='latest';homeWorkoutDate='';homeLatestDate=''");
+state.days={'2020-01-01':{...day(10,10),name:'Push Day'},'2020-01-02':{...day(20,10),name:'Pull <Day>'},'2020-01-03':{kind:'rest'},'2020-01-04':{...day(99,99),finished:null}};
+const snapshot=JSON.stringify(state);
+assert.equal(context.calendarFlowRows()[0][0],'2020-01-02');
+assert.equal(context.calendarFlowData().volume,200);
+assert.match(context.calendarFlowSummary(),/Pull &lt;Day&gt;/);
+assert.equal(context.growthBounds().end,'2020-01-02');
+context.openWorkoutHistory();assert.equal((context.modal.match(/selectHomeWorkout/g)||[]).length,2);
+context.selectHomeWorkout('2020-01-01');assert.equal(context.calendarFlowData().volume,100);
+assert.equal(context.growthBounds().end,'2020-01-01');assert.match(context.calendarFlowSummary(),/Push Day/);
+assert.equal(JSON.stringify(state),snapshot);
+state.days['2020-01-05']={...day(30,10),name:'Legs'};
+assert.equal(context.calendarFlowRows()[0][0],'2020-01-05');
+context.setGrowthPeriod('all');assert.equal(context.calendarFlowData().volume,600);
+context.setGrowthPeriod('latest');assert.equal(context.calendarFlowData().volume,300);
+delete state.days['2020-01-05'];assert.equal(context.calendarFlowRows()[0][0],'2020-01-02');
+state.days={};assert.match(context.calendarFlowSummary(),/Henüz tamamlanmış antrenman yok/);
+state.days={'2020-01-01':{...day(0,0),name:'Empty',exercises:[]}};
+assert.match(context.calendarFlowSummary(),/Bu antrenmanda tamamlanmış set yok/);
+console.log('PASS: latest completed workout, rest days, history selection, names, automatic new record, deletion, empty states and preserved data');
