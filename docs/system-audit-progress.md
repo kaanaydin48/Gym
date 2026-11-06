@@ -2,7 +2,7 @@
 
 ## Durum ve devam noktası
 
-**Denetim tamamlanmadı. Üretime yayın yapılmadı.** Bu belge bir ara sonuç ve devam kaydıdır; tam uçtan uca başarı raporu değildir.
+**Denetim tamamlanmadı. Kullanıcı hazırlanan düzenlemelerin üretime yayınını açıkça onayladı; yayın doğrulaması ayrıca kaydedilecek.** Bu belge bir ara sonuç ve devam kaydıdır; tam uçtan uca başarı raporu değildir.
 
 - Başlangıç: 6 Kasım 2026 talebi; kaynak tabanı `eb9463c54285d3e502250970a6a0e6a5a2806c0a`.
 - Çalışma branch'i: `audit/system-2026-11-06`.
@@ -116,3 +116,13 @@ FROM anon, authenticated;
 5. Tarih/dinlenme ve SW/cache sorunlarını yeniden üreten testlerle düzelt; tasarımı koru.
 6. Kullanıcının bütün modül listesini tek tek geç/kal/engelli durumuyla tamamla. Fiziksel iPhone kanıtını ayrı tut.
 7. DB backup/restore ve açık riskler kapanmadan yayın isteme. Son rapor tamamlandığında açık canlıya alma onayını bekle.
+
+## Onaylanan yayın — 6 Kasım 2026 talebi
+
+Kullanıcı “Tüm düzenlemeleri canlıya al. Eksik kalan yerleri raporla. Gelişim tavsiyeleri ver” talimatıyla mevcut düzeltmelerin yayınını onayladı. Önceki yayın bekletme talimatı bu hazırlanan kod değişiklikleri için kalktı. Açık denetim bulguları tamamlanmış sayılmıyor.
+
+- Yayın kapsamı: SYNC-01–06, TEST-01 ve PR test koşucusu.
+- index.html ve auth-guard.js script sürüm parametreleri sync-audit-20261106 olarak güncellendi; uygulama verisi/yerel depolama silinmez.
+- SQL taslağı hazırlanmış bir DB migration değildir; üretim yetkileri veya şeması bu yayın kapsamında değiştirilmez.
+- Kaynak yedeği: backup/pre-system-audit-2026-11-06. Geri alma hedefi eb9463c.
+- Öncelikli sonraki işler: DB yetki daraltma + koç izolasyonu; fiziksel iPhone/PWA akışları; offline Auth/cache; tarih sınırları; büyük geçmiş için IndexedDB ve kalıcı işlem kuyruğu.
