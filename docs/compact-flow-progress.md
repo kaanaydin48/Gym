@@ -31,3 +31,17 @@ Dal: design/compact-home-flow-2026-11-07
 3. docs/compact-flow-preview.html dosyasını tarayıcıda aç; 320, 375, 393, 430 ve 768 px genişliklerde uzun adlar/büyük değerler, ikonlar ve kavisleri görsel kontrol et. %35 yüksekliğin her isimde gerçekleşmesi beklenmez; okunabilirlik önceliklidir.
 4. iPhone Safari ve kurulu PWA'da alt menü, yön değişimi ve tarih seçimlerini gerçek geliştirme ortamında doğrula; gerekirse yalnızca kart stillerini düzelt.
 5. Kullanıcının açık yayın onayı olmadan main'e birleştirme, GitHub Pages veya Supabase'e yayın yapma.
+
+## Dengeli Kompakt V2 — 7 Kasım 2026
+- Yeni dal: design/balanced-compact-v2; başlangıç main 4e25dbe.
+- Kullanıcı bu sürümün testlerden sonra yayınlanmasını açıkça onayladı.
+- CSS: hareket adı 13 px, hacim 14 px, maksimum/yüzde 11 px. Minimum kart yüksekliği 92 px; çok uzun içerik kesilmeden büyüyebilir.
+- Kart genişliği grafik alanının %59,2'sinden %70'ine çıkarıldı; sağ kenar sabit, sol kenar sola alındı. İkon 44 px olarak korundu. Hareket adı üstte kalan iki sütunu kullanarak iki satıra daha rahat sığar; maksimum ve hacim/yüzde alt satırda, çubuk en altta.
+- app.js, kavis fonksiyonları, ikonlar, hesaplamalar ve Supabase değişmedi.
+- style.css, index.html, auth-guard.js ve sw.js güncellendi; son üç dosyada yalnızca önbellek sürüm etiketleri değişti.
+- Önizleme yenilendi; tests/home-flow-layout.cjs V2 ölçü ve punto kontrolleriyle güncellendi.
+- 9/9 yerel test paketi, JS sözdizimi ve diff denetimi geçti. GitHub geliştirme dalında Chromium/WebKit mobil düzen testleri için mevcut kontrol iş akışına flow-layout işi eklendi.
+- GitHub test koşusu 42392515933: 9/9 birim paketi ve Chromium/WebKit mobil düzen testleri başarılı. Her motorda 320/375/393/430 px × 3 tema × 2 standalone bayrağı = 24 senaryo; toplam 48 senaryo. Punto, genişlik, yatay taşma, içerik kesilmesi, ikon çakışması, 6 px boşluk ve kavis uçları doğrulandı.
+- İlk CI denemesinde Ubuntu latest sürümü Playwright ile uyumsuzdu; yalnızca tarayıcı işi ubuntu-24.04 olarak sabitlendi ve tekrar başarılı çalıştı.
+- PR #17 testlerden sonra kullanıcının açık onayıyla yayına hazır. Gerçek iPhone/kurulu PWA fiziksel cihaz testi yapılmadı; standalone bayrağı benzetimi gerçek PWA testi değildir.
+- Son adım: PR #17 birleştirmesinden sonra GitHub Pages tamamlanmasını ve canlı dosyaların eşleşmesini doğrula.
