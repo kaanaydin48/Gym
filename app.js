@@ -775,8 +775,9 @@ function homeFlowMuscle(muscle){
  return aliases[key]||'';
 }
 function groupHomeFlowData(data){
- const order=['GÖĞÜS','SIRT','OMUZ','KOL','BACAK','KARIN'];
- const groups=order.map((name,i)=>({name,color:summaryFlowColor(i),movements:[],volume:0}));
+ const order=['GÖĞÜS','SIRT','OMUZ','BACAK','KOL','KARIN'];
+ const colorOrder=['GÖĞÜS','SIRT','OMUZ','KOL','BACAK','KARIN'];
+ const groups=order.map(name=>({name,color:summaryFlowColor(colorOrder.indexOf(name)),movements:[],volume:0}));
  // Unknown custom labels stay visible, without guessing a primary muscle.
  const other={name:'DİĞER',color:summaryFlowColor(0),movements:[],volume:0};
  data.movements.forEach(item=>{
@@ -806,7 +807,7 @@ function calendarFlowSummary(){
   return heading+group.movements.map(item=>{
   const i=movementIndex++;
   const color=summaryFlowColor(Math.max(0,allNames.indexOf(item.name))),share=data.volume?item.volume/data.volume*100:0;
-  return `<button type="button" class="period-flow-item" style="--flow-color:${color}" data-flow-share="${share}" onclick="pickCalendarFlowExercise(${i})" aria-pressed="false" aria-label="${esc(item.name)} akışını vurgula"><span class="period-flow-name">${esc(item.name)}</span><span class="period-flow-values"><strong>${num(kgDisplay(item.volume))} ${unit}</strong><small>Maks. ${num(kgDisplay(item.max))} ${unit}</small></span><span class="period-flow-meter"><span class="period-flow-track"><i style="width:${share}%"></i></span><small>%${share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1})}</small></span><span class="period-flow-icon" aria-hidden="true">${GymMotion.icon(item.name,0,0,56)}</span></button>`;
+  return `<button type="button" class="period-flow-item" style="--flow-color:${color}" data-flow-share="${share}" onclick="pickCalendarFlowExercise(${i})" aria-pressed="false" aria-label="${esc(item.name)} akışını vurgula"><span class="period-flow-icon" aria-hidden="true">${GymMotion.icon(item.name,0,0,56)}</span><span class="period-flow-label"><span class="period-flow-name">${esc(item.name)}</span><small class="period-flow-max">Maks. ${num(kgDisplay(item.max))} ${unit}</small></span><span class="period-flow-values"><strong>${num(kgDisplay(item.volume))} ${unit}</strong><small>%${share.toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1})}</small></span><span class="period-flow-meter"><span class="period-flow-track"><i style="width:${share}%"></i></span></span></button>`;
   }).join('');
  }).join('');
  return `<section class="card period-flow-card"><div class="home-flow-heading"><h2>Hacim akışı</h2><button type="button" class="link home-history-button" onclick="openWorkoutHistory()" aria-label="Antrenman geçmişini aç" title="Antrenman geçmişi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.6 7M3 4v7h7M12 7v5l3 2"/></svg></button></div>${homePeriodControls()}<p class="period-flow-date" aria-live="polite">${growthPeriod==='latest'&&!rows.length?'':date}</p>${growthPeriod==='latest'&&rows.length?`<p class="home-workout-name">${esc(rows[0][1].name||'Antrenman')}</p>`:''}<p class="period-flow-count">${rows.length} antrenman · ${data.sets} tamamlanan set</p>${data.sets?`<div class="period-flow"><svg class="period-flow-ribbons" aria-hidden="true"></svg><div class="period-flow-total"><small>TOPLAM HACİM</small><strong>${num(kgDisplay(data.volume))} ${unit}</strong></div><div class="period-flow-items">${items}</div></div><p class="period-flow-selection" aria-live="polite">Bir harekete dokunarak akışını vurgula.</p>${data.volume?'':'<p class="muted">Bu dönemde harici ağırlık hacmi yok.</p>'}`:`<p class="empty">${growthPeriod==='latest'?(rows.length?'Bu antrenmanda tamamlanmış set yok.':'Henüz tamamlanmış antrenman yok.'):'Bu dönemde henüz tamamlanmış antrenman yok.'}</p>`}</section>`;
