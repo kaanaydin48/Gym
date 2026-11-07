@@ -18,7 +18,7 @@ jobs:
       - run: node --check membership.js
       - run: node tests/run-unit.cjs
   flow-layout:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
