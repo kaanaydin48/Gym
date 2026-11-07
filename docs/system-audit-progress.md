@@ -2,7 +2,7 @@
 
 ## Durum ve devam noktası
 
-**Denetim tamamlanmadı. Kullanıcı hazırlanan düzenlemelerin üretime yayınını açıkça onayladı; yayın doğrulaması ayrıca kaydedilecek.** Bu belge bir ara sonuç ve devam kaydıdır; tam uçtan uca başarı raporu değildir.
+**Hazırlanan kod düzeltmeleri canlıya alındı ve 7 Kasım 2026'da canlı dosyalar doğrulandı. Kapsamlı denetim henüz tamamlanmadı.** Bu belge bir ara sonuç ve devam kaydıdır; tam uçtan uca başarı raporu değildir.
 
 - Başlangıç: 6 Kasım 2026 talebi; kaynak tabanı `eb9463c54285d3e502250970a6a0e6a5a2806c0a`.
 - Çalışma branch'i: `audit/system-2026-11-06`.
@@ -126,3 +126,21 @@ Kullanıcı “Tüm düzenlemeleri canlıya al. Eksik kalan yerleri raporla. Gel
 - SQL taslağı hazırlanmış bir DB migration değildir; üretim yetkileri veya şeması bu yayın kapsamında değiştirilmez.
 - Kaynak yedeği: backup/pre-system-audit-2026-11-06. Geri alma hedefi eb9463c.
 - Öncelikli sonraki işler: DB yetki daraltma + koç izolasyonu; fiziksel iPhone/PWA akışları; offline Auth/cache; tarih sınırları; büyük geçmiş için IndexedDB ve kalıcı işlem kuyruğu.
+
+## Yayın doğrulaması — 7 Kasım 2026
+
+- PR #16 birleştirildi: https://github.com/kaanaydin48/Gym/pull/16
+- Yayın merge commit'i: e91c76e92085f03865e5695ae0c039174e948e07.
+- Yayın öncesi yerel 9/9 test paketi geçti. GitHub Actions Member directory checks çalışması 42288577298 başarıyla tamamlandı.
+- https://kaanaydin48.github.io/Gym/ canlı adresindeki index.html, auth-guard.js?v=sync-audit-20261106 ve app.js?v=sync-audit-20261106 HTTP 200 döndü. Üç dosyanın SHA-256 özeti yayınlanan yerel kaynaklarla birebir eşleşti.
+- Bu doğrulama dosyaların yayına ulaştığını gösterir; oturum açmış kullanıcı veya fiziksel iPhone uçtan uca testinin yerine geçmez.
+- Üretim veritabanı şeması, yetkileri ve gerçek kullanıcı kayıtları bu yayın işlemiyle değiştirilmedi. Yukarıdaki SQL taslağı uygulanmadı.
+
+### Öncelikli geliştirme önerileri
+
+1. Önce güvenlik: gereksiz DB yetkilerini azalt; admin/koç/üye erişimini izole test hesaplarıyla doğrula; backup geri yükleme provası yap.
+2. Kayıt durumunu açık göster: cihazda kaydedildi, buluta aktarılıyor, eşitlendi veya çakışma var ayrımını küçük bir durum alanında belirt.
+3. Büyük geçmiş için IndexedDB ve kalıcı işlem kuyruğu değerlendir; tüm geçmiş yerine değişen kayıtları göndermek depolama ve ağ yükünü azaltabilir. Veri taşıma ve geri alma testi zorunlu olmalı.
+4. PWA sürüm güncellemesini ve offline oturum açılışını tamamla; fiziksel iPhone'da kilit/arka plan/bağlantı kaybı senaryolarını test et.
+5. Tarih sınırlarını düzelt; gece yarısı, ilk antrenmandan önceki dinlenme günleri ve haftalık istatistikleri ortak test verileriyle doğrula.
+6. Ayrı test ortamı ve otomatik tarayıcı regresyonları kur; tasarımı büyütmeden mevcut sade akışın güvenilirliğini artır.
