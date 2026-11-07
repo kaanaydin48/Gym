@@ -15,10 +15,12 @@ const before=JSON.stringify(state);
 for(const period of ['latest','week','month','all']){
  vm.runInContext(`growthPeriod='${period}'`,ctx);
  const data=ctx.calendarFlowData();
- assert.equal(data.groups.map(g=>g.name).join(','),'GÖĞÜS,SIRT,OMUZ,KOL,BACAK,KARIN');
+ assert.equal(data.groups.map(g=>g.name).join(','),'GÖĞÜS,SIRT,OMUZ,BACAK,KOL,KARIN');
  assert.equal(data.volume,period==='all'?2900:2800);
  assert.equal(data.groups.reduce((n,g)=>n+g.volume,0),data.volume);
  assert.equal(data.groups.find(g=>g.name==='KOL').volume,300);
+ assert.equal(data.groups.find(g=>g.name==='KOL').color,ctx.summaryFlowColor(3));
+ assert.equal(data.groups.find(g=>g.name==='BACAK').color,ctx.summaryFlowColor(4));
  assert.equal(data.movements.length,period==='all'?9:8);
  assert.equal(data.movements[0].name,'Bench');
  assert.equal(data.movements[0].max,70);
@@ -40,5 +42,5 @@ state.days={};assert.equal(ctx.calendarFlowData().groups.length,0);
 // Export deterministic long-name fixture for browser layout tests.
 state.days={[today]:day([...fixture,exercise('Çok uzun hareket adı — Tek Kol Destekli Dumbbell Shoulder Press <kontrol>','Omuz',15)])};
 vm.runInContext("growthPeriod='all'",ctx);
-module.exports={html:ctx.calendarFlowSummary(),source};
+module.exports={html:ctx.calendarFlowSummary(),source,ctx};
 console.log('PASS: six-group order, filters, primary arms, sums, percentages denominator, bodyweight, details, empty/custom records and data preservation');
