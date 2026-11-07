@@ -41,4 +41,7 @@ Dal: design/compact-home-flow-2026-11-07
 - style.css, index.html, auth-guard.js ve sw.js güncellendi; son üç dosyada yalnızca önbellek sürüm etiketleri değişti.
 - Önizleme yenilendi; tests/home-flow-layout.cjs V2 ölçü ve punto kontrolleriyle güncellendi.
 - 9/9 yerel test paketi, JS sözdizimi ve diff denetimi geçti. GitHub geliştirme dalında Chromium/WebKit mobil düzen testleri için mevcut kontrol iş akışına flow-layout işi eklendi.
-- Bekleyen: PR üzerinde tarayıcı test sonuçlarını doğrula; başarılıysa onay kapsamında main'e aktar ve Pages dosyalarını doğrula. Gerçek iPhone testi ayrıca raporlanmalı.
+- GitHub test koşusu 42392515933: 9/9 birim paketi ve Chromium/WebKit mobil düzen testleri başarılı. Her motorda 320/375/393/430 px × 3 tema × 2 standalone bayrağı = 24 senaryo; toplam 48 senaryo. Punto, genişlik, yatay taşma, içerik kesilmesi, ikon çakışması, 6 px boşluk ve kavis uçları doğrulandı.
+- İlk CI denemesinde Ubuntu latest sürümü Playwright ile uyumsuzdu; yalnızca tarayıcı işi ubuntu-24.04 olarak sabitlendi ve tekrar başarılı çalıştı.
+- PR #17 testlerden sonra kullanıcının açık onayıyla yayına hazır. Gerçek iPhone/kurulu PWA fiziksel cihaz testi yapılmadı; standalone bayrağı benzetimi gerçek PWA testi değildir.
+- Son adım: PR #17 birleştirmesinden sonra GitHub Pages tamamlanmasını ve canlı dosyaların eşleşmesini doğrula.
