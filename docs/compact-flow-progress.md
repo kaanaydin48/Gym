@@ -1,6 +1,7 @@
 # Kompakt Hacim Akışı — 7 Kasım 2026
 
-Durum: geliştirme uygulandı; yayınlanmadı. Görsel tarayıcı/iPhone doğrulaması bekliyor.
+Durum: kullanıcı 7 Kasım 2026 tarihinde açıkça canlı yayın onayı verdi. Yayın için hazırlandı; görsel tarayıcı/iPhone doğrulaması bekliyor.
+Yayın hazırlığı: index.html, auth-guard.js ve sw.js dosyalarında yalnızca statik dosya/cache sürüm etiketleri compact-flow-20261107 / v14 olarak güncellendi.
 Dal: design/compact-home-flow-2026-11-07
 
 ## Değişiklikler
