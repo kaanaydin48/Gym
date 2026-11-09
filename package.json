@@ -1,0 +1,15 @@
+{
+  "name": "gym-trader-pro",
+  "private": true,
+  "scripts": {
+    "test": "node tests/run-unit.cjs && node --test tests/quests/*.test.mjs",
+    "test:quests:db": "node tests/quests/database.mjs"
+  },
+  "devDependencies": {
+    "deno": "2.9.6",
+    "embedded-postgres": "17.11.0-beta.19",
+    "pg": "8.16.3",
+    "playwright": "1.56.1",
+    "supabase": "3.0.0"
+  }
+}

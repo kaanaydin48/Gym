@@ -9,6 +9,7 @@ const host={clientWidth:350,clientHeight:510,dataset:{},querySelector:s=>s==='.p
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ctx={console,state:{settings:{unit:'kg'},days:{'2026-11-05':{name:'Göğüs + Arka kol',kind:'workout',started:1,finished:3600001,exercises:fixture.map(([name,volume,max])=>({name,factor:1,logs:[{kg:max,reps:max?volume/max:10,done:true}]}))}}},selected:'2026-11-05',esc,num:n=>n.toLocaleString('tr-TR'),kgDisplay:Number,fmtDate:String,GymMotion:{icon:()=>''},show:html=>ctx.details=html,localStorage:{getItem:()=> 'sankey'},document:{querySelector:()=>host,getElementById:()=>overlay},window:{addEventListener(){}},growthBounds:()=>({start:'2026-11-05',end:'2026-11-05'}),growthRows:()=>Object.entries(ctx.state.days),growthFlowData:()=>({sets:6,volume:4920,movements:fixture.map(([name,volume,max])=>({name,volume,max,sets:1}))}),growthPeriod:'today',homePeriodControls:()=>''};
 vm.createContext(ctx);
+vm.runInContext(source.slice(source.indexOf('function validWorkoutSets('),source.indexOf('function growthBounds(')),ctx);
 vm.runInContext(source.slice(source.indexOf('let dailySummaryLayout='),source.indexOf('function calendarView()')),ctx);
 vm.runInContext(source.slice(source.indexOf('function summaryFlowColor(')),ctx);
 const before=JSON.stringify(ctx.state);

@@ -1,0 +1,36 @@
+name: Quest V4 development checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rules-and-database:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:quests:db
+      - run: npx deno check supabase/functions/quests-refresh/index.ts
+  mobile-preview:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: node tests/quests/browser.mjs
+      - run: QUEST_BROWSER=webkit node tests/quests/browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quests-mobile-preview
+          path: test-results/quests-*.png
