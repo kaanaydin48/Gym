@@ -16,7 +16,7 @@
   await load('./contour-icons.js?v=approved-40-v1');
   await load('./motion.js?v=approved-40-v1');
   await load('./workout-metrics.js?v=quests-v4');
-  await load('./app.js?v=balanced-flow-v2-20261107');
+  await load('./app.js?v=quests-v4-20261109');
   await window.gymReady;
   if(window.GYM_QUESTS_ENABLED===true){
    try{const {installQuestFeature}=await import('./quests/bootstrap.mjs');installQuestFeature(window.gymAccount);}

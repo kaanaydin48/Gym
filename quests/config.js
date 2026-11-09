@@ -1,2 +1,2 @@
-// Explicitly disabled. Development build may enable only against a loopback API.
-window.GYM_QUESTS_ENABLED = false;
+// Approved production rollout: 9 November 2026.
+window.GYM_QUESTS_ENABLED = true;

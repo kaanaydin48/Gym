@@ -2,12 +2,14 @@ import pg from 'npm:pg@8.16.3';
 import {processAccount} from '../../../quests/worker.mjs';
 import {questHandler} from '../../../quests/http.mjs';
 
-import {runtimeConfig} from '../../../quests/runtime-config.mjs';
+import {runtimeConfig,PRODUCTION_PROJECT} from '../../../quests/runtime-config.mjs';
 
+const production=Deno.env.get('SUPABASE_URL')===`https://${PRODUCTION_PROJECT}.supabase.co`;
 const {apiUrl,databaseUrl,origin,hosted}=runtimeConfig({
  apiUrl:Deno.env.get('SUPABASE_URL')||'',
  databaseUrl:Deno.env.get('QUESTS_DATABASE_URL')||Deno.env.get('SUPABASE_DB_URL')||'',
- origin:Deno.env.get('QUESTS_APP_ORIGIN')||'http://127.0.0.1:8080'
+ allowProduction:true,
+ origin:Deno.env.get('QUESTS_APP_ORIGIN')||(production?'https://kaanaydin48.github.io':'http://127.0.0.1:8080')
 });
 pg.types.setTypeParser(1082,(value:string)=>value);
 const pool=new pg.Pool({connectionString:databaseUrl,ssl:hosted?{rejectUnauthorized:true}:false,max:2,connectionTimeoutMillis:5000,statement_timeout:20000});

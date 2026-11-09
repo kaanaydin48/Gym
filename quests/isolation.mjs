@@ -9,3 +9,9 @@ export function assertDevelopmentApi(url) {
   if(!['127.0.0.1','localhost','[::1]'].includes(u.hostname)||!['http:','https:'].includes(u.protocol)||u.username||u.password)throw Error('Geliştirme ortamında canlı API bağlantısı engellendi.');
   return u.origin;
 }
+
+// Production activation was explicitly approved on 9 November 2026.
+export function assertQuestApi(url) {
+ if(url==='https://aryzgrgjwjdxumbddank.supabase.co')return url;
+ return assertDevelopmentApi(url);
+}

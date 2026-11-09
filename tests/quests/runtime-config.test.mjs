@@ -9,3 +9,10 @@ test('runtime permits only local fixture DB or exact hosted test project',()=>{
  assert.equal(runtimeConfig({...hosted,databaseUrl:hosted.databaseUrl+'?sslmode=disable&host=evil.invalid'}).databaseUrl,hosted.databaseUrl);
  assert.throws(()=>runtimeConfig({...local,databaseUrl:'postgres://localhost/postgres'}));
 });
+
+test('approved production uses matching DB and Pages origin only',()=>{
+ const apiUrl='https://aryzgrgjwjdxumbddank.supabase.co',databaseUrl='postgres://postgres:fixture@db.aryzgrgjwjdxumbddank.supabase.co/postgres';
+ assert.equal(runtimeConfig({apiUrl,databaseUrl,origin:'https://kaanaydin48.github.io',allowProduction:true}).hosted,true);
+ assert.throws(()=>runtimeConfig({apiUrl,databaseUrl,origin:'https://evil.invalid',allowProduction:true}));
+ assert.throws(()=>runtimeConfig({apiUrl,databaseUrl:hosted.databaseUrl,allowProduction:true}));
+});

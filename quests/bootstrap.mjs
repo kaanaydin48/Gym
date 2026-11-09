@@ -1,10 +1,10 @@
-import {assertDevelopmentApi} from './isolation.mjs';
+import {assertQuestApi} from './isolation.mjs';
 import {createQuestClient} from './client.mjs';
 import {mountQuestUI} from './ui.mjs';
 import {mountCoachQuests} from './coach.mjs';
 export function installQuestFeature(account) {
-  // Deliberately fail closed until an explicitly approved hosted rollout exists.
-  assertDevelopmentApi(account.client.supabaseUrl);
+  // Only the approved production API or local development API may initialize.
+  assertQuestApi(account.client.supabaseUrl);
   const api=createQuestClient(account),cacheKey=`gym-quests-view-v1:${account.user.id}`;
   let model={quests:[],pending:true},ui,host,profileHost,coachHost,disposeCoach,stopped=false;
   try{const cached=JSON.parse(localStorage.getItem(cacheKey));if(cached)model={...cached,pending:true,error:'Son doğrulanmış kayıt. Bağlantı bekleniyor.'};}catch{}

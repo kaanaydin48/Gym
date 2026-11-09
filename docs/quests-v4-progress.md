@@ -68,3 +68,13 @@ Advisor bilgi açıklaması: https://supabase.com/docs/guides/database/database-
 - Bu ek değişikliklerden sonra yerel 23 birim testi, 20 PostgreSQL senaryosu ve Deno tip kontrolü geçti. Hosted bağlantı kuralındaki son seçenek-temizleme değişimi ayrıca birim testinden geçti.
 - Ek dosyalar: quests/runtime-config.mjs, tests/quests/runtime-config.test.mjs, tests/quests/hosted-smoke.mjs, tests/quests/hosted/integration.ts; Edge giriş noktası güncellendi.
 - Sonraki adım: test ortamında scheduler kurulumu, koç UI entegrasyonu ve tam uygulama/PWA offline doğrulaması. Üretim hâlâ değiştirilmedi.
+
+## 9 Kasım — yayın hazırlığı (açık kullanıcı onayı alındı)
+
+Kullanıcı “Canlıya al” dedi. Üretim aktivasyonu artık yetkili; aşağıdaki hazırlıklar yayın doğrulaması sayılmaz.
+- Üretim ana dalı hâlâ 0100bc6; kaynak değişiklikleri çatışmıyor.
+- Üretim verisi yayın öncesi kontrol: gym_account_state 2 satır digest c2fc75f28906b1acdb4e8433e2b611ad; workout_logs 15 satır digest 003663e2befeb4ae8bae1d1027091c8d.
+- Yeni scheduler migration ve Edge işleyicisi test projesinde kuruldu. Vault içinde oluşturulan anahtar istemciye verilmez; cron pg_net ile her dakika çağırır. İlk çağrı HTTP 200 / processed=2 / failed=[] döndü.
+- Yayın bağlantıları yalnız kesin üretim ref'i ve GitHub Pages origin'i için açıldı; test/üretim DB karışması reddedilir. Feature flag ve cache sürümü yayına hazırlandı.
+- 9 mevcut test paketi + 24 görev birim testi geçti. Son PostgreSQL/CI/tarayıcı sonuçları ve gerçek üretim dağıtım durumu sonraki yayına alma kaydında belirtilmeli.
+- Fiziksel iPhone/PWA, ilk çevrimdışı açılış ve tam koç arayüzü testleri hâlâ tamamlanmış sayılmaz. Çevrimdışı kuyruk ve sunucu RLS testleri bunların yerine geçmez.
