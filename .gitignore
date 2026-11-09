@@ -1,0 +1,5 @@
+node_modules/
+.quest-test-db/
+supabase/.temp/
+test-results/
+dev-build/

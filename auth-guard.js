@@ -15,8 +15,13 @@
   await load('./membership.js?v=role-management-fix-20261031');
   await load('./contour-icons.js?v=approved-40-v1');
   await load('./motion.js?v=approved-40-v1');
+  await load('./workout-metrics.js?v=quests-v4');
   await load('./app.js?v=balanced-flow-v2-20261107');
   await window.gymReady;
+  if(window.GYM_QUESTS_ENABLED===true){
+   try{const {installQuestFeature}=await import('./quests/bootstrap.mjs');installQuestFeature(window.gymAccount);}
+   catch(error){console.error('Görev geliştirme ortamı başlatılamadı:',error.message);}
+  }
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
  }catch(error){
