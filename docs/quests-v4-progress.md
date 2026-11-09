@@ -1,9 +1,9 @@
 # Görev V4 — geliştirme devam kaydı
 
-9 Kasım 2026. **Geliştirme devam ediyor; yayınlanmaya hazır değil.**
+9 Kasım 2026. **Kullanıcının açık onayıyla çekirdek Görev V4 sürümü yayınlandı. Aşağıdaki tarihsel kayıtlar ve kalan kapsam sınırlamaları korunmuştur.**
 Dal: `feature/quests-v4-20261108`. Ana dal tabanı: `0100bc6b62eebb6d3064c20f34336f2d364c90c4`.
 İlk yerel kilometre taşı: `716099f`; ikinci yerel commit: `7fb1c2a`. GitHub geliştirme dalı ilk kaydı: `2cb4c68a911b632fe177df585c033eb252887e72` (aynı dosya ağacı, farklı commit zinciri). En güncel commit için bu dalda `git log -1` kullanın.
-Canlı Supabase'e migration/veri yazımı yapılmadı; ana dala birleştirme veya Pages yayını yapılmadı. Özellik bayrağı kapalı.
+Önceki geliştirme aşamasında canlıya dokunulmadı. 9 Kasım yayın onayından sonra aşağıdaki üretim kurulumu ve PR #18 birleştirmesi yapıldı; özellik bayrağı açık.
 
 ## Tamamlanan geliştirmeler
 
@@ -78,3 +78,22 @@ Kullanıcı “Canlıya al” dedi. Üretim aktivasyonu artık yetkili; aşağı
 - Yayın bağlantıları yalnız kesin üretim ref'i ve GitHub Pages origin'i için açıldı; test/üretim DB karışması reddedilir. Feature flag ve cache sürümü yayına hazırlandı.
 - 9 mevcut test paketi + 24 görev birim testi geçti. Son PostgreSQL/CI/tarayıcı sonuçları ve gerçek üretim dağıtım durumu sonraki yayına alma kaydında belirtilmeli.
 - Fiziksel iPhone/PWA, ilk çevrimdışı açılış ve tam koç arayüzü testleri hâlâ tamamlanmış sayılmaz. Çevrimdışı kuyruk ve sunucu RLS testleri bunların yerine geçmez.
+
+
+## Üretim yayını — 9 Kasım 2026
+
+- Açık kullanıcı komutu: “Canlıya al”. PR #18 birleştirildi: dce587d9d4affbaedddb51eb741bb2f96760c154. Yayın adayı a860d9d900a41590ee645c7020368bfe84591e8f.
+- GitHub Actions 42591489041 (Quest V4) ve 42591488936 (mevcut üye/grafik kontrolleri) başarılı. Chromium ve WebKit mobil kontrolleri CI'da geçti. Bu oturumdaki yerel Chromium denemesi tarayıcı cache'i eksik olduğundan çalışmadı; CI başarısıyla karıştırılmamalı.
+- Üretim Supabase ary... projesine quests_v4_foundation ve quests_v4_scheduler migration'ları apply_migration ile kuruldu. quests-refresh ve quests-scheduler v1 aktif.
+- Cron quests-v4-minute her dakika çalışıyor. İlk üretim çağrısı HTTP 200, processed=0, failed=[]; otomatik cron çalışması succeeded. Üyeler ilk açılışta görev hesabına kaydolur; mevcut antrenmanlara dokunulmaz.
+- Üretim HTTP kontrolleri: anonim ve geçersiz kullanıcı 401; yabancı origin 403; scheduler anahtarsız/yanlış anahtarla 401; Pages CORS 204. Sunucu anahtarı Vault'ta, istemcide yok.
+- Mevcut veri koruması doğrulandı: yayın öncesi/sonrası 2 snapshot ve 15 workout_logs satırı, yukarıdaki digest değerleri birebir aynı. Kullanıcı kaydı silinmedi/değiştirilmedi.
+- Üretim advisor: önceki is_admin/is_coach_of SECURITY DEFINER uyarıları ve leaked-password koruması uyarısı devam ediyor. Yeni private scheduler_config tablosunda RLS/no-policy INFO bilinçli varsayılan reddetme tasarımıdır; anon/authenticated yetkisi yok.
+- Eksik kapsam: fiziksel iPhone/PWA testi, ilk çevrimdışı Auth açılışı, tam koç UI E2E ve zorluk bonusu ayarı tamamlanmadı. Bunlar yayında tamamlanmış özellik olarak raporlanmamalı. Çevrimdışı kuyruk, görev hesaplamaları ve API yetki testleri geçti.
+- Geri dönüş: frontend quests/config.js bayrağını false yapıp yeni cache sürümüyle yayınla; cron görevini devre dışı bırak. Yeni tabloları/ledger'ı silme; antrenman kayıtlarına rollback yazma. Ana dal önceki sürümü 0100bc6. Sunucu veya UI hatası durumunda önce görev özelliği kapatılmalı, mevcut antrenman sistemi korunmalı.
+
+Kaynaklar: https://github.com/kaanaydin48/Gym/pull/18 ; https://github.com/kaanaydin48/Gym/actions/runs/42591489041 ; https://github.com/kaanaydin48/Gym/actions/runs/42591488936
+Advisor açıklamaları: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable ; https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+## Yayın sonrası son doğrulama — 9 Kasım
+GitHub Pages /Gym/index.html yeni quests-v4-20261109 sürümünü, quests/config.js etkin bayrağı ve quests/bootstrap.mjs üretim API kontrolünü HTTP 200 ile sunuyor. Üretim zamanlayıcısının son üç çağrısı (397–399) HTTP 200, failed=[]; bekleyen hesap olmadığından processed=0. Bu kontrol kullanıcı oturumuyla fiziksel cihaz testi değildir. Yayın tamamlandı; yukarıdaki kapsam sınırlamaları devam ediyor.
