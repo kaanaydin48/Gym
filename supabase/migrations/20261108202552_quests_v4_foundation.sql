@@ -1,4 +1,4 @@
--- DEVELOPMENT ONLY: additive foundation; not applied to hosted Supabase.
+-- DEVELOPMENT ONLY: additive foundation; tested locally and on Gym Trader Test. Never applied to production.
 begin;
 create schema if not exists quest_private;
 revoke all on schema quest_private from public,anon;
@@ -279,5 +279,11 @@ do $$ declare f regprocedure; begin
  end loop;
 end $$;
 -- Known overly broad privileges: narrowed only when this migration is explicitly deployed.
-revoke truncate,references,trigger on public.gym_account_state,public.coach_program_assignments from anon,authenticated;
+revoke truncate,references,trigger on public.gym_account_state from anon,authenticated;
+-- Older/newer app environments may omit the legacy coach assignment table.
+do $$ begin
+ if to_regclass('public.coach_program_assignments') is not null then
+  execute 'revoke truncate,references,trigger on public.coach_program_assignments from anon,authenticated';
+ end if;
+end $$;
 commit;

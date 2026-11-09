@@ -2,7 +2,7 @@
 
 9 Kasım 2026. **Geliştirme devam ediyor; yayınlanmaya hazır değil.**
 Dal: `feature/quests-v4-20261108`. Ana dal tabanı: `0100bc6b62eebb6d3064c20f34336f2d364c90c4`.
-İlk yerel kilometre taşı: `716099f`. En güncel commit için bu dalda `git log -1` kullanın.
+İlk yerel kilometre taşı: `716099f`; ikinci yerel commit: `7fb1c2a`. GitHub geliştirme dalı ilk kaydı: `2cb4c68a911b632fe177df585c033eb252887e72` (aynı dosya ağacı, farklı commit zinciri). En güncel commit için bu dalda `git log -1` kullanın.
 Canlı Supabase'e migration/veri yazımı yapılmadı; ana dala birleştirme veya Pages yayını yapılmadı. Özellik bayrağı kapalı.
 
 ## Tamamlanan geliştirmeler
@@ -29,7 +29,7 @@ Canlı Supabase'e migration/veri yazımı yapılmadı; ana dala birleştirme vey
 ## Supabase ortamları
 
 Üretim: `aryzgrgjwjdxumbddank` — değiştirilmedi.
-Test: `sucoijqzhfifwmwrprww` — önceki çalışmada restore edildi; 9 Kasım son kontrol ACTIVE_HEALTHY. Public şeması salt okunur incelendi: profiles, programs, assignments, workout_logs, gym_account_state, coach_notes var; list_tables tümü için 0 satır raporladı. coach_program_assignments yok; migration sonundaki izin daraltma bu tabloyu varsayıyor. Henüz test projesine de migration veya test verisi yazılmadı. Gerçek kurulumdan önce mevcut fonksiyon/politika/trigger ve auth şeması önkoşulları incelenmeli.
+Test: `sucoijqzhfifwmwrprww` — önceki çalışmada restore edildi; 9 Kasım son kontrol ACTIVE_HEALTHY. Public şeması salt okunur incelendi: profiles, programs, assignments, workout_logs, gym_account_state, coach_notes var; list_tables tümü için 0 satır raporladı. coach_program_assignments yok; migration izin daraltması tablo varsa çalışacak biçimde düzeltildi. Mevcut save_gym_state/gym_private.save_checked_state ve RLS politikaları incelendi. Görev DDL dosyası yalnız bu test projesine execute_sql ile transaction içinde uygulandı (migration history kaydı oluşturulmadı). 11 yeni tablonun tamamında RLS açık; authenticated doğrudan INSERT/UPDATE/DELETE yetkileri yok. Advisor öncesi/sonrası aynı iki INFO bulgusu (mevcut private arşiv tablolarında RLS var, politika yok); yeni görev bulgusu yok. Kullanıcı/test antrenmanı verisi eklenmedi; gerçek Auth/Edge testi hâlâ bekliyor.
 
 ## Yeni veri yapıları
 
@@ -44,7 +44,7 @@ Yeni: workout-metrics.js; package.json/lock; .gitignore; quests/ tüm görev mod
 
 ## Açık işler ve sonraki adım
 
-1. Test Supabase önkoşullarını incele; test şemasını uyumlandır; gerçek Auth/PostgREST/Edge entegrasyonunu yalnız test ortamında doğrula. Mevcut Edge ve build yalnız loopback kabul eder; hosted test için yalnız kesin test ref'ini kabul eden ayrı yapılandırma gerekir.
+1. Test şeması artık kurulu. Gerçek Auth/PostgREST/Edge entegrasyonunu yalnız test ortamında doğrula; test kullanıcıları ve sunucuya özel bağlantı yapılandırması gerekiyor. Mevcut Edge ve build yalnız loopback kabul eder; hosted test için yalnız kesin test ref'ini kabul eden ayrı yapılandırma gerekir.
 2. Sunucu periyodik işleyicisini test ortamına bağla; yarış koşullarını gerçek API ve iki oturumla doğrula. Yerel scheduler var, hosted cron yok.
 3. Koç ekranı, profil unvanı/kutlama ve doğrulama geçmişinin tarayıcı uçtan uca testini genişlet.
 4. Mevcut auth-guard'ın ilk açılışta ağ gereksinimi ve service worker/PWA çevrimdışı açılışı çözülmüş değil. Kayıt kuyruğu testi tam çevrimdışı uygulama testi sayılmaz.
@@ -53,3 +53,5 @@ Yeni: workout-metrics.js; package.json/lock; .gitignore; quests/ tüm görev mod
 7. Canlı öncesi migration/advisor incelemesi, yedek/geri dönüş planı, test raporu ve açık yayın onayı. Mevcut kullanıcılara geçmişe dönük XP toplu dağıtımı yapılmamalı.
 
 Devam ederken önce bu kayıt, git status ve son commit kontrol edilmeli. Önceki analiz/başarılı testleri değişiklik veya yeni risk yoksa tekrar etmeyin.
+
+Advisor bilgi açıklaması: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
