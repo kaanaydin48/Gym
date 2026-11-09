@@ -15,11 +15,11 @@ Canlı Supabase'e migration/veri yazımı yapılmadı; ana dala birleştirme vey
 - Kompakt beyaz kart, günlük/haftalık sekme, alt detay ve doğrulama geçmişi, rozetler/karşılaştırmalar; mevcut grafik tasarımı korunur.
 - Kalıcı hesap bazlı çevrimdışı eylem kuyruğu, yeniden deneme tekilleştirmesi; süresi dolmuş başvuru kanıtı korunur ve sonraki başvuruları engellemez. İstemci XP oluşturmaz.
 - Ortak workout-metrics.js: Hacim Akışı, özet ve görevler aynı geçerli setleri kullanır. Dips için sonradan girilen kg artık sıfırlanmaz; süre hareketlerine hacim yazılmaz.
-- Loopback dışını reddeden Edge giriş noktası, yerel zamanlanmış worker ve üretime bağlanmayan geliştirme build aracı. PR/manual CI kontrol dosyası hazır; uzakta çalıştırılmadı.
+- Yalnız loopback veya kesin test ref'ini kabul eden Edge giriş noktası, yerel zamanlanmış worker ve üretime bağlanmayan geliştirme build aracı. PR/manual CI kontrol dosyası hazır; uzakta çalıştırılmadı.
 
 ## Doğrulama
 
-- Mevcut 9/9 test paketi, yeni 22/22 birim testi geçti.
+- Mevcut 9/9 test paketi, yeni 23/23 birim testi geçti.
 - Yerel gerçek PostgreSQL 17.11: 20/20 senaryo geçti. RLS/koç sınırları, paralel bağlantılar, tekrar işlem, düzeltme/geri kazanma, kapalı dönemler, iki seri, başarısız işlem rollback, kaydedilmiş antrenmanın korunması, başvuru/onay geçmişi ve scheduler kapsanır.
 - Deno HTTP giriş noktası gerçek yerel PostgreSQL ile çalıştırıldı. Auth için sentetik HTTP sunucusu kullanıldı; gerçek Supabase Auth testi değildir. Deno tip kontrolü geçti.
 - Chromium 320/375/390/430 px: 3/4 sekme, detay paneli, kanıt formu, grafik DOM korunması, yatay taşma ve önizleme alt menüsü geçti. Gerçek uygulamanın alt menüsü/PWA testi değildir.
@@ -29,7 +29,7 @@ Canlı Supabase'e migration/veri yazımı yapılmadı; ana dala birleştirme vey
 ## Supabase ortamları
 
 Üretim: `aryzgrgjwjdxumbddank` — değiştirilmedi.
-Test: `sucoijqzhfifwmwrprww` — önceki çalışmada restore edildi; 9 Kasım son kontrol ACTIVE_HEALTHY. Public şeması salt okunur incelendi: profiles, programs, assignments, workout_logs, gym_account_state, coach_notes var; list_tables tümü için 0 satır raporladı. coach_program_assignments yok; migration izin daraltması tablo varsa çalışacak biçimde düzeltildi. Mevcut save_gym_state/gym_private.save_checked_state ve RLS politikaları incelendi. Görev DDL dosyası yalnız bu test projesine execute_sql ile transaction içinde uygulandı (migration history kaydı oluşturulmadı). 11 yeni tablonun tamamında RLS açık; authenticated doğrudan INSERT/UPDATE/DELETE yetkileri yok. Advisor öncesi/sonrası aynı iki INFO bulgusu (mevcut private arşiv tablolarında RLS var, politika yok); yeni görev bulgusu yok. Kullanıcı/test antrenmanı verisi eklenmedi; gerçek Auth/Edge testi hâlâ bekliyor.
+Test: `sucoijqzhfifwmwrprww` — önceki çalışmada restore edildi; 9 Kasım son kontrol ACTIVE_HEALTHY. Public şeması salt okunur incelendi: profiles, programs, assignments, workout_logs, gym_account_state, coach_notes var; list_tables tümü için 0 satır raporladı. coach_program_assignments yok; migration izin daraltması tablo varsa çalışacak biçimde düzeltildi. Mevcut save_gym_state/gym_private.save_checked_state ve RLS politikaları incelendi. Görev DDL dosyası yalnız bu test projesine execute_sql ile transaction içinde uygulandı (migration history kaydı oluşturulmadı). 11 yeni tablonun tamamında RLS açık; authenticated doğrudan INSERT/UPDATE/DELETE yetkileri yok. Advisor öncesi/sonrası aynı iki INFO bulgusu (mevcut private arşiv tablolarında RLS var, politika yok); yeni görev bulgusu yok. Sonraki entegrasyon koşusunda iki sentetik Auth hesabı ve bir günlük değerlendirme kaydı oluşturuldu; gerçek kullanıcı/antrenman verisi kullanılmadı. Aşağıdaki 9 Kasım entegrasyon ekini okuyun.
 
 ## Yeni veri yapıları
 
@@ -44,7 +44,7 @@ Yeni: workout-metrics.js; package.json/lock; .gitignore; quests/ tüm görev mod
 
 ## Açık işler ve sonraki adım
 
-1. Test şeması artık kurulu. Gerçek Auth/PostgREST/Edge entegrasyonunu yalnız test ortamında doğrula; test kullanıcıları ve sunucuya özel bağlantı yapılandırması gerekiyor. Mevcut Edge ve build yalnız loopback kabul eder; hosted test için yalnız kesin test ref'ini kabul eden ayrı yapılandırma gerekir.
+1. Test şeması ve gerçek Auth/PostgREST/Edge entegrasyonu doğrulandı. Tam uygulama geliştirme build'i hâlâ loopback ister; test ref'iyle tarayıcı entegrasyonuna genişletilmesi ve koç akışının gerçek oturumla doğrulanması kaldı.
 2. Sunucu periyodik işleyicisini test ortamına bağla; yarış koşullarını gerçek API ve iki oturumla doğrula. Yerel scheduler var, hosted cron yok.
 3. Koç ekranı, profil unvanı/kutlama ve doğrulama geçmişinin tarayıcı uçtan uca testini genişlet.
 4. Mevcut auth-guard'ın ilk açılışta ağ gereksinimi ve service worker/PWA çevrimdışı açılışı çözülmüş değil. Kayıt kuyruğu testi tam çevrimdışı uygulama testi sayılmaz.
@@ -55,3 +55,16 @@ Yeni: workout-metrics.js; package.json/lock; .gitignore; quests/ tüm görev mod
 Devam ederken önce bu kayıt, git status ve son commit kontrol edilmeli. Önceki analiz/başarılı testleri değişiklik veya yeni risk yoksa tekrar etmeyin.
 
 Advisor bilgi açıklaması: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+
+## 9 Kasım — gerçek hosted entegrasyon tamamlandı
+
+- quests/runtime-config.mjs yalnız yerel gym_quests_test veya sucoijqzhfifwmwrprww API + aynı projenin DB hostunu kabul eder. Üretim/başka proje engellenir. Sağlayıcının DB URL seçenekleri temizlenir; hosted bağlantıda TLS sertifika doğrulaması zorunludur.
+- quests-refresh test projesine kuruldu (v3). Fonksiyon Auth /user üzerinden token doğrular; verify_jwt=false yalnız bu uygulama içi doğrulama nedeniyle kullanılır. Anonim istek işlem yapamaz. Tarayıcı CORS yalnız http://127.0.0.1:8080 kabul eder.
+- İlk iki boot denemesi sağlayıcının URL seçenekleri nedeniyle başarısızdı; günlüklerden teşhis edildi ve seçeneklerin sürücü ayarlarını değiştirmesi engellenerek düzeltildi.
+- tests/quests/hosted-smoke.mjs: gerçek endpoint üzerinde 5/5 kontrol geçti (401 anonim, 401 sahte token, 403 yabancı origin, 405 yöntem, 204 preflight).
+- tests/quests/hosted/integration.ts: kısa süreli rastgele anahtar korumalı geçici test fonksiyonu 15/15 assertion geçti. Auth admin API ile email_confirm=true sentetik hesap açıldı; e-posta gönderilmedi. İki gerçek parola oturumu, enrollment, Edge 200, sahte XP/kimlik reddi, PostgREST diğer üye görünmezliği, XP INSERT reddi, request_id tekilleştirme, iki eşzamanlı Edge çağrısı ve ledger toplamı 30 doğrulandı.
+- Geçici quests-integration-test v2 artık yalnız 410 dönen emekli fonksiyondur; admin işlemi/anahtar kalmadı, gateway JWT zorunludur.
+- Sentetik hesaplar ed8fd003-e12f-422f-b136-9c5c0b0e5dc1 ve 3b842bad-c61f-41fd-af9f-8b6986e4fac4 test ortamında denetim için bırakıldı. İkisi de banlandı; auth.sessions sayıları 0 olarak doğrulandı. Test XP/geçmişi silinmedi.
+- Bu ek değişikliklerden sonra yerel 23 birim testi, 20 PostgreSQL senaryosu ve Deno tip kontrolü geçti. Hosted bağlantı kuralındaki son seçenek-temizleme değişimi ayrıca birim testinden geçti.
+- Ek dosyalar: quests/runtime-config.mjs, tests/quests/runtime-config.test.mjs, tests/quests/hosted-smoke.mjs, tests/quests/hosted/integration.ts; Edge giriş noktası güncellendi.
+- Sonraki adım: test ortamında scheduler kurulumu, koç UI entegrasyonu ve tam uygulama/PWA offline doğrulaması. Üretim hâlâ değiştirilmedi.
