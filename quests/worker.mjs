@@ -1,5 +1,6 @@
 // Trusted worker only: never import this module into a browser.
 // Database client must be a server credential. No user-supplied result/XP is accepted.
+import {processV5Locked} from './v5-worker.mjs';
 import {evaluate,ledgerDiff,dayKey,weekKey,addDays,RULE_VERSION} from './engine.mjs';
 
 export function freezeWeek(days,start,today) {
@@ -29,6 +30,10 @@ export async function processAccount(client,userId) {
     const account=(await client.query('select *, (now() at time zone \'Europe/Istanbul\')::date::text as today from public.quest_accounts where user_id=$1 for update',[userId])).rows[0];
     if(!account)throw Error('Quest account required');
     const today=account.today;
+    if(account.v5_start && (typeof account.v5_start==='string'?account.v5_start:dayKey(account.v5_start))<=today){
+      if(account.processed_generation===account.generation&&account.processed_day===today&&account.result?.ruleVersion===5){await client.query('commit');return account.result;}
+      const result=await processV5Locked(client,account);await client.query('commit');return result;
+    }
     if(account.processed_generation===account.generation&&account.processed_day===today&&account.result?.ruleVersion===RULE_VERSION){
       await client.query('commit');return account.result;
     }
@@ -78,3 +83,4 @@ export async function processAccount(client,userId) {
     return result;
   }catch(error){await client.query('rollback');throw error;}
 }
+
