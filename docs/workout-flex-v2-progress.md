@@ -41,3 +41,10 @@
 4. Ardından kompakt üç nokta menüsü, süper set ve program güncelleme akışını ekle.
 5. npm test, browser CI ve Supabase test projesi doğrulaması yap.
 6. Değişiklikleri, test kanıtlarını, eksik fiziksel iPhone testlerini raporla. Yayından önce canlı Supabase ve Pages dağıtım sırasını doğrula.
+
+## 13 Kasım 2026 — devam güncellemesi
+- Yeni `workout-flex-v2.js` saf mantık modülü oluşturuldu. İşlevler: ilk setten boş alanları doldurma, manuel/otomatik köken ayrımı, tamamlanmış setleri koruyarak hareket değiştirme ve yeni set mirası.
+- Yeni `tests/workout-flex-v2/helpers.test.cjs`: 5 regresyon senaryosu.
+- **ÖNEMLİ:** Bu modül henüz `app.js` veya `index.html` tarafından kullanılmıyor. V2 uygulama ekranına entegre edilmedi; canlıya alınmadı.
+- Testler bu oturumda çalıştırılamadı: çalışma konteynerinden GitHub erişimi DNS hatasıyla engellendi, connector yalnız dosya erişimi sağladı.
+- Sonraki işlem: `app.js` işleyicilerine modülü entegre et; `index.html` script yüklemesini ve `package.json` test komutlarını güncelle; mevcut testleri çalıştır; Supabase uyumluluğunu denetle; ardından onaylanmış canlı dağıtımı gerçekleştir.
