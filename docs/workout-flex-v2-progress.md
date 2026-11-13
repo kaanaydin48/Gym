@@ -60,3 +60,10 @@
 - **Yayın engeli:** Bu ilk entegrasyon eksiksiz değil. RIR geçmiş karşılaştırmalarında hâlâ görünebilir; program şablonuna uygulama seçimi, çoklu süper set tur akışı, otomatik doldurma ayarı ve cihaz testleri tamamlanmadı. İlk set input'unu render() ile yeniden oluşturma davranışı da UX testine muhtaç. V5 PR #19 ile uyum doğrulanmadı.
 - **Üretim:** main, GitHub Pages, Supabase değiştirilmedi. Kullanıcının canlı onayı geçerli ancak doğrulanmamış değişiklikler merge edilmedi.
 - **Sonraki iş:** Kod incelemesi/syntax+test CI sonucunu al, tüm eksik işlevleri tamamla, PWA/çevrimdışı veri ve XP testlerini çalıştır, V5 uyumluluğunu denetle, ancak sonra PR merge/deploy.
+
+## 13 Kasım 2026 — sonraki oturum
+- app.js: ilk set değişikliğinde render() ile giriş odağını bozan yaklaşım kaldırıldı; yalnız diğer setlerin otomatik değerlerini DOM üzerinde yenileyen refreshFlexAutoInputs() eklendi.
+- app.js: hareket kartlarına `workout-exercise-card`, set satırlarına `set-entry`, girişlere `data-field` işaretleri eklendi; başlangıç programı kartındaki kalan RIR etiketi temizlendi.
+- style.css: RIR kaldırıldıktan sonra 4 kolonlu set tablosu ve küçük ⋯ menü düğmesi biçimlendirildi.
+- GitHub Actions commit sorgusu yine `workflow_runs=[]` döndürdü. Doğrudan git erişimi DNS nedeniyle yok; otomatik testleri başarıyla çalıştırma kanıtı bulunmuyor.
+- **Yayın engeli devam ediyor:** RIR diğer raporlarda görünebilir; çoklu süper set turu, değişiklik kapsamı seçimi, V5 uyumu, tarayıcı/iPhone testleri eksik. PR #20 taslak, main/Supabase/Pages değişmedi.
