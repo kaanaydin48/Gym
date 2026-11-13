@@ -46,7 +46,7 @@
   const pending=(exercise.logs||[]).filter(s=>!s.done);
   const replacement={...newExercise,sets:pending.length||newExercise.sets||1,reps:exercise.reps,
    logs:pending.map(s=>({...s,kg:'',_flexOrigin:{...s._flexOrigin,kg:'empty'}}))};
-  const historical=done.length?{...exercise,sets:done.length,logs:done}:null;
+  const historical=done.length?{...exercise,sets:done.length,logs:done,_flexHistorical:true}:null;
   return {historical,replacement};
  }
  return {copyFirst,edit,append,change};
