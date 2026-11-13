@@ -48,3 +48,15 @@
 - **ÖNEMLİ:** Bu modül henüz `app.js` veya `index.html` tarafından kullanılmıyor. V2 uygulama ekranına entegre edilmedi; canlıya alınmadı.
 - Testler bu oturumda çalıştırılamadı: çalışma konteynerinden GitHub erişimi DNS hatasıyla engellendi, connector yalnız dosya erişimi sağladı.
 - Sonraki işlem: `app.js` işleyicilerine modülü entegre et; `index.html` script yüklemesini ve `package.json` test komutlarını güncelle; mevcut testleri çalıştır; Supabase uyumluluğunu denetle; ardından onaylanmış canlı dağıtımı gerçekleştir.
+
+## 13 Kasım 2026 — V2 entegrasyon denemesi
+- app.js: set düzenleme, yeni set, hızlı hareket değişimi/ekleme/kaldırma, komşu iki hareketi süper set olarak bağlama için ilk entegrasyon kodu eklendi.
+- auth-guard.js: workout-flex-v2.js uygulamadan önce yükleniyor.
+- package.json: V2 regresyonları npm test zincirine eklendi.
+- .github/workflows/workout-flex-v2.yml: sözdizimi, V2 regresyonları ve npm test CI tanımı eklendi.
+- PR #20 taslak: https://github.com/kaanaydin48/Gym/pull/20
+- GitHub Actions son commit için workflow_runs=[] döndürdü; **test başarısı kanıtlanmadı**.
+- Ortam git clone denemesi DNS hatasıyla başarısız: Could not resolve host github.com.
+- **Yayın engeli:** Bu ilk entegrasyon eksiksiz değil. RIR geçmiş karşılaştırmalarında hâlâ görünebilir; program şablonuna uygulama seçimi, çoklu süper set tur akışı, otomatik doldurma ayarı ve cihaz testleri tamamlanmadı. İlk set input'unu render() ile yeniden oluşturma davranışı da UX testine muhtaç. V5 PR #19 ile uyum doğrulanmadı.
+- **Üretim:** main, GitHub Pages, Supabase değiştirilmedi. Kullanıcının canlı onayı geçerli ancak doğrulanmamış değişiklikler merge edilmedi.
+- **Sonraki iş:** Kod incelemesi/syntax+test CI sonucunu al, tüm eksik işlevleri tamamla, PWA/çevrimdışı veri ve XP testlerini çalıştır, V5 uyumluluğunu denetle, ancak sonra PR merge/deploy.
