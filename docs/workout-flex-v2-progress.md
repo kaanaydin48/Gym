@@ -67,3 +67,11 @@
 - style.css: RIR kaldırıldıktan sonra 4 kolonlu set tablosu ve küçük ⋯ menü düğmesi biçimlendirildi.
 - GitHub Actions commit sorgusu yine `workflow_runs=[]` döndürdü. Doğrudan git erişimi DNS nedeniyle yok; otomatik testleri başarıyla çalıştırma kanıtı bulunmuyor.
 - **Yayın engeli devam ediyor:** RIR diğer raporlarda görünebilir; çoklu süper set turu, değişiklik kapsamı seçimi, V5 uyumu, tarayıcı/iPhone testleri eksik. PR #20 taslak, main/Supabase/Pages değişmedi.
+
+## 13 Kasım 2026 — program kapsamı
+- app.js: antrenman başarıyla kaydedildiğinde, yalnız yetkili kullanıcı ve kendi programı için "Yalnızca bugün / Programı da güncelle" seçimi eklendi.
+- Program güncellemesinde önceki sürüm history içine alınır; oturumun eski kayıtları değiştirilmez.
+- workout-flex-v2.js: hareket değiştirirken geçmiş tamamlanmış setlerin ayrılan bölümü `_flexHistorical:true` ile işaretlenir; şablona kopyalanmaz.
+- CI commit sorgusu yine boş; kodun sözdizimi, otomatik testler, iPhone/PWA, V5 uyumu **henüz doğrulanamadı**.
+- Bu aşamada canlıya alma güvenli değil. PR #20 taslak; main ve Supabase değiştirilmedi.
+- Sonraki kritik işler: süper set tur akışı; V5 görev doğrulaması; RIR'in tüm görünür raporlardan temizlenmesi; CI ve cihaz testleri; güvenli üretim yayını.
