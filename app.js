@@ -509,6 +509,11 @@ async function finishWorkout(){
  stopRest();
  const saved=await saveAll({silentSuccess:true});
  render();
+ if(saved&&d.flexChanged&&!d.flexTemplatePrompted){
+  d.flexTemplatePrompted=true;
+  save();
+  if(gymAccount.role!=='member'&&state.programs.some(p=>p.id===d.programId))showWorkoutTemplateChoice();
+ }
  return saved;
 }
 async function confirmFinishWorkout(){return finishWorkout();}
@@ -880,4 +885,27 @@ function toggleWorkoutSuperset(i){
  if(e.superset&&e.superset===next.superset){e.superset='';next.superset='';}
  else{const group='SS-'+uid();e.superset=group;next.superset=group;}
  d.flexChanged=true;document.getElementById('modal').close();save();render();
+}
+
+
+function showWorkoutTemplateChoice(){
+ show('<h2>Program değişikliği</h2><p>Bu antrenmandaki hareket değişiklikleri programına da uygulansın mı?</p><div class="actions"><button class="secondary" onclick="closeWorkoutTemplateChoice()">Yalnızca bugün</button><button onclick="applyWorkoutChangesToTemplate()">Programı da güncelle</button></div>');
+}
+function closeWorkoutTemplateChoice(){document.getElementById('modal').close();}
+function applyWorkoutChangesToTemplate(){
+ const d=workoutFlexDay();if(!d?.finished||gymAccount.role==='member')return;
+ const index=state.programs.findIndex(p=>p.id===d.programId);if(index<0)return;
+ const original=state.programs[index];
+ const next=clone(original);
+ next.history=Array.isArray(next.history)?next.history:[];
+ next.history.push({version:original.version,name:original.name,exercises:clone(original.exercises),saved:new Date().toISOString()});
+ next.version=(+original.version||1)+1;
+ next.exercises=d.exercises.filter(e=>e.logs?.some(s=>!s.done)||!d.exercises.some(x=>x!==e&&x.name===e.name)).map(e=>{
+  const {logs,...spec}=clone(e);
+  return {...spec,sets:Math.max(1,logs?.length||+e.sets||1)};
+ });
+ if(!next.exercises.length){toast('Boş program kaydedilemez.');return;}
+ state.programs[index]=next;
+ d.flexTemplateApplied=true;
+ save();document.getElementById('modal').close();render();toast('Programın yeni sürümü kaydedildi.');
 }
