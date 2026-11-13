@@ -75,3 +75,10 @@
 - CI commit sorgusu yine boş; kodun sözdizimi, otomatik testler, iPhone/PWA, V5 uyumu **henüz doğrulanamadı**.
 - Bu aşamada canlıya alma güvenli değil. PR #20 taslak; main ve Supabase değiştirilmedi.
 - Sonraki kritik işler: süper set tur akışı; V5 görev doğrulaması; RIR'in tüm görünür raporlardan temizlenmesi; CI ve cihaz testleri; güvenli üretim yayını.
+
+## Son devam — RIR ve süper set
+- app.js: görünür RIR ibareleri başlangıç programı, önceki performans karşılaştırmaları ve grafik ayrıntılarından çıkarıldı. Tarihsel RIR alanları korunuyor.
+- app.js: bağlı süper setlerde mevcut tamamlanmış setlerden türetilen tur göstergesi eklendi; ekstra XP üretilmiyor.
+- GitHub PR #20 taslak. Otomatik testlerin çalıştığına dair kanıt yok; git erişimi DNS nedeniyle mümkün değil.
+- Kritik eksikler: süper set tur geçişinin dinlenme sayacıyla uçtan uca doğrulanması, V5 XP çakışma testleri, iPhone Safari/PWA gerçek cihaz testi, testlerin başarıyla çalıştırılması.
+- Canlıya alındı iddiası yapılamaz; main/Pages/Supabase değiştirilmedi.
