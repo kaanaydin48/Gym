@@ -1,0 +1,25 @@
+name: Workout Flex V2 CI
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'auth-guard.js'
+      - 'workout-flex-v2.js'
+      - 'tests/workout-flex-v2/**'
+      - 'package.json'
+      - '.github/workflows/workout-flex-v2.yml'
+  workflow_dispatch:
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check app.js && node --check auth-guard.js && node --check workout-flex-v2.js
+      - name: V2 regressions
+        run: node --test tests/workout-flex-v2/*.test.cjs
+      - name: Full unit suite
+        run: npm test
