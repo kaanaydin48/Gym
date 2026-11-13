@@ -1,4 +1,4 @@
-name: Quest V4 development checks
+name: Quest V4 and V5 development checks
 on:
   pull_request:
   workflow_dispatch:
@@ -16,6 +16,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run test:quests:db
+      - run: node tests/quests/database-v5.mjs
       - run: npx deno check supabase/functions/quests-refresh/index.ts
   mobile-preview:
     runs-on: ubuntu-24.04
@@ -28,9 +29,12 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
       - run: node tests/quests/browser.mjs
+      - run: node tests/quests/browser-v5.mjs
       - run: QUEST_BROWSER=webkit node tests/quests/browser.mjs
+      - run: QUEST_BROWSER=webkit node tests/quests/browser-v5.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: quests-mobile-preview
           path: test-results/quests-*.png
+

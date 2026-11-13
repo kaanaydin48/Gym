@@ -22,7 +22,7 @@ export function installQuestFeature(account) {
         select.onchange=async()=>{try{const {error}=await api.rpc('quest_select_title',{title:select.value});if(error)throw error;model.activeTitle=select.value;info.textContent=`Seviye ${model.level?.level||1} · ${select.value}`;}catch(error){info.textContent=error.message;}};
         profileHost.append(heading,info,select);
       }
-      if(['coach','admin'].includes(account.role)&&document.querySelector('#app h1')?.textContent==='Hesabım'&&!coachHost?.isConnected){
+      if(model.ruleVersion!==5&&['coach','admin'].includes(account.role)&&document.querySelector('#app h1')?.textContent==='Hesabım'&&!coachHost?.isConnected){
         disposeCoach?.();coachHost=document.createElement('div');document.getElementById('app').append(coachHost);disposeCoach=mountCoachQuests(coachHost,account);
       }
       return;
@@ -39,7 +39,7 @@ export function installQuestFeature(account) {
   }
   async function refresh(){
     if(stopped)return;
-    try{await api.queue.flush();const next=await api.read();if(stopped)return;model=next;try{localStorage.setItem(cacheKey,JSON.stringify(model));}catch{};mount();ui?.update(model);
+    try{const next=await api.read();if(next.ruleVersion!==5)await api.queue.flush();else{disposeCoach?.();coachHost?.remove();coachHost=null;}if(stopped)return;model=next;try{localStorage.setItem(cacheKey,JSON.stringify(model));}catch{};mount();ui?.update(model);
       if(ui&&host?.isConnected&&!model.pending&&!document.getElementById('questDetail')?.open){
         const rewards=[...(model.badges||[]).map(b=>[`badge:${b.id}`,b.name]),...(model.level?.level>1?[[`level:${model.level.level}`,`Seviye ${model.level.level}`]]:[])];
         for(const [key,title] of rewards)if(await ui.celebrate(key,title))break;
@@ -55,3 +55,4 @@ export function installQuestFeature(account) {
   const {data:subscription}=account.client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||session?.user&&session.user.id!==account.user.id)stop();});
   return ()=>{stop();subscription?.subscription?.unsubscribe();};
 }
+
