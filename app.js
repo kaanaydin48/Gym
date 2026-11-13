@@ -900,7 +900,7 @@ function applyWorkoutChangesToTemplate(){
  next.history=Array.isArray(next.history)?next.history:[];
  next.history.push({version:original.version,name:original.name,exercises:clone(original.exercises),saved:new Date().toISOString()});
  next.version=(+original.version||1)+1;
- next.exercises=d.exercises.filter(e=>e.logs?.some(s=>!s.done)||!d.exercises.some(x=>x!==e&&x.name===e.name)).map(e=>{
+ next.exercises=d.exercises.filter(e=>!e._flexHistorical).map(e=>{
   const {logs,...spec}=clone(e);
   return {...spec,sets:Math.max(1,logs?.length||+e.sets||1)};
  });
