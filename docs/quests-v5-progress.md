@@ -1,7 +1,7 @@
 # V5 çalışma ve devam kaydı
 
 10 Kasım 2026. Dal: `codex/quests-v5`. Taban: `dce587d9d4affbaedddb51eb741bb2f96760c154`.
-Durum: Geliştirme ve yerel doğrulama tamamlandı; üretime yayınlanmadı. Canlı Supabase yalnız salt okunur incelendi. Test Supabase'e de değişiklik yapılmadı.
+Durum: Geliştirme ve yerel doğrulama tamamlandı; üretime yayınlanmadı. Canlı Supabase yalnız salt okunur incelendi. 10 Kasım aşamasında test Supabase'e değişiklik yapılmamıştı; 13 Kasım test dağıtımı aşağıda kaydedilmiştir.
 
 ## Tamamlananlar
 
@@ -53,3 +53,24 @@ Sonraki oturumda:
 `npm ci`; `npm test`; `npm run test:quests:db`; `node tests/quests/database-v5.mjs`; `npx deno check supabase/functions/quests-refresh/index.ts`; `node tests/quests/browser-v5.mjs`; `QUEST_BROWSER=webkit node tests/quests/browser-v5.mjs`.
 
 Yerel testler yalnız sentetik veriler kullanır; üretim bağlantısı açmaz.
+
+
+## 13 Kasım 2026 — kaldığı yerden devam / gerçek Supabase doğrulaması
+
+- PR #19 ve dal başı `b2f580a44e71c4e1ec9b380fceebf7f0a4b17c6b` kontrol edildi. GitHub Actions 42813578248 (V4/V5 kurallar/veritabanı/mobil) ve 42813578232 (üye dizini) tamamen başarılı. WebKit V4 ve V5 testleri de dört genişlikte başarılı; önceki yerel WebKit eksikliği CI'da giderilmiş durumda. Bunlar fiziksel iPhone/PWA testi değildir.
+- V5 migration yalnız Gym Trader Test (`sucoijqzhfifwmwrprww`) üzerinde transaction ile uygulandı. Eski test hesaplarının aktivasyonu 16 Kasım Türkiye pazartesisi. Üretime SQL/Edge/Pages yazımı yapılmadı.
+- Test `quests-refresh` v4, `quests-scheduler` v2 V5 modülleriyle dağıtıldı. Scheduler'ın eski motorla V5 ödüllerini yeniden hesaplamaması için iki işleyici birlikte güncellendi.
+- Yeni `tests/quests/hosted/integration-v5.ts`: geçici rastgele anahtar ve 10 dakika süre sınırı ile gerçek Auth/PostgREST/Edge testi. 26/26 kontrol geçti. Sentetik atanmış programdan 16 set kaydı 120 yeni XP üretti; eski 300 XP ile toplam 420. Eşzamanlı iki çağrı ödülü çoğaltmadı. Set düzeltmesi yalnız V5 120 XP'yi telafi etti, eski tek 300 XP satırı değişmedi. Altı haftalık görev, başka hesap görünmezliği, hedef RLS ve doğrudan XP/manuel eylem reddi doğrulandı.
+- İlk iki test çalıştırması sentetik fixture'ın eski test projesinin zorunlu program/atama ve hareket metadata kurallarına uymaması nedeniyle durdu. Fixture düzeltildi; uygulamanın izinleri veya veri doğrulaması gevşetilmedi.
+- Başarılı fixture hesapları: `db914b99-29e1-4e21-a9f4-f0b2d92f4e8c`, `ebfc74d5-960c-4508-b653-04ff1261d884`. Ön denemeler dahil 6 sentetik hesabın tamamı banlandı; auth.sessions sayısı 0. Test geçmişi denetim amacıyla korundu, e-posta gönderilmedi.
+- Geçici `quests-v5-integration-test` v4 artık yalnız HTTP 410 döner, gateway JWT zorunlu; test yetkileri/anahtarı dağıtılmış koddan kaldırıldı. Depodaki harness yalnız placeholder içerir.
+- Scheduler test hesabının generation artırımı sonrası V5 sonucu işlendi; XP 300 kaldı, processed_generation eşleşti. pg_net istek kimliği 6231.
+- Test ortamı güvenlik advisor öncesi/sonrası aynı: üç mevcut özel şema RLS/no-policy INFO ve mevcut leaked-password-protection WARN. Yeni V5 güvenlik bulgusu oluşmadı. Parola ayarı bu görev kapsamında değiştirilmedi.
+  Referanslar: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy ve https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+- Harness Deno tip kontrolü geçti. Uygulama kodu bu devam oturumunda değiştirilmedi; daha önce geçen birim/DB testleri gereksiz yere yeniden koşturulmadı.
+
+### Güncel açık işler
+
+1. Fiziksel iPhone Safari/PWA ve tam uygulama çevrimdışı/ekran kilidi senaryoları hâlâ doğrulanmadı. CI önizleme testleri gerçek cihazın yerini tutmaz.
+2. Üretim yayını canlı Supabase müdahalesi kısıtı nedeniyle yapılmadı. Güvenli otomatik XP için migration + refresh + scheduler + istemci birlikte yayınlanmalı; sadece Pages yayını yapılmamalı.
+3. Devamda son commit/CI durumunu kontrol et. Hosted test tamamlandı; yeni değişiklik yoksa 26 testi yeniden oluşturma. Test projesinde migration artık mevcut; aynı DDL'yi tekrar uygulama.
