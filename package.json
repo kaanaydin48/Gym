@@ -2,7 +2,7 @@
   "name": "gym-trader-pro",
   "private": true,
   "scripts": {
-    "test": "node tests/run-unit.cjs && node --test tests/quests/*.test.mjs",
+    "test": "node tests/run-unit.cjs && node --test tests/quests/*.test.mjs && node --test tests/workout-flex-v2/*.test.cjs",
     "test:quests:db": "node tests/quests/database.mjs"
   },
   "devDependencies": {

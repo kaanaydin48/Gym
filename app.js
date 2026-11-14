@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), clone=o=>JSON.parse(JSON.stringify(o)), uid=()=>crypto.randomUUID(), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const today=dateKey(new Date()), KEY='gym-tracker-pro-v1:'+window.gymAccount.user.id;
-const exercise=(name,muscle,equipment,type='external',factor=1)=>({id:uid(),name,muscle,equipment,type,factor,sets:4,reps:'8–12',rir:2,rest:90,superset:''});
+const exercise=(name,muscle,equipment,type='external',factor=1)=>({id:uid(),name,muscle,equipment,type,factor,sets:4,reps:'8–12',rest:90,superset:''});
 const library=[exercise('Dumbbell Bench Press','Göğüs','Dambıl','external',2),exercise('Incline Dumbbell Bench Press','Göğüs','Dambıl','external',2),exercise('Chest Fly Makine','Göğüs','Makine'),exercise('Dips','Arka kol','Vücut ağırlığı','body'),exercise('Cable Triceps Pushdown','Arka kol','Kablo'),exercise('Overhead Cable Triceps Extension','Arka kol','Kablo'),exercise('Dumbbell Curl','Ön kol','Dambıl','external',2),exercise('Hammer Curl','Ön kol','Dambıl','external',2),exercise('Lat Pulldown','Sırt','Makine'),exercise('Seated Cable Row','Sırt','Kablo'),exercise('Dumbbell Shoulder Press','Omuz','Dambıl','external',2),exercise('Lateral Raise','Omuz','Dambıl','external',2),exercise('Leg Press','Bacak','Makine'),exercise('Leg Curl','Bacak','Makine'),exercise('Goblet Squat','Bacak','Dambıl'),exercise('Plank','Karın','Vücut ağırlığı','body')];
 // Additional catalog entries keep stable IDs across devices and backups.
 const additionalLibrary=[
@@ -29,7 +29,8 @@ const additionalLibrary=[
  exercise('Rope Triceps Pushdown','Arka kol','Kablo'),
  exercise('Dead Bug','Karın','Vücut ağırlığı','body'),
  exercise('Cable Crunch','Karın','Kablo'),
- exercise('Reverse Crunch','Karın','Vücut ağırlığı','body')
+ exercise('Reverse Crunch','Karın','Vücut ağırlığı','body'),
+ exercise('Smith Machine Bench Press','Göğüs','Makine')
 ].map((e,i)=>({...e,id:'catalog-v2-'+i}));
 library.push(...additionalLibrary);
 function extendExerciseLibrary(){
@@ -48,9 +49,9 @@ const beginnerProgram={id:'beginner-full-body-v1',name:'Başlangıç – Full Bo
 Isınma: 5–8 dakika yürüyüş veya bisiklet. İlk bacak, göğüs ve sırt hareketinden önce hafif ağırlıkla 1–2 hazırlık seti yap; bunlar tabloda sayılan setlere dahil değil.
 İlk 2 hafta: Tablodaki 2 setle devam et, hareketlerin tekniğini öğren.
 3. haftadan itibaren: Toparlanma iyiyse ilk 3 hareketi 3 sete çıkar. Diğerleri 2 set kalsın. Set artışı otomatik uygulanmaz; koçunla düzenle.
-Ağırlık artırma: Bir hareketin bütün setlerinde üst tekrar sınırına hedef RIR ile iki antrenman üst üste ulaşırsan en küçük ağırlık artışını yap.
+Ağırlık artırma: Bir hareketin bütün setlerinde üst tekrar sınırına iyi teknikle iki antrenman üst üste ulaşırsan en küçük ağırlık artışını yap.
 Plank: Belin çökmeden durabildiğin süreyi kaydet. Form bozulmadan bitir.
-RIR 3: Set sonunda düzgün teknikle yaklaşık 3 tekrar daha yapabilecek durumda ol.`,
+Setleri düzgün teknikle ve kontrolü koruyarak tamamla.`,
  exercises:[
  ['Leg Press','Bacak','Makine','10–12',3,120],
  ['Machine Chest Press','Göğüs','Makine','8–12',3,120],
@@ -63,7 +64,7 @@ RIR 3: Set sonunda düzgün teknikle yaklaşık 3 tekrar daha yapabilecek durumd
  ].map(([name,muscle,equipment,reps,rir,rest],i)=>({id:'beginner-full-body-ex-'+i,name,muscle,equipment,reps,rir:rir==='2–3'?3:rir,rirLabel:rir,rest,restLabel:i===5||i===6?'60–90':String(rest),sets:2,type:i===7?'body':'external',factor:i===5?2:1,superset:'',duration:i===7}))};
 function programNote(p){
  if(!p?.note)return '';
- const labels=['Isınma:','İlk 2 hafta:','3. haftadan itibaren:','Ağırlık artırma:','Plank:','RIR 3:'];
+ const labels=['Isınma:','İlk 2 hafta:','3. haftadan itibaren:','Ağırlık artırma:','Plank:','Teknik:'];
  const lines=String(p.note).split('\n').map(line=>line.trim()).filter(Boolean);
  const intro=[],items=[];
  for(const line of lines){
@@ -74,7 +75,7 @@ function programNote(p){
  return '<section class="card program-guidance"><h3 style="font-weight:700;margin-bottom:18px">Uygulama ve İlerleme:</h3>'+intro.join('')+(items.length?'<ul style="list-style:disc;padding-left:22px;margin:0;line-height:1.6">'+items.join('')+'</ul>':'')+'</section>';
 }
 function beginnerCard(){return `<section class="card"><span class="badge">HER ZAMAN KULLANILABİLİR</span><h2>${esc(beginnerProgram.name)}</h2><p>Haftada 3 gün · 8 hareket · 16 set</p><button onclick="showBeginnerProgram()">Programı görüntüle</button></section>`;}
-function showBeginnerProgram(){show(`<h2>${esc(beginnerProgram.name)}</h2>${programNote(beginnerProgram)}${beginnerProgram.exercises.map(e=>`<div class="list-item"><h3>${esc(e.name)}</h3><p>${e.sets} × ${esc(e.reps)} ${e.duration?'sn':'tekrar'} · RIR ${esc(e.rirLabel||'—')} · ${esc(e.restLabel)} sn dinlenme</p></div>`).join('')}<button onclick="$('modal').close();go('workout')">Antrenmanda seç</button>`);}
+function showBeginnerProgram(){show(`<h2>${esc(beginnerProgram.name)}</h2>${programNote(beginnerProgram)}${beginnerProgram.exercises.map(e=>`<div class="list-item"><h3>${esc(e.name)}</h3><p>${e.sets} × ${esc(e.reps)} ${e.duration?'sn':'tekrar'} · ${esc(e.restLabel)} sn dinlenme</p></div>`).join('')}<button onclick="$('modal').close();go('workout')">Antrenmanda seç</button>`);}
 function selectablePrograms(){
  if(gymAccount.role==='member')return [{value:'beginner',p:beginnerProgram},...(coachAssignedProgram?[{value:'coach',p:coachAssignedProgram}]:[])];
  return [...state.programs.map((p,i)=>({value:String(i),p})),{value:'beginner',p:beginnerProgram}];
@@ -92,7 +93,7 @@ function recoverOctober16(){
     const reps=['8–12','6–10','10–15','8–12','10–12','10–15'];
     const rests=[90,120,60,90,60,60];
     next.days['2026-10-16']={id:'archive-2026-10-16',kind:'workout',name:'Göğüs + Arka Kol',programId:'archive-chest-2026-10-16',version:1,
-      exercises:rows.map((sets,i)=>({...clone(library[i]),id:'archive-oct16-ex-'+i,reps:reps[i],rest:rests[i],logs:Array.from({length:4},(_,j)=>sets[j]?{kg:sets[j][0],reps:sets[j][1],rir:sets[j][2],done:true}:{kg:'',reps:'',rir:'',done:false})})),
+      exercises:rows.map((sets,i)=>({...clone(library[i]),id:'archive-oct16-ex-'+i,reps:reps[i],rest:rests[i],logs:Array.from({length:4},(_,j)=>sets[j]?{kg:sets[j][0],reps:sets[j][1],rir:sets[j][2],done:true}:{kg:'',reps:'',done:false})})),
       started:null,finished:null,note:'16 Ekim sohbet arşivinden bilinen 15 set geri yüklendi. Cable Triceps Pushdown 2. set RIR bilgisi bilinmiyor. Overhead Cable Triceps Extension set değerleri ve antrenman süresi arşivde yok; boş bırakıldı. Boş setler yapılmadı anlamına gelmez.'};
   }
   next.migrations=[...(next.migrations||[]),marker];
@@ -414,7 +415,7 @@ function copyPreviousWorkout(){
  const previous=Object.entries(state.days).filter(([k,v])=>k<selected&&v.kind==='workout').sort(([a],[b])=>b.localeCompare(a))[0];
  if(!previous){toast('Kopyalanabilecek önceki antrenman bulunamadı.');return;}
  const original=previous[1];
- state.days[selected]={id:uid(),kind:'workout',name:original.name,programId:original.programId,version:original.version,exercises:(original.exercises||[]).map(e=>({...clone(e),logs:(e.logs||[]).map(()=>({kg:'',reps:'',rir:'',done:false}))})),started:null,finished:null,note:'',programNote:original.programNote||''};save();render();
+ state.days[selected]={id:uid(),kind:'workout',name:original.name,programId:original.programId,version:original.version,exercises:(original.exercises||[]).map(e=>({...clone(e),logs:(e.logs||[]).map(()=>({kg:'',reps:'',done:false}))})),started:null,finished:null,note:'',programNote:original.programNote||''};save();render();
 }
 function duplicateWorkoutNextDay(){const source=state.days[selected];if(!source||source.kind!=='workout')return;let cursor=new Date(selected+'T12:00:00');cursor.setDate(cursor.getDate()+1);for(let i=0;i<366;i++,cursor.setDate(cursor.getDate()+1)){const key=dateKey(cursor);if(!state.days[key]){const original=selected;selected=key;copyPreviousWorkout();month=new Date(cursor.getFullYear(),cursor.getMonth(),1);toast('Antrenman '+fmtDate(key)+' gününe kopyalandı.');return;}}toast('Boş gün bulunamadı.');}
 function selectDate(d){if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return;selected=d;render()}function shiftMonth(n){month=new Date(month.getFullYear(),month.getMonth()+n,1);render()}
@@ -441,9 +442,9 @@ function coachProgramCard(){
  return '<section class="card"><span class="badge">KOÇ TARAFINDAN ATANDI</span><h2>'+esc(p.name)+'</h2><p>'+p.exercises.length+' hareket · düzenlenemez</p><div class="actions"><button onclick="go(&quot;workout&quot;)">Antrenmanda seç →</button></div></section>';
 }
 function assignment(){return `<section class="card"><h2>Bu günü planla</h2><label>Program<select id="assignProgram">${selectablePrograms().map(({value,p})=>`<option value="${value}" ${gymAccount.role!=='member'&&value===String(state.active)?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label><div class="actions plan-day-actions"><button type="button" class="secondary rest-day-action" onclick="setRest()" aria-label="Dinlenme günü olarak kaydet"><span aria-hidden="true">☾</span> Dinlenme günü</button><button type="button" onclick="assignWorkout()">Antrenman ata</button></div></section>`}
-function assignWorkout(){if(state.days[selected])return;const choice=$('assignProgram').value;const p=selectablePrograms().find(x=>x.value===choice)?.p;if(!p)return;state.days[selected]={id:uid(),kind:'workout',name:p.name,programId:p.id,version:p.version,exercises:p.exercises.map(e=>({...clone(e),logs:Array.from({length:e.sets},()=>({kg:'',reps:'',rir:'',done:false}))})),started:null,finished:null,note:'',programNote:p.note||'',cardio:p.cardio?clone(p.cardio):null};save();render()}
+function assignWorkout(){if(state.days[selected])return;const choice=$('assignProgram').value;const p=selectablePrograms().find(x=>x.value===choice)?.p;if(!p)return;state.days[selected]={id:uid(),kind:'workout',name:p.name,programId:p.id,version:p.version,exercises:p.exercises.map(e=>({...clone(e),logs:Array.from({length:e.sets},()=>({kg:'',reps:'',done:false}))})),started:null,finished:null,note:'',programNote:p.note||'',cardio:p.cardio?clone(p.cardio):null};save();render()}
 function setRest(){if(state.days[selected])return;state.days[selected]={id:uid(),kind:'rest',note:''};save();render()}
-function workoutView(){const d=state.days[selected];let body='';if(!d)body=assignment();else if(d.kind==='rest')body=`<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Takviminde mor renkle işaretlendi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>`;else{const t=totals(d),target=d.exercises.reduce((n,e)=>n+e.logs.length,0);body=`<section class="card hero" id="workoutSummary">${d.finished?'<button type="button" class="workout-summary-top-button" onclick="showDailySummary()">Özet ↗</button>':''}<h2>${esc(d.name)}</h2><small>${t.sets}/${target} set tamamlandı</small><div class="progress"><div style="width:${target?t.sets/target*100:0}%"></div></div><div class="workout-footer">${!d.started&&!d.finished?'<button class="workout-start-button" onclick="startWorkout()">▶ Antrenmanı Başlat</button>':''}<span class="workout-duration">Antrenman süresi <strong id="workoutClock">${workoutDuration(d)}</strong></span><button id="finishWorkoutButton" onclick="finishWorkout()">${d.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓'}</button></div></section>${programNote({note:d.programNote})}${d.exercises.map((e,i)=>`<section class="card"><div class="exercise-head"><div><span class="eyebrow">${String(i+1).padStart(2,'0')} / ${esc(e.muscle)}</span><h3 style="margin-top:8px">${esc(e.name)}</h3>${d.programId===beginnerProgram.id?`<p class="muted">${e.sets} × ${esc(e.reps)} ${e.duration?'sn':'tekrar'} · RIR ${esc(e.rirLabel||'—')} · ${esc(e.restLabel)} sn dinlenme</p>`:''}${e.superset?'<small>Süperset '+esc(e.superset)+'</small>':''}</div>${GymMotion.card(e)}</div><div class="set-grid"><small>SET</small><small>${state.settings.unit.toUpperCase()}</small><small>${e.duration?'SÜRE (sn)':'TEKRAR'}</small><small>RIR</small><small>BİTTİ</small></div>${e.logs.map((s,j)=>`<div class="set-grid ${s.done?'done':''}"><span class="number">${j+1}</span>${['kg','reps','rir'].map(f=>`<input aria-label="${esc(e.name)} set ${j+1} ${e.duration&&f==='reps'?'süre (saniye)':f}" ${invalidSets.has(selected+':'+i+':'+j+':'+f)?'aria-invalid="true"':''} type="number" inputmode="decimal" min="0" ${e.duration&&f!=='reps'?'disabled':''} ${f==='rir'?'max="10"':''} step="${f==='kg'?'.1':'1'}" value="${s[f]===''?'':f==='kg'?kgDisplay(s[f]):s[f]}" oninput="updateSet(${i},${j},'${f}',this.value,this)">`).join('')}<input aria-label="Set ${j+1} tamamlandı" type="checkbox" ${s.done?'checked':''} onchange="updateSet(${i},${j},'done',this.checked,this)"></div>`).join('')}<div class="set-adjust" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px"><button type="button" aria-label="Set çıkar" onclick="adjustWorkoutSets(${i},-1)" style="width:36px;height:36px;min-height:36px;padding:0;border-radius:50%;font-size:22px">−</button><span style="font-size:13px;color:var(--muted,#777);min-width:42px;text-align:center">${e.logs.length} set</span><button type="button" aria-label="Set ekle" onclick="adjustWorkoutSets(${i},1)" style="width:36px;height:36px;min-height:36px;padding:0;border-radius:50%;font-size:22px">+</button></div></section>`).join('')}<section class="card"><label>Antrenman notu<textarea oninput="state.days[selected].note=this.value;save()">${esc(d.note)}</textarea></label><button class="danger" onclick="removeDay()">Bu günün kaydını kaldır</button></section>`}return `<div class="title-row"><div><span class="eyebrow">SET SET GELİŞİM</span><h1>Antrenman</h1></div><input aria-label="Antrenman tarihi" type="date" value="${selected}" onchange="selectDate(this.value)"></div>${body}`}
+function workoutView(){const d=state.days[selected];let body='';if(!d)body=assignment();else if(d.kind==='rest')body=`<section class="card rest-card"><h2>☾ Dinlenme günü</h2><p>Takviminde mor renkle işaretlendi.</p><button class="secondary" onclick="removeDay()">Günü yeniden planla</button></section>`;else{const t=totals(d),target=d.exercises.reduce((n,e)=>n+e.logs.length,0);body=`<section class="card hero" id="workoutSummary">${d.finished?'<button type="button" class="workout-summary-top-button" onclick="showDailySummary()">Özet ↗</button>':''}<h2>${esc(d.name)}</h2><small>${t.sets}/${target} set tamamlandı</small><div class="progress"><div style="width:${target?t.sets/target*100:0}%"></div></div><div class="workout-footer">${!d.started&&!d.finished?'<button class="workout-start-button" onclick="startWorkout()">▶ Antrenmanı Başlat</button>':''}<span class="workout-duration">Antrenman süresi <strong id="workoutClock">${workoutDuration(d)}</strong></span><button id="finishWorkoutButton" onclick="finishWorkout()">${d.finished?(dirty?'Kaydı yeniden dene':'Kaydedildi ✓'):'Antrenmanı bitir ✓'}</button></div></section>${programNote({note:d.programNote})}${d.exercises.map((e,i)=>`<section class="card workout-exercise-card ${e.superset?'flex-linked':''}"><div class="exercise-head"><div><span class="eyebrow">${String(i+1).padStart(2,'0')} / ${esc(e.muscle)}</span><h3 style="margin-top:8px">${esc(e.name)}</h3>${d.programId===beginnerProgram.id?`<p class="muted">${e.sets} × ${esc(e.reps)} ${e.duration?'sn':'tekrar'} · ${esc(e.restLabel)} sn dinlenme</p>`:''}${e.superset?'<small class="flex-rounds">'+esc(workoutSupersetStatus(e.superset))+'</small>':''}</div>${GymMotion.card(e)}<button type="button" class="workout-flex-menu" aria-label="Hareket seçenekleri" onclick="showWorkoutFlexMenu(${i})">⋯</button></div><div class="set-grid"><small>SET</small><small>${state.settings.unit.toUpperCase()}</small><small>${e.duration?'SÜRE (sn)':'TEKRAR'}</small><small>BİTTİ</small></div>${e.logs.map((s,j)=>`<div class="set-grid set-entry ${s.done?'done':''}"><span class="number">${j+1}</span>${['kg','reps'].map(f=>`<input data-field="${f}" aria-label="${esc(e.name)} set ${j+1} ${e.duration&&f==='reps'?'süre (saniye)':f}" ${invalidSets.has(selected+':'+i+':'+j+':'+f)?'aria-invalid="true"':''} type="number" inputmode="decimal" min="0" ${e.duration&&f!=='reps'?'disabled':''} step="${f==='kg'?'.1':'1'}" value="${s[f]===''?'':f==='kg'?kgDisplay(s[f]):s[f]}" oninput="updateSet(${i},${j},'${f}',this.value,this)">`).join('')}<input aria-label="Set ${j+1} tamamlandı" type="checkbox" ${s.done?'checked':''} onchange="updateSet(${i},${j},'done',this.checked,this)"></div>`).join('')}<div class="set-adjust" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px"><button type="button" aria-label="Set çıkar" onclick="adjustWorkoutSets(${i},-1)" style="width:36px;height:36px;min-height:36px;padding:0;border-radius:50%;font-size:22px">−</button><span style="font-size:13px;color:var(--muted,#777);min-width:42px;text-align:center">${e.logs.length} set</span><button type="button" aria-label="Set ekle" onclick="adjustWorkoutSets(${i},1)" style="width:36px;height:36px;min-height:36px;padding:0;border-radius:50%;font-size:22px">+</button></div></section>`).join('')}<section class="card"><button class="secondary" onclick="showWorkoutAddMenu()">+ Hareket ekle</button><label>Antrenman notu<textarea oninput="state.days[selected].note=this.value;save()">${esc(d.note)}</textarea></label><button class="danger" onclick="removeDay()">Bu günün kaydını kaldır</button></section>`}return `<div class="title-row"><div><span class="eyebrow">SET SET GELİŞİM</span><h1>Antrenman</h1></div><input aria-label="Antrenman tarihi" type="date" value="${selected}" onchange="selectDate(this.value)"></div>${body}`}
 // Keep the edited input and next tap target mounted while persisting each change.
 function refreshWorkoutSummary(){
  const d=state.days[selected],host=$('workoutSummary');if(!host||!d)return;
@@ -453,8 +454,9 @@ function refreshWorkoutSummary(){
 }
 function adjustWorkoutSets(i,delta){
  const e=state.days[selected]?.exercises?.[i];if(!e||!Array.isArray(e.logs))return;
- if(delta>0){if(e.logs.length>=30){toast('En fazla 30 set eklenebilir.');return;}e.logs.push({kg:'',reps:'',rir:'',done:false});}
- else{if(e.logs.length<=1)return;const last=e.logs[e.logs.length-1];if((last.done||['kg','reps','rir'].some(k=>last[k]!==''&&last[k]!=null))&&!confirm('Son sette veri var. Bu set silinsin mi?'))return;e.logs.pop();}
+ if(delta>0){if(e.logs.length>=30){toast('En fazla 30 set eklenebilir.');return;}if(globalThis.GymWorkoutFlexV2)GymWorkoutFlexV2.append(e);else e.logs.push({kg:'',reps:'',done:false});}
+ else{if(e.logs.length<=1)return;const last=e.logs[e.logs.length-1];if((last.done||['kg','reps'].some(k=>last[k]!==''&&last[k]!=null))&&!confirm('Son sette veri var. Bu set silinsin mi?'))return;e.logs.pop();}
+ e._flexPlannedSets=e.logs.length;state.days[selected].flexChanged=true;
  save();render();
 }
 function updateSet(i,j,f,v,input){
@@ -466,11 +468,26 @@ function updateSet(i,j,f,v,input){
   input?.removeAttribute('aria-invalid');invalidSets.delete(errorKey);
   v=v===''?'':f==='kg'&&state.settings.unit==='lb'?+v/2.20462262:+v;
  }
- s[f]=v;
+ if(f!=='done'&&globalThis.GymWorkoutFlexV2&&['kg','reps'].includes(f))GymWorkoutFlexV2.edit(state.days[selected].exercises[i],j,f,v);else s[f]=v;
  const day=state.days[selected];
+ if(f!=='done'&&j===0)refreshFlexAutoInputs(i);
 
  const row=input?.closest('.set-grid');if(row){row.classList.toggle('done',s.done);row.querySelector('input[type="checkbox"]').checked=s.done;}
- save();refreshWorkoutSummary();
+ save();refreshWorkoutSummary();refreshWorkoutSupersets();
+}
+function refreshFlexAutoInputs(i){
+ const e=state.days[selected]?.exercises?.[i];if(!e)return;
+ const sections=document.querySelectorAll('.workout-exercise-card');
+ const section=sections[i];if(!section)return;
+ const rows=section.querySelectorAll('.set-grid.set-entry');
+ for(let j=1;j<e.logs.length;j++){
+  const row=rows[j];if(!row)continue;
+  for(const field of ['kg','reps']){
+   const input=row.querySelector('input[data-field="'+field+'"]');
+   if(!input||document.activeElement===input)continue;
+   const v=e.logs[j][field];input.value=v===''?'':field==='kg'?kgDisplay(v):v;
+  }
+ }
 }
 function startWorkout(){
  const d=state.days[selected];
@@ -492,8 +509,14 @@ async function finishWorkout(){
  if(!d.finished){d.finished=Date.now();save();}
  growthPeriod='latest';homeWorkoutDate='';
  stopRest();
+ const finishedDate=selected;
  const saved=await saveAll({silentSuccess:true});
  render();
+ if(selected===finishedDate&&!storageError&&d.flexChanged&&!d.flexTemplatePrompted){
+  d.flexTemplatePrompted=true;
+  save();
+  if(gymAccount.role!=='member'&&state.programs.some(p=>p.id===d.programId))showWorkoutTemplateChoice();
+ }
  return saved;
 }
 async function confirmFinishWorkout(){return finishWorkout();}
@@ -503,10 +526,10 @@ function libraryRows(items){return items.map(e=>`<div class="list-item library-m
 function duplicateProgram(i){if(gymAccount.role==='member')return;const p=clone(state.programs[i]);p.id=uid();p.name+=' (kopya)';p.history=[];p.version=1;state.programs.push(p);save();render()}
 function addTemplate(n){if(gymAccount.role==='member')return;const map={'Full Body':[14,0,9,10],'Upper':[0,8,9,10,6],'Lower':[12,13,14],'Push':[0,10,4],'Pull':[8,9,6,7],'Legs':[12,13,14]};state.programs.push(program(n,map[n]));save();render();toast('Şablon eklendi. Profil bölümünden kaydet.')}
 function editProgram(i){if(gymAccount.role==='member')return;draft={index:i,p:i<0?{id:uid(),name:'Yeni program',version:0,history:[],exercises:[]}:clone(state.programs[i])};editor()}
-function editor(){if(gymAccount.role==='member')return;showEditor(`<h2>Programı düzenle</h2><label>Program adı<input value="${esc(draft.p.name)}" oninput="draft.p.name=this.value;save()"></label><div class="notice">Uyguladığın programı kalıcı saklamak için Profil bölümünden kaydet. Geçmiş antrenmanlar değiştirilmez.</div>${draft.p.exercises.map((e,i)=>`<div class="editor-row"><div class="row"><b>${i+1}. ${esc(e.name)}</b><div><button class="link" onclick="moveExercise(${i},-1)" aria-label="Yukarı taşı">↑</button><button class="link" onclick="moveExercise(${i},1)" aria-label="Aşağı taşı">↓</button><button class="link" onclick="draft.p.exercises.splice(${i},1);editor()" aria-label="Hareketi kaldır">×</button></div></div><div class="editor-fields">${[['sets','Set'],['reps','Tekrar aralığı'],['rir','Hedef RIR'],['rest','Dinlenme (sn)'],['superset','Süperset grubu']].map(([f,l])=>`<label>${l}<input value="${esc(e[f])}" oninput="draft.p.exercises[${i}]['${f}']=this.value;save()" ${['sets','rir','rest'].includes(f)?'type="number" min="0"':''}></label>`).join('')}</div><label>Alternatif hareket<select onchange="replaceExercise(${i},this.value)"><option value="">Hareket değiştir…</option>${state.library.map((x,j)=>`<option value="${j}">${esc(x.name)}</option>`).join('')}</select></label></div>`).join('')}<label>Hareket ekle<select id="addExercise">${state.library.map((e,i)=>`<option value="${i}">${esc(e.name)}</option>`).join('')}</select></label><div class="actions"><button class="secondary" onclick="draft.p.exercises.push(clone(state.library[+$('addExercise').value]));editor()">+ Ekle</button><button onclick="saveProgram()">Programı uygula</button></div>`)}
+function editor(){if(gymAccount.role==='member')return;showEditor(`<h2>Programı düzenle</h2><label>Program adı<input value="${esc(draft.p.name)}" oninput="draft.p.name=this.value;save()"></label><div class="notice">Uyguladığın programı kalıcı saklamak için Profil bölümünden kaydet. Geçmiş antrenmanlar değiştirilmez.</div>${draft.p.exercises.map((e,i)=>`<div class="editor-row"><div class="row"><b>${i+1}. ${esc(e.name)}</b><div><button class="link" onclick="moveExercise(${i},-1)" aria-label="Yukarı taşı">↑</button><button class="link" onclick="moveExercise(${i},1)" aria-label="Aşağı taşı">↓</button><button class="link" onclick="draft.p.exercises.splice(${i},1);editor()" aria-label="Hareketi kaldır">×</button></div></div><div class="editor-fields">${[['sets','Set'],['reps','Tekrar aralığı'],['rest','Dinlenme (sn)'],['superset','Süperset grubu']].map(([f,l])=>`<label>${l}<input value="${esc(e[f])}" oninput="draft.p.exercises[${i}]['${f}']=this.value;save()" ${['sets','rir','rest'].includes(f)?'type="number" min="0"':''}></label>`).join('')}</div><label>Alternatif hareket<select onchange="replaceExercise(${i},this.value)"><option value="">Hareket değiştir…</option>${state.library.map((x,j)=>`<option value="${j}">${esc(x.name)}</option>`).join('')}</select></label></div>`).join('')}<label>Hareket ekle<select id="addExercise">${state.library.map((e,i)=>`<option value="${i}">${esc(e.name)}</option>`).join('')}</select></label><div class="actions"><button class="secondary" onclick="draft.p.exercises.push(clone(state.library[+$('addExercise').value]));editor()">+ Ekle</button><button onclick="saveProgram()">Programı uygula</button></div>`)}
 function showEditor(html){$('modalBody').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 function replaceExercise(i,j){if(gymAccount.role==='member')return;if(j==='')return;draft.p.exercises[i]=clone(state.library[+j]);editor()}function moveExercise(i,d){if(gymAccount.role==='member')return;let a=draft.p.exercises,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];editor()}
-function saveProgram(){if(gymAccount.role==='member')return;const p=draft.p;if(!p.name.trim()||!p.exercises.length){toast('Program adı ve en az bir hareket gerekli.');return false}for(const e of p.exercises){e.sets=+e.sets;e.rir=+e.rir;e.rest=+e.rest;if(!Number.isInteger(e.sets)||e.sets<1||e.sets>20||!Number.isFinite(e.rir)||e.rir<0||e.rir>10||!Number.isFinite(e.rest)||e.rest<0){toast('Set 1–20, RIR 0–10 ve dinlenme 0 veya üstü olmalı.');return false}}if(draft.index>=0){const old=state.programs[draft.index];p.history.push({version:old.version,name:old.name,exercises:clone(old.exercises),saved:new Date().toISOString()});p.version++;state.programs[draft.index]=p}else{p.version=1;state.programs.push(p)}draft=null;save();$('modal').close();render();return true}
+function saveProgram(){if(gymAccount.role==='member')return;const p=draft.p;if(!p.name.trim()||!p.exercises.length){toast('Program adı ve en az bir hareket gerekli.');return false}for(const e of p.exercises){e.sets=+e.sets;e.rest=+e.rest;if(!Number.isInteger(e.sets)||e.sets<1||e.sets>30||!Number.isFinite(e.rest)||e.rest<0){toast('Set 1–30 ve dinlenme 0 veya üstü olmalı.');return false}}if(draft.index>=0){const old=state.programs[draft.index];p.history.push({version:old.version,name:old.name,exercises:clone(old.exercises),saved:new Date().toISOString()});p.version++;state.programs[draft.index]=p}else{p.version=1;state.programs.push(p)}draft=null;save();$('modal').close();render();return true}
 function versions(i){const p=state.programs[i];show(`<h2>${esc(p.name)} · Sürümler</h2><p>Güncel sürüm: ${p.version}</p>${p.history.map(v=>`<div class="list-item"><b>v${v.version} · ${esc(v.name)}</b><p>${v.exercises.map(e=>`${esc(e.name)} (${e.sets} set)`).join('<br>')}</p></div>`).join('')||'<p class="empty">Henüz önceki sürüm yok.</p>'}`)}
 function customExercise(){if(gymAccount.role==='member')return;show(`<h2>Özel hareket</h2><label>Ad<input id="customName"></label><label>Kas grubu<input id="customMuscle"></label><label>Ekipman<input id="customEquipment"></label><label>Hacim hesabı<select id="customType"><option value="1">Toplam ağırlık × tekrar</option><option value="2">Tek dambıl × 2 × tekrar</option><option value="body">Vücut ağırlığı (ayrı hacim)</option></select></label><button onclick="saveCustom()">Hareketi ekle</button>`)}
 function saveCustom(){if(gymAccount.role==='member')return;if(!$('customName').value.trim()||!$('customMuscle').value.trim()||!$('customEquipment').value.trim()){toast('Tüm alanları doldur.');return}const type=$('customType').value;state.library.push(exercise($('customName').value,$('customMuscle').value,$('customEquipment').value,type==='body'?'body':'external',type==='2'?2:1));save();$('modal').close();render()}
@@ -528,9 +551,9 @@ function growthPerformance(rows,name){
  const points=growthPoints(rows,name);if(!points.length)return '<p class="empty">Bu dönemde bu hareket için tamamlanmış set yok.</p>';
  const last=points.at(-1),all=growthPoints(growthRows(),name),previous=all.filter(p=>p.date<last.date).at(-1),unit=esc(state.settings.unit);
  const max=Math.max(...points.map(p=>+p.set.kg),1),xy=points.map((p,i)=>[40+(points.length===1?130:i*260/(points.length-1)),120-(+p.set.kg/max)*85]);
- const display=p=>p?`${num(kgDisplay(p.set.kg))} ${unit} × ${p.set.reps}<br><small>RIR ${p.set.rir===''?'—':p.set.rir} · ${fmtDate(p.date)}</small>`:'Henüz önceki kayıt yok';
- let comparison='Ağırlık, tekrar ve RIR birlikte değerlendirilmelidir.';
- if(previous){const same=previous.sets.filter(s=>+s.kg===+last.set.kg).sort((a,b)=>+b.reps-+a.reps)[0];if(same){const delta=+last.set.reps-+same.reps;comparison=`${num(kgDisplay(last.set.kg))} ${unit} ile önceki antrenmana göre ${delta>0?'+':''}${delta} tekrar · RIR ${same.rir===''?'—':same.rir} → ${last.set.rir===''?'—':last.set.rir}`}}
+ const display=p=>p?`${num(kgDisplay(p.set.kg))} ${unit} × ${p.set.reps}<br><small>${fmtDate(p.date)}</small>`:'Henüz önceki kayıt yok';
+ let comparison='Ağırlık ve tekrar birlikte değerlendirilmelidir.';
+ if(previous){const same=previous.sets.filter(s=>+s.kg===+last.set.kg).sort((a,b)=>+b.reps-+a.reps)[0];if(same){const delta=+last.set.reps-+same.reps;comparison=`${num(kgDisplay(last.set.kg))} ${unit} ile önceki antrenmana göre ${delta>0?'+':''}${delta} tekrar`}}
  return `<small>En yüksek ağırlık (${unit}) · Tarihe göre</small><svg class="growth-chart" viewBox="0 0 340 160" role="img" aria-label="${esc(name)} ağırlık gelişimi"><path d="M36 25V120H310" fill="none" stroke="var(--line)"/><text x="4" y="38">${num(kgDisplay(max))}</text><text x="20" y="124">0</text><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--green)" stroke-width="3"/>${points.map((p,i)=>`<circle cx="${xy[i][0]}" cy="${xy[i][1]}" r="4" fill="var(--green)"><title>${fmtDate(p.date)}: ${num(kgDisplay(p.set.kg))} ${unit} × ${p.set.reps}</title></circle>`).join('')}<text x="36" y="148">${points[0].date.slice(5)}</text><text x="305" y="148" text-anchor="end">${last.date.slice(5)}</text></svg><div class="growth-compare"><div><small>Önceki antrenman</small><p>${display(previous)}</p></div><div><small>Son antrenman</small><p>${display(last)}</p></div></div><p class="notice">${comparison}</p><details><summary>Grafik değerlerini göster</summary>${points.map(p=>`<p>${fmtDate(p.date)} · ${display(p)}</p>`).join('')}</details>`;
 }
 function growthRecords(rows,bounds){
@@ -669,11 +692,11 @@ function openRecordHistory(){
 }
 // Compatibility for old internal routes; progress is now part of Home.
 function progressView(){return calendarView()}
-function drawChart(){const name=$('chartExercise').value,mode=$('chartMode').value,range=$('chartRange').value,cutoff=range==='all'?null:Date.now()-(+range)*86400000;const points=allWork().sort(([a],[b])=>a.localeCompare(b)).filter(([date])=>!cutoff||new Date(date+'T23:59:59').getTime()>=cutoff).map(([date,d])=>{const es=d.exercises.filter(e=>e.name===name),sets=es.flatMap(e=>e.logs.filter(s=>s.done&&+s.reps>0&&s.kg!==''&&(mode!=='rm'||e.type==='external'&&+s.reps<=10)));if(!sets.length)return null;let best=sets.reduce((a,s)=>{let value=+s.kg*(mode==='rm'?1+(+s.reps)/30:1);return !a||value>a.value?{value,set:s}:a},null);return {date,...best}}).filter(Boolean);if(!points.length){$('chartArea').innerHTML='<p class="empty">Bu seçim için uygun tamamlanmış set yok.</p>';return}const max=Math.max(...points.map(p=>p.value),1),xy=points.map((p,i)=>[40+(points.length===1?210:i*420/(points.length-1)),165-p.value/max*130]);const last=points.at(-1),prev=points.at(-2);$('chartArea').innerHTML=`<svg class="chart" viewBox="0 0 500 205" role="img" aria-label="Tarihe göre ${esc(name)} performansı"><path d="M40 20V165H480" fill="none" stroke="var(--line)"/><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--green)" stroke-width="3"/>${points.map((p,i)=>`<circle cx="${xy[i][0]}" cy="${xy[i][1]}" r="6" fill="var(--green)"><title>${fmtDate(p.date)} · ${kgDisplay(p.value).toFixed(1)} ${state.settings.unit} · ${p.set.reps} tekrar · RIR ${p.set.rir}</title></circle>`).join('')}<text x="40" y="192">${points[0].date}</text><text x="480" y="192" text-anchor="end">${last.date}</text></svg><div class="row"><span>Rekor <b>${kgDisplay(max).toFixed(1)} ${state.settings.unit}</b></span><span>Son antrenmana göre <b>${prev?(kgDisplay(last.value-prev.value)).toFixed(1)+' '+state.settings.unit:'—'}</b></span></div>${points.map(p=>`<details class="list-item"><summary>${fmtDate(p.date)} · ${kgDisplay(p.value).toFixed(1)} ${state.settings.unit}</summary><p>${p.set.reps} tekrar · RIR ${p.set.rir===''?'Belirtilmedi':p.set.rir} · ${kgDisplay(p.set.kg)} ${state.settings.unit}</p></details>`).join('')}`}
+function drawChart(){const name=$('chartExercise').value,mode=$('chartMode').value,range=$('chartRange').value,cutoff=range==='all'?null:Date.now()-(+range)*86400000;const points=allWork().sort(([a],[b])=>a.localeCompare(b)).filter(([date])=>!cutoff||new Date(date+'T23:59:59').getTime()>=cutoff).map(([date,d])=>{const es=d.exercises.filter(e=>e.name===name),sets=es.flatMap(e=>e.logs.filter(s=>s.done&&+s.reps>0&&s.kg!==''&&(mode!=='rm'||e.type==='external'&&+s.reps<=10)));if(!sets.length)return null;let best=sets.reduce((a,s)=>{let value=+s.kg*(mode==='rm'?1+(+s.reps)/30:1);return !a||value>a.value?{value,set:s}:a},null);return {date,...best}}).filter(Boolean);if(!points.length){$('chartArea').innerHTML='<p class="empty">Bu seçim için uygun tamamlanmış set yok.</p>';return}const max=Math.max(...points.map(p=>p.value),1),xy=points.map((p,i)=>[40+(points.length===1?210:i*420/(points.length-1)),165-p.value/max*130]);const last=points.at(-1),prev=points.at(-2);$('chartArea').innerHTML=`<svg class="chart" viewBox="0 0 500 205" role="img" aria-label="Tarihe göre ${esc(name)} performansı"><path d="M40 20V165H480" fill="none" stroke="var(--line)"/><polyline points="${xy.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--green)" stroke-width="3"/>${points.map((p,i)=>`<circle cx="${xy[i][0]}" cy="${xy[i][1]}" r="6" fill="var(--green)"><title>${fmtDate(p.date)} · ${kgDisplay(p.value).toFixed(1)} ${state.settings.unit} · ${p.set.reps} tekrar</title></circle>`).join('')}<text x="40" y="192">${points[0].date}</text><text x="480" y="192" text-anchor="end">${last.date}</text></svg><div class="row"><span>Rekor <b>${kgDisplay(max).toFixed(1)} ${state.settings.unit}</b></span><span>Son antrenmana göre <b>${prev?(kgDisplay(last.value-prev.value)).toFixed(1)+' '+state.settings.unit:'—'}</b></span></div>${points.map(p=>`<details class="list-item"><summary>${fmtDate(p.date)} · ${kgDisplay(p.value).toFixed(1)} ${state.settings.unit}</summary><p>${p.set.reps} tekrar · ${kgDisplay(p.set.kg)} ${state.settings.unit}</p></details>`).join('')}`}
 function addBodyweight(){const kg=+$('bodyKg').value,date=$('bodyDate').value;if(!date||!Number.isFinite(kg)||kg<=0||kg>500){toast('Geçerli tarih ve kilo gir.');return}const old=state.bodyweights.find(x=>x.date===date);if(old&&!confirm('Bu tarihteki kilo ölçümü güncellensin mi?'))return;state.bodyweights=state.bodyweights.filter(x=>x.date!==date);state.bodyweights.push({date,kg});state.bodyweights.sort((a,b)=>a.date.localeCompare(b.date));save();render()}
 function settingsView(){return `<span class="eyebrow">KİŞİSEL ALANIN</span><h1>Hesabım</h1><p class="lead">Tercihlerin ve kayıtların bir arada.</p><section class="card"><h2>Tüm girdileri kaydet</h2><p>Antrenmanlar, setler, notlar, takvim, programlar, ölçümler ve profil ayarları tek düğmeyle Supabase bulutuna kaydedilir ve doğrulanır.</p><button id="saveAllButton" onclick="saveAll()">Antrenmanı kaydet</button> <button class="secondary" onclick="retryCloud()">Bulutu yeniden kontrol et</button>${cloudReconcile?` <button class="secondary" onclick="previewImport()">Cihaz ve bulut kayıtlarını incele</button>`:""}<p id="allSaveStatus" role="status"></p></section><div class="grid"><section class="card"><h2>Profilim</h2>${[['name','Ad'],['goal','Spor hedefi'],['height','Boy (cm)']].map(([f,l])=>`<label>${l}<input value="${esc(state.profile[f])}" oninput="state.profile['${f}']=this.value;save()"></label>`).join('')}<label>Ağırlık birimi<select onchange="state.settings.unit=this.value;save();render()"><option ${state.settings.unit==='kg'?'selected':''}>kg</option><option ${state.settings.unit==='lb'?'selected':''}>lb</option></select></label><label>Hafta başlangıcı<select onchange="state.settings.week=this.value;save();render()"><option value="monday" ${state.settings.week==='monday'?'selected':''}>Pazartesi</option><option value="sunday" ${state.settings.week==='sunday'?'selected':''}>Pazar</option></select></label></section><div><section class="card"><h2>Yedekleme</h2><p class="muted">Programların, setlerin, takvimin ve profilin tek JSON dosyasında.</p><div class="actions"><button onclick="downloadBackup()">Yedeği indir ↓</button><button class="secondary" onclick="$ ('importFile').click()">Yedekten birleştir ↑</button></div><div class="notice">Buluta kaydedilmiş verilerin aynı hesapla diğer cihazlarda açılır. Buluta gönderilmemiş cihaz kayıtları tarayıcı verileri silinirse kaybolabilir. JSON yedeğini de sakla.</div></section>${membershipCard()}</div></div>${themePicker()}`}
 function downloadObject(o,name){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}function downloadBackup(){downloadObject(state,`gym-tracker-pro-${today}.json`)}
-function validateBackup(o){if(!o||o.schema!=='gym-tracker-pro'||o.version!==1||!Array.isArray(o.programs)||!o.programs.length||!Array.isArray(o.library)||!o.days||typeof o.days!=='object'||Array.isArray(o.days)||!o.profile||!o.settings||!Array.isArray(o.bodyweights))throw Error('Bu dosya bu sürümün yedeği değil. Eski panel yedekleri ayrıca eşleştirilerek aktarılmalı.');const validNum=(n,max=100000)=>n===''||typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=max;function checkExercise(e,logs=false){if(!e||typeof e.name!=='string'||typeof e.muscle!=='string'||typeof e.equipment!=='string'||!['external','body'].includes(e.type)||![1,2].includes(e.factor)||!Number.isInteger(e.sets)||e.sets<1||e.sets>20||!validNum(e.rir,10)||!validNum(e.rest))throw Error('Hareket bilgisi geçersiz.');if(logs&&(!Array.isArray(e.logs)||e.logs.some(s=>!s||typeof s.done!=='boolean'||!validNum(s.kg)||!validNum(s.reps,10000)||!validNum(s.rir,10))))throw Error('Set değerleri geçersiz.')}for(const p of o.programs){if(typeof p.id!=='string'||typeof p.name!=='string'||!Number.isInteger(p.version)||!Array.isArray(p.exercises)||!Array.isArray(p.history))throw Error('Program yapısı geçersiz.');p.exercises.forEach(e=>checkExercise(e))}o.library.forEach(e=>checkExercise(e));for(const [date,d] of Object.entries(o.days)){if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!['rest','workout'].includes(d.kind)||typeof d.id!=='string')throw Error('Gün kaydı geçersiz.');if(d.kind==='workout'){if(!Array.isArray(d.exercises)||typeof d.name!=='string')throw Error('Antrenman geçersiz.');d.exercises.forEach(e=>checkExercise(e,true))}}if(o.bodyweights.some(x=>!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!validNum(x.kg,500)))throw Error('Vücut ölçümü geçersiz.');return o}
+function validateBackup(o){if(!o||o.schema!=='gym-tracker-pro'||o.version!==1||!Array.isArray(o.programs)||!o.programs.length||!Array.isArray(o.library)||!o.days||typeof o.days!=='object'||Array.isArray(o.days)||!o.profile||!o.settings||!Array.isArray(o.bodyweights))throw Error('Bu dosya bu sürümün yedeği değil. Eski panel yedekleri ayrıca eşleştirilerek aktarılmalı.');const validNum=(n,max=100000)=>n===''||typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=max;function checkExercise(e,logs=false){if(!e||typeof e.name!=='string'||typeof e.muscle!=='string'||typeof e.equipment!=='string'||!['external','body'].includes(e.type)||![1,2].includes(e.factor)||!Number.isInteger(e.sets)||e.sets<1||e.sets>30||!(e.rir==null||validNum(e.rir,10))||!validNum(e.rest))throw Error('Hareket bilgisi geçersiz.');if(logs&&(!Array.isArray(e.logs)||e.logs.some(s=>!s||typeof s.done!=='boolean'||!validNum(s.kg)||!validNum(s.reps,10000)||!(s.rir==null||validNum(s.rir,10)))))throw Error('Set değerleri geçersiz.')}for(const p of o.programs){if(typeof p.id!=='string'||typeof p.name!=='string'||!Number.isInteger(p.version)||!Array.isArray(p.exercises)||!Array.isArray(p.history))throw Error('Program yapısı geçersiz.');p.exercises.forEach(e=>checkExercise(e))}o.library.forEach(e=>checkExercise(e));for(const [date,d] of Object.entries(o.days)){if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!['rest','workout'].includes(d.kind)||typeof d.id!=='string')throw Error('Gün kaydı geçersiz.');if(d.kind==='workout'){if(!Array.isArray(d.exercises)||typeof d.name!=='string')throw Error('Antrenman geçersiz.');d.exercises.forEach(e=>checkExercise(e,true))}}if(o.bodyweights.some(x=>!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!validNum(x.kg,500)))throw Error('Vücut ölçümü geçersiz.');return o}
 $('importFile').addEventListener('change',async ev=>{const file=ev.target.files[0];if(!file)return;try{if(file.size>10000000)throw Error('Dosya 10 MB sınırını aşıyor.');pending=validateBackup(JSON.parse(await file.text()));previewImport();}catch(e){toast(e.message);pending=null}ev.target.value=''});
 function mergeBackup(){if(!pending)return;downloadBackup();const merged=clone(state);for(const [k,d] of Object.entries(pending.days)){const selector=document.querySelector(`[data-conflict="${k}"]`);if(!merged.days[k]||selector?.value==='import')merged.days[k]=clone(d)}for(const p of pending.programs)if(!merged.programs.some(x=>x.id===p.id))merged.programs.push(clone(p));for(const e of pending.library)if(!merged.library.some(x=>x.id===e.id))merged.library.push(clone(e));for(const b of pending.bodyweights)if(!merged.bodyweights.some(x=>x.date===b.date))merged.bodyweights.push(clone(b));state=merged;pending=null;if(cloudReconcile)localBaseRevision=cloudRevision;cloudReconcile=false;save();$('modal').close();render();toast('Birleştirme hazır. Profil bölümünden tüm girdileri kaydet.')}
 // Manual rest timer: separate from workout data and based on wall-clock time.
@@ -830,3 +853,112 @@ function drawHomeFlowRibbons(){
  svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=`<defs>${defs}</defs><rect x="0" y="${mid-34}" width="5" height="68" rx="2.5" fill="var(--line)"/>${paths}`;
 }
 window.addEventListener('resize',()=>requestAnimationFrame(drawHomeFlowRibbons));
+
+
+/* Workout Flex V2: active-session changes never mutate historical program versions. */
+function workoutFlexDay(){const d=state.days[selected];return d?.kind==='workout'?d:null;}
+function flexCanChange(){
+ if(invalidSets.size){toast('Önce geçersiz set değerlerini düzelt.');return false;}return !!workoutFlexDay();
+}
+function flexCommit(){
+ const d=workoutFlexDay();d.flexChanged=true;d.flexTemplatePrompted=false;
+ cleanupWorkoutSupersets();$('modal').close();save();render();
+}
+function flexLibraryOptions(i,q=''){
+ const e=workoutFlexDay()?.exercises[i];
+ return state.library.map((x,j)=>({x,j})).filter(({x})=>x.name.toLocaleLowerCase('tr').includes(q.toLocaleLowerCase('tr')))
+ .sort((a,b)=>Number(b.x.muscle===e?.muscle)-Number(a.x.muscle===e?.muscle))
+ .map(({x,j})=>'<option value="'+j+'">'+esc(x.muscle)+' · '+esc(x.name)+'</option>').join('');
+}
+function flexPicker(i){return '<label>Hareket ara<input oninput="filterWorkoutAlternatives('+i+',this.value)" placeholder="Adıyla ara…"></label><label>Hareket<select id="flexReplacement">'+flexLibraryOptions(i)+'</select></label>';}
+function filterWorkoutAlternatives(i,q){$('flexReplacement').innerHTML=flexLibraryOptions(i,q);}
+function workoutFlexMenuHtml(i){
+ const e=workoutFlexDay()?.exercises[i];if(!e)return '';
+ return '<h2>'+esc(e.name)+'</h2><div class="flex-actions">'+
+ '<button onclick="showWorkoutReplacement('+i+')">Hareketi değiştir</button>'+
+ '<button class="secondary" onclick="showWorkoutSuperset('+i+')">Süper sete ekle / çıkar</button>'+
+ '<button class="secondary" onclick="showWorkoutAddMenu('+i+')">Hareket ekle</button>'+
+ '<button class="secondary" onclick="showWorkoutTargets('+i+')">Sıra ve tekrar hedefi</button>'+
+ '<button class="secondary" onclick="toggleWorkoutSmartFill('+i+')">Akıllı doldurma: '+(e.smartFill===false?'Kapalı':'Açık')+'</button>'+
+ '<button class="danger" onclick="removeWorkoutExercise('+i+')">Bugünkü antrenmandan çıkar</button></div>';
+}
+function showWorkoutFlexMenu(i){show(workoutFlexMenuHtml(i));}
+function showWorkoutReplacement(i){show('<h2>Hareketi değiştir</h2>'+flexPicker(i)+'<button onclick="replaceWorkoutExercise('+i+')">Değiştir</button>');}
+function toggleWorkoutSmartFill(i){const e=workoutFlexDay()?.exercises[i];if(!e)return;e.smartFill=e.smartFill===false;save();showWorkoutFlexMenu(i);}
+function flexSelected(){const value=$('flexReplacement')?.value;return value===''||value==null?null:state.library[+value];}
+function replaceWorkoutExercise(i){
+ if(!flexCanChange())return;
+ const d=workoutFlexDay(),old=d?.exercises[i],fresh=flexSelected();if(!old||!fresh||fresh.id===old.id)return;
+ if(!old.logs.some(s=>!s.done)){toast('Bütün setler tamamlandı. Yeni hareket ekleyebilirsin.');return;}
+ const changed=GymWorkoutFlexV2.change(old,clone(fresh));
+ const replacement={...changed.replacement,superset:old.superset||'',rest:old.rest};
+ d.exercises.splice(i,1,...(changed.historical?[changed.historical,replacement]:[replacement]));flexCommit();
+}
+function showWorkoutAddMenu(i=-1){
+ const d=workoutFlexDay();if(!d)return;
+ show('<h2>Hareket ekle</h2>'+flexPicker(i)+'<label>Set sayısı<input id="flexSets" type="number" min="1" max="30" value="4"></label><label>Tekrar hedefi<input id="flexReps" value="8–12" maxlength="30"></label><label>Sıra<select id="flexPosition">'+Array.from({length:d.exercises.length+1},(_,j)=>'<option value="'+j+'" '+(j===(i<0?d.exercises.length:i+1)?'selected':'')+'>'+(j+1)+'</option>').join('')+'</select></label><button onclick="addWorkoutExercise()">Ekle</button>');
+}
+function addWorkoutExercise(){
+ if(!flexCanChange())return;
+ const d=workoutFlexDay(),fresh=flexSelected(),count=+$('flexSets').value;if(!fresh)return;
+ if(!Number.isInteger(count)||count<1||count>30){toast('Set sayısı 1–30 olmalı.');return;}
+ const x={...clone(fresh),sets:count,reps:$('flexReps').value,superset:'',logs:Array.from({length:count},()=>({kg:'',reps:'',done:false}))};
+ d.exercises.splice(Math.max(0,Math.min(d.exercises.length,+$('flexPosition').value)),0,x);flexCommit();
+}
+function removeWorkoutExercise(i){
+ if(!flexCanChange())return;
+ const d=workoutFlexDay(),e=d.exercises[i];if(!e)return;
+ if(e.logs.some(s=>s.done)){
+  if(!confirm('Tamamlanan setler korunacak. Yalnız kalan setler çıkarılsın mı?'))return;
+  e.logs=e.logs.filter(s=>s.done);e._flexHistorical=true;e.superset='';
+ }else{if(!confirm('Bu hareket yalnızca bugünkü antrenmandan kaldırılsın mı?'))return;d.exercises.splice(i,1);}
+ flexCommit();
+}
+function showWorkoutTargets(i){
+ const d=workoutFlexDay(),e=d?.exercises[i];if(!e)return;
+ show('<h2>Sıra ve tekrar hedefi</h2><label>Tekrar hedefi<input id="flexReps" maxlength="30" value="'+esc(e.reps)+'"></label><label>Sıra<select id="flexPosition">'+d.exercises.map((_,j)=>'<option value="'+j+'" '+(j===i?'selected':'')+'>'+(j+1)+'</option>').join('')+'</select></label><button onclick="saveWorkoutTargets('+i+')">Uygula</button>');
+}
+function saveWorkoutTargets(i){if(!flexCanChange())return;const d=workoutFlexDay(),e=d.exercises[i];e.reps=$('flexReps').value;d.exercises.splice(i,1);d.exercises.splice(+$('flexPosition').value,0,e);flexCommit();}
+function cleanupWorkoutSupersets(){
+ const d=workoutFlexDay();for(const e of d.exercises)if(e.superset&&d.exercises.filter(x=>x.superset===e.superset).length<2)e.superset='';
+ // Keep each linked group adjacent, preserving order within each group.
+ const ordered=[],seen=new Set();for(const e of d.exercises){if(!e.superset)ordered.push(e);else if(!seen.has(e.superset)){seen.add(e.superset);ordered.push(...d.exercises.filter(x=>x.superset===e.superset));}}d.exercises=ordered;
+}
+function showWorkoutSuperset(i){
+ const d=workoutFlexDay(),e=d?.exercises[i];if(!e)return;
+ show('<h2>Süper set</h2><p>İki veya daha fazla hareket seç.</p>'+d.exercises.map((x,j)=>x._flexHistorical?'':'<label class="flex-check"><input type="checkbox" name="flexGroup" value="'+j+'" '+(j===i||(e.superset&&x.superset===e.superset)?'checked':'')+'>'+esc(x.name)+'</label>').join('')+'<div class="actions"><button onclick="saveWorkoutSuperset()">Bağla</button>'+(e.superset?'<button class="secondary" onclick="unlinkWorkoutSuperset('+i+',false)">Bu hareketi çıkar</button><button class="secondary" onclick="unlinkWorkoutSuperset('+i+',true)">Bağlantıyı kaldır</button>':'')+'</div>');
+}
+function saveWorkoutSuperset(){
+ if(!flexCanChange())return;
+ const d=workoutFlexDay(),indices=[...document.querySelectorAll('input[name="flexGroup"]:checked')].map(x=>+x.value);
+ if(indices.length<2){toast('En az iki hareket seç.');return;}
+ const group='SS-'+uid();for(const i of indices)d.exercises[i].superset=group;flexCommit();
+}
+function unlinkWorkoutSuperset(i,all){if(!flexCanChange())return;const d=workoutFlexDay(),e=d.exercises[i],group=e.superset;for(const x of d.exercises)if(x===e||(all&&x.superset===group))x.superset='';flexCommit();}
+function workoutSupersetStatus(group){
+ const d=workoutFlexDay(),items=d?.exercises.filter(e=>e.superset===group)||[];if(items.length<2)return '';
+ const rounds=Math.max(...items.map(e=>e.logs.length));
+ const finished=Array.from({length:rounds},(_,j)=>items.every(e=>!e.logs[j]||GymWorkoutMetrics.validSets({ ...e,logs:[e.logs[j]] }).length===1)).filter(Boolean).length;
+ const groups=[...new Set(d.exercises.map(e=>e.superset).filter(Boolean))];
+ return 'SÜPER SET '+String.fromCharCode(65+groups.indexOf(group))+' · '+rounds+' TUR · '+finished+'/'+rounds+' tamamlandı';
+}
+function refreshWorkoutSupersets(){document.querySelectorAll('.workout-exercise-card').forEach((card,i)=>{const label=card.querySelector('.flex-rounds'),group=workoutFlexDay()?.exercises[i]?.superset;if(label&&group)label.textContent=workoutSupersetStatus(group);});}
+function showWorkoutTemplateChoice(){
+ show('<h2>Program değişikliği</h2><p>Bu antrenmandaki hareket değişiklikleri programına da uygulansın mı?</p><div class="actions"><button autofocus onclick="closeWorkoutTemplateChoice()">Yalnızca bugün</button><button class="secondary" onclick="applyWorkoutChangesToTemplate()">Programı da güncelle</button></div>');
+}
+function closeWorkoutTemplateChoice(){$('modal').close();}
+function applyWorkoutChangesToTemplate(){
+ const d=workoutFlexDay();if(!d?.finished||gymAccount.role==='member'||d.flexTemplateApplied)return;
+ const index=state.programs.findIndex(p=>p.id===d.programId);if(index<0)return;
+ const original=state.programs[index];
+ if(original.version!==d.version){toast('Programın sürümü değişmiş. Programlar bölümünden düzenle.');return;}
+ const next=clone(original);next.history=Array.isArray(next.history)?next.history:[];
+ next.history.push({version:original.version,name:original.name,exercises:clone(original.exercises),saved:new Date().toISOString()});next.version=(+original.version||1)+1;
+ next.exercises=d.exercises.filter(e=>!e._flexHistorical).map(e=>{
+  const {logs,_flexHistorical,_flexPlannedSets,kg,...spec}=clone(e);
+  return {...spec,sets:Math.max(1,_flexPlannedSets||logs?.length||+e.sets||1)};
+ });
+ if(!next.exercises.length){toast('Boş program kaydedilemez.');return;}
+ state.programs[index]=next;d.flexTemplateApplied=true;
+ save();$('modal').close();render();toast('Programın yeni sürümü cihazda saklandı; bulut kaydı sıraya alındı.');
+}

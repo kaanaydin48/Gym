@@ -111,6 +111,6 @@ async function loadAssignedProgram(){
   if(!data){el.textContent='Koçun henüz program atamadı.';return;}
   const p=data.program;
   if(!p||typeof p.name!=='string'||!Array.isArray(p.exercises))throw Error('Program biçimi geçersiz.');
-  el.innerHTML='<strong>'+memberEscape(p.name)+'</strong><p>'+p.exercises.length+' hareket · yalnızca görüntüleme</p>'+p.exercises.map(e=>'<div class="list-item"><strong>'+memberEscape(e.name||'Hareket')+'</strong><p>'+memberEscape(e.sets)+' set · '+memberEscape(e.reps||'')+' tekrar · RIR '+memberEscape(e.rir??'—')+'</p></div>').join('');
+  el.innerHTML='<strong>'+memberEscape(p.name)+'</strong><p>'+p.exercises.length+' hareket · yalnızca görüntüleme</p>'+p.exercises.map(e=>'<div class="list-item"><strong>'+memberEscape(e.name||'Hareket')+'</strong><p>'+memberEscape(e.sets)+' set · '+memberEscape(e.reps||'')+' tekrar'+'</p></div>').join('');
  }catch(e){if(el.isConnected)el.textContent='Atanmış program yüklenemedi: '+(e.message||'Bağlantı hatası');}
 }

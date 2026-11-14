@@ -401,3 +401,13 @@ header{gap:12px}header>div:first-child{min-width:0;flex:1}header #greeting{overf
 .period-flow-group-heading:not(:first-child){margin-top:11px}
 .period-flow-group-heading strong{font-size:11px;letter-spacing:.03em}
 .period-flow-group-heading span{margin-left:auto;font-size:10px;overflow-wrap:anywhere;text-align:right;min-width:0}
+
+/* Workout Flex V2 — four columns after removing the RIR input. */
+.workout-exercise-card .set-grid{grid-template-columns:32px minmax(0,1fr) minmax(0,1fr) 48px}
+.workout-exercise-card .exercise-head{position:relative;padding-right:36px}
+.workout-flex-menu{position:absolute;right:0;top:0;width:36px;min-height:36px;height:36px;padding:0;border-radius:10px;background:var(--soft);color:var(--ink);font-size:24px;line-height:1}
+.workout-flex-menu:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+.flex-actions{display:grid;gap:8px}.flex-check{display:flex;align-items:center;gap:12px;min-height:44px}.flex-check input{width:22px;height:22px}.workout-exercise-card.flex-linked{border-left:3px solid #78A68B}.workout-exercise-card.flex-linked+.workout-exercise-card.flex-linked{margin-top:-8px}.flex-rounds{color:#527a61;font-size:11px}.workout-flex-menu{width:44px;height:44px;min-height:44px}
+body .workout-exercise-card .workout-flex-menu{background:#f3f3f3!important;color:#333!important;right:-12px;top:-12px;width:44px;height:44px;min-height:44px;font-size:24px;border-radius:12px;z-index:1}
+.workout-exercise-card .exercise-head{padding-right:42px!important}
