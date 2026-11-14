@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {boot,setRemote,setFail}=require('../sync-harness.cjs');
-function app(){setRemote(null);setFail(false);const a=boot();for(const file of ['workout-metrics.js','workout-flex-v2.js'])vm.runInContext(fs.readFileSync(file,'utf8'),a.ctx);a.run("selected=today;state.days={};state.migrations=['shoulder-legs-v2-20261028'];");a.e('assignProgram').value='0';a.run('assignWorkout()');return a;}
+function app(){setRemote(null);setFail(false);const a=boot();a.ctx.document.querySelector('.workout-start-button').remove=()=>{};for(const file of ['workout-metrics.js','workout-flex-v2.js'])vm.runInContext(fs.readFileSync(file,'utf8'),a.ctx);a.run("selected=today;state.days={};state.migrations=['shoulder-legs-v2-20261028'];");a.e('assignProgram').value='0';a.run('assignWorkout()');return a;}
 const data=(a,expr)=>JSON.parse(a.run('JSON.stringify('+expr+')'));
 test('session changes preserve identity, completed RIR, legacy history, and only valid metrics',()=>{
  const a=app();const prior=data(a,'state.programs');
@@ -21,18 +21,25 @@ test('session changes preserve identity, completed RIR, legacy history, and only
  assert.equal(a.run('state.days[today].exercises[1].id'),'catalog-v2-1');
  assert.equal(a.run('totals(state.days[today]).sets'),1);
 });
-test('manual field clearing, fill toggle, completion, append and serialized recovery',()=>{
- const a=app();a.run("updateSet(0,0,'kg',30);updateSet(0,0,'reps',10);updateSet(0,1,'reps',8);updateSet(0,2,'kg','');updateSet(0,3,'done',true);updateSet(0,0,'kg',35);updateSet(0,0,'reps',12)");
- assert.equal(a.run('state.days[today].exercises[0].logs[1].reps'),8);
+test('manual set entry preserves existing auto-filled data without propagating new changes',()=>{
+ const a=app();a.run("state.days[today].exercises[0].logs[1]={kg:25,reps:8,rir:3,done:false,_flexOrigin:{kg:'auto'}};updateSet(0,0,'kg',30);updateSet(0,0,'reps',10);updateSet(0,0,'rir',2);adjustWorkoutSets(0,1)");
+ assert.equal(a.run('state.days[today].exercises[0].logs[1].kg'),25);
  assert.equal(a.run('state.days[today].exercises[0].logs[2].kg'),'');
- assert.equal(a.run('state.days[today].exercises[0].logs[3].kg'),30);
- a.run('toggleWorkoutSmartFill(0);updateSet(0,0,"kg",40)');
- assert.equal(a.run('state.days[today].exercises[0].logs[1].kg'),35);
- a.run('state=JSON.parse(localStorage.getItem(KEY));toggleWorkoutSmartFill(0);updateSet(0,0,"kg",45);adjustWorkoutSets(0,1)');
- assert.equal(a.run('state.days[today].exercises[0].logs[1].kg'),45);
- assert.equal(a.run('state.days[today].exercises[0].logs[2].kg'),'');
- assert.equal(a.run('state.days[today].exercises[0].logs[4].kg'),45);
- assert.equal(a.run('totals(state.days[today]).sets'),1);
+ assert.equal(a.run('state.days[today].exercises[0].logs[4].kg'),'');
+ a.run('state=JSON.parse(localStorage.getItem(KEY))');assert.equal(a.run('state.days[today].exercises[0].logs[0].rir'),2);
+ assert(!a.run('workoutFlexMenuHtml(0)').includes('Akıllı doldurma'));
+});
+test('first tick on any exercise starts once, survives reload, and never restarts completed history',()=>{
+ const a=app();assert.equal(a.run('state.days[today].started'),null);
+ a.run("updateSet(1,2,'done',false);updateSet(1,2,'rir',0)");assert.equal(a.run('state.days[today].started'),null);
+ a.run("updateSet(1,2,'done',true)");const started=a.run('state.days[today].started');assert(started);
+ a.run("updateSet(1,2,'done',false);updateSet(0,0,'done',true);state=JSON.parse(localStorage.getItem(KEY))");assert.equal(a.run('state.days[today].started'),started);
+ a.run("state.days[today].finished=123;state.days[today].started=null;updateSet(0,1,'done',true)");assert.equal(a.run('state.days[today].started'),null);assert.equal(a.run('state.days[today].finished'),123);
+});
+test('RIR accepts empty, zero and ten; rejects invalid values without losing saved value',()=>{
+ const a=app();for(const v of [0,10,'']){a.run(`updateSet(0,0,'rir',${JSON.stringify(v)})`);assert.equal(a.run('state.days[today].exercises[0].logs[0].rir'),v);}
+ a.run("updateSet(0,0,'rir',2)");for(const v of [-1,11,1.5,'bad']){a.run(`updateSet(0,0,'rir',${JSON.stringify(v)})`);assert.equal(a.run('state.days[today].exercises[0].logs[0].rir'),2);assert.equal(a.run('invalidSets.size'),1);}
+ a.run("updateSet(0,0,'rir','')");assert.equal(a.run('invalidSets.size'),0);
 });
 test('three movement grouping, progress, remove one and unlink preserve set totals',()=>{
  const a=app();a.ctx.document.querySelectorAll=selector=>selector.includes('flexGroup')?[{value:0},{value:1},{value:2}]:[];
@@ -56,5 +63,5 @@ test('template opt-in, member denial, coach access and no weights or logs copied
 });
 test('offline finish is local first; provenance survives cloud round trip and second device',async()=>{
  const a=app();await a.ctx.gymReady;a.run("updateSet(0,0,'kg',30);updateSet(0,0,'reps',10);updateSet(0,1,'reps',8);state.days[today].flexChanged=true;startWorkout()");setFail(true);assert.equal(await a.run('finishWorkout()'),false);assert(a.run('state.days[today].finished'));assert.match(a.e('modalBody').innerHTML,/Yalnızca bugün/);
- setFail(false);assert.equal(await a.run('saveAll({silentSuccess:true})'),true);const b=boot();await b.ctx.gymReady;assert.equal(b.run('state.days[today].exercises[0].logs[1].reps'),8);assert.equal(b.run('state.days[today].exercises[0].logs[2]._flexOrigin.kg'),'auto');
+ setFail(false);assert.equal(await a.run('saveAll({silentSuccess:true})'),true);const b=boot();await b.ctx.gymReady;assert.equal(b.run('state.days[today].exercises[0].logs[1].reps'),8);assert.equal(b.run('state.days[today].exercises[0].logs[2].kg'),'');
 });
