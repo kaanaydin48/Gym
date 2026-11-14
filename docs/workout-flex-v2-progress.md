@@ -107,3 +107,7 @@
 2. Bu dalı PR #20'ye gönder, açıklamayı güncelle, CI sonucunu kontrol et.
 3. Kullanıcının açık canlıya alma onayı var: doğrulama sonrası PR #20'yi birleştir, Pages dağıtımını ve yayınlanan dosyaların hashlerini doğrula.
 4. Yayın commitini ve kalan fiziksel cihaz sınırlamalarını raporla.
+
+- Son kapsam taraması: `membership.js` atanan program görünümündeki RIR etiketi ve `coach.js` eski koç program formundaki RIR girişi de kaldırıldı. Saklanmış program nesneleri değiştirilmedi.
+
+- WebKit CI ilk koşu: çevrimdışı route edilmiş HTML yenilenmesinde tarayıcı internal error. Testte gerçek ağ kesintisindeki saveAll başarısızlığı ayrıca doğrulanır; HTML tekrar açılırken kontrollü RPC çevrimdışı kalır. Böylece test çevrimdışı uygulama kabuğu/gerçek Auth çalıştığı iddiası taşımaz.

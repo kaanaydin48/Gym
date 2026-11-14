@@ -12,7 +12,7 @@
   if(result.error||!['admin','coach','member'].includes(result.data?.role))throw Error('Hesap yetkin bulunamadı. Yöneticinle iletişime geç.');
   window.gymAccount={client,user:data.user,role:result.data.role};
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
-  await load('./membership.js?v=role-management-fix-20261031');
+  await load('./membership.js?v=flex-v2-20261114');
   await load('./contour-icons.js?v=approved-40-v1');
   await load('./motion.js?v=approved-40-v1');
   await load('./workout-metrics.js?v=quests-v4');
