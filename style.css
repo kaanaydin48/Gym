@@ -414,5 +414,5 @@ body .workout-exercise-card .workout-flex-menu{background:#f3f3f3!important;colo
 
 /* Keep the completed tick vivid without dimming the checkbox with its row. */
 body .workout-exercise-card .set-grid.done{opacity:1}
-body .workout-exercise-card .set-grid input[type="checkbox"]:checked{accent-color:#22A653!important;opacity:1}
+body .workout-exercise-card .set-grid input[type="checkbox"]:checked{accent-color:#64A57D!important;opacity:1}
 body .workout-exercise-card .set-adjust button{background:#404040!important;color:#fff!important}
