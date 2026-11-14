@@ -9,7 +9,7 @@
  function isEmpty(v){return v===''||v===null||v===undefined;}
  function copyFirst(exercise){
   const logs=exercise?.logs||[];
-  if(!logs.length)return exercise;
+  if(!logs.length||exercise.smartFill===false)return exercise;
   const first=logs[0];
   for(const field of fields){
    const value=first[field];
@@ -31,7 +31,7 @@
   if(!row)throw new Error('Missing set');
   row[field]=value;
   if(!row._flexOrigin)row._flexOrigin={};
-  row._flexOrigin[field]=index===0?'source':(isEmpty(value)?'empty':'manual');
+  row._flexOrigin[field]=index===0?'source':'manual';
   if(index===0)copyFirst(exercise);
   return exercise;
  }
@@ -44,9 +44,10 @@
  function change(exercise,newExercise){
   const done=(exercise.logs||[]).filter(s=>s.done);
   const pending=(exercise.logs||[]).filter(s=>!s.done);
-  const replacement={...newExercise,sets:pending.length||newExercise.sets||1,reps:exercise.reps,
+  const replacement={...newExercise,sets:pending.length,reps:exercise.reps,smartFill:exercise.smartFill,
+   _flexPlannedSets:exercise._flexPlannedSets||exercise.logs.length,
    logs:pending.map(s=>({...s,kg:'',_flexOrigin:{...s._flexOrigin,kg:'empty'}}))};
-  const historical=done.length?{...exercise,sets:done.length,logs:done,_flexHistorical:true}:null;
+  const historical=done.length?{...exercise,sets:done.length,logs:done,superset:'',_flexHistorical:true}:null;
   return {historical,replacement};
  }
  return {copyFirst,edit,append,change};

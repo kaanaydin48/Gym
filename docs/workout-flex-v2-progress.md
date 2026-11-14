@@ -82,3 +82,28 @@
 - GitHub PR #20 taslak. Otomatik testlerin çalıştığına dair kanıt yok; git erişimi DNS nedeniyle mümkün değil.
 - Kritik eksikler: süper set tur geçişinin dinlenme sayacıyla uçtan uca doğrulanması, V5 XP çakışma testleri, iPhone Safari/PWA gerçek cihaz testi, testlerin başarıyla çalıştırılması.
 - Canlıya alındı iddiası yapılamaz; main/Pages/Supabase değiştirilmedi.
+
+## 14 Kasım 2026 — tamamlanan geliştirme ve yayın hazırlığı
+Önceki ara durumların yerine bu bölüm esas alınmalıdır.
+
+- `app.js`: aranabilir hızlı değiştirme, doğru katalog kimliği, tamamlanan setleri orijinal kimlikle koruma, ekleme/sıralama/tekrar hedefi, güvenli çıkarma, iki ve daha çok hareketli süper set ve canlı tur göstergesi, akıllı doldurma aç/kapat, antrenman sonunda varsayılan bugüne özel karar ve yetkili şablon güncellemesi tamamlandı.
+- `workout-flex-v2.js`: alan bazlı manuel/otomatik köken; manuel temizlenen alanın korunması; kapalı doldurma ayarı; eski set hedefinin şablona aktarılması. Performans ağırlıkları şablona aktarılmaz.
+- RIR girişleri kaldırıldı; tarihsel RIR verisi korunur. RIR içermeyen yeni kayıtların yedek doğrulaması düzeltildi.
+- Smith Machine Bench Press kütüphaneye eklendi (mevcut hareketlerin kimlikleri korunur; bu yeni hareket için animasyon bulunmuyor).
+- `style.css`: dört sütun, kompakt 44px menü, bağlantılı süper set kartları. Hacim Akışı değiştirilmedi.
+- `auth-guard.js`, `index.html`, `sw.js`: statik sürüm etiketleri güncellendi.
+- `tests/workout-flex-v2/`: yardımcı fonksiyon, uygulama entegrasyonu, mobil tarayıcı ve ayrı V5 uyumluluk testleri; CI mobil Chromium/WebKit işleri eklendi.
+- `tests/audit.cjs`: yeni katalog girdisine uygun sayılar; mevcut animasyonların kontrolü korunur, Smith girdisi mevcut 40 animasyonun kapsamı dışındadır.
+
+### Doğrulamalar
+- `npm test`: 9/9 mevcut paket, 24 görev testi ve 11 V2 testi başarılı (14 Kasım tekrar çalıştırıldı).
+- Chromium: 320/393/430px kullanıcı akışları önceki oturumda başarılı; yeniden son kontrol yapılacak.
+- V5: PR #19 `af87ef679a4d446c079731aaa4d46def72adc577` içindeki v5-engine ile ayrı test başarılı: 30/20/20, 250 sınırı, otomatik fakat tamamlanmamış setler 0 XP, bağlantıdan ek ödül yok, değişimde çift sayım yok. V5 üretimde değil; bu dal V5'i yayınlamaz.
+- Canlı Supabase şeması, save_gym_state fonksiyonu ve kayıt RLS politikaları salt okunur incelendi. JSON state ek alanları destekliyor; migration gerekmiyor. Üretim kayıtlarına test yazımı/silme yapılmadı.
+- Çevrimdışı/ikinci cihaz testleri kontrollü RPC taklidiyle; gerçek fiziksel iPhone, ekran kilidi ve bağımsız Safari/PWA depoları test edilmedi. Mevcut auth başlangıcı çevrimdışı soğuk açılışta ağ isteyebilir; kayıt kopyası korunur. Bu testler gerçek Auth/RLS uçtan uca testi olarak yorumlanmamalı.
+
+### Sıradaki adımlar
+1. Son mobil Chromium/WebKit sonuçlarını doğrula.
+2. Bu dalı PR #20'ye gönder, açıklamayı güncelle, CI sonucunu kontrol et.
+3. Kullanıcının açık canlıya alma onayı var: doğrulama sonrası PR #20'yi birleştir, Pages dağıtımını ve yayınlanan dosyaların hashlerini doğrula.
+4. Yayın commitini ve kalan fiziksel cihaz sınırlamalarını raporla.

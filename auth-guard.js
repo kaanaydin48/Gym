@@ -16,8 +16,8 @@
   await load('./contour-icons.js?v=approved-40-v1');
   await load('./motion.js?v=approved-40-v1');
   await load('./workout-metrics.js?v=quests-v4');
-  await load('./workout-flex-v2.js?v=20261113');
-  await load('./app.js?v=flex-v2-20261113');
+  await load('./workout-flex-v2.js?v=20261113-final');
+  await load('./app.js?v=flex-v2-20261113-final');
   await window.gymReady;
   if(window.GYM_QUESTS_ENABLED===true){
    try{const {installQuestFeature}=await import('./quests/bootstrap.mjs');installQuestFeature(window.gymAccount);}

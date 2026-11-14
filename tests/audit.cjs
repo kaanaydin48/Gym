@@ -9,20 +9,20 @@ function boot(storage=new Map()){
 }
 (async()=>{
  let a=boot();await a.ctx.gymReady;
- assert.equal(a.run('state.library.length'),44);
+ assert.equal(a.run('state.library.length'),45);
  // Upgrade a saved 16-movement account without touching history or custom settings.
  const old=a.run('clone(state)');old.library=old.library.slice(0,16);
  old.library.push({...clone(old.library[0]),id:'custom-bench',name:'Barbell Bench Press',sets:3});
  old.days['2026-10-16']={id:'keep-day',kind:'rest',note:'Keep this record'};
  remote={state:old,revision:7};
  const upgraded=boot();await upgraded.ctx.gymReady;
- assert.equal(upgraded.run('state.library.length'),40);
+ assert.equal(upgraded.run('state.library.length'),41);
  assert.equal(upgraded.run('state.library.find(e=>e.id==="custom-bench").sets'),3);
  assert.equal(upgraded.run('JSON.stringify(state.days)'),JSON.stringify(old.days));
  assert.equal(upgraded.run('JSON.stringify(state.programs)'),JSON.stringify(old.programs));
- upgraded.run('render();render()');assert.equal(upgraded.run('state.library.length'),40);
+ upgraded.run('render();render()');assert.equal(upgraded.run('state.library.length'),41);
  assert.equal(await upgraded.run('saveAll()'),true);
- const reload=boot();await reload.ctx.gymReady;assert.equal(reload.run('state.library.length'),40);
+ const reload=boot();await reload.ctx.gymReady;assert.equal(reload.run('state.library.length'),41);
  remote=null;
 
  for(const tab of ['calendar','workout','progress','programs','settings'])a.run(`go('${tab}')`);
@@ -63,7 +63,7 @@ function boot(storage=new Map()){
  }
  const before=c.run('JSON.stringify(state)');
  assert.equal(c.run('GymMotion.names.length'),40);
- assert.equal(c.run('library.every(e=>GymMotion.card(e).includes("exercise-preview"))'),true);
+ assert.equal(c.run('library.filter(e=>e.name!=="Smith Machine Bench Press").every(e=>GymMotion.card(e).includes("exercise-preview"))'),true);
  for(const [name,id] of c.ctx.GymMotion.names){assert.ok(fs.existsSync(require('node:path').join(__dirname,'../assets/exercises',id+'.webp')));c.ctx.GymMotion.open(id);}
  c.ctx.GymMotion.toggle();c.ctx.GymMotion.toggle();c.ctx.GymMotion.refresh();
  assert.equal(c.run('JSON.stringify(state)'),before,'Opening/pausing animations must not mutate workout data');
