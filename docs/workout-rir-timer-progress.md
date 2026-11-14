@@ -1,6 +1,6 @@
 # Antrenman güncellemesi — 14 Kasım 2026
 
-Durum: geliştirme dalında tamamlandı; canlıya alınmadı.
+Durum: kullanıcı canlıya alma onayı verdi; yayın hazırlığı tamamlandı.
 Dal: fix/workout-rir-timer-manual-sets
 
 ## Yapılanlar
@@ -19,3 +19,8 @@ Dal: fix/workout-rir-timer-manual-sets
 1. GitHub CI üzerinde Chromium ve WebKit 320/393/430 px kontrollerini tamamla; gerekirse düzelt.
 2. Kullanıcı canlıya alma onayı verdikten sonra main ile birleştir ve dağıtımı doğrula.
 3. Yayın öncesi önbellek sürümünü güncel kaynaklara göre kontrol et.
+
+## Yayın doğrulaması
+- Önceki commit için GitHub CI üç iş akışında başarılı; Chromium ve WebKit mobil testleri geçti.
+- index.html, auth-guard.js ve sw.js önbellek sürümleri workout-rir-20261114 / v18-rir-timer olarak güncellendi.
+- Sonraki işlem: güncel CI sonuçlarını kontrol et, PR #21 birleştir, GitHub Pages dosyalarını doğrula.
