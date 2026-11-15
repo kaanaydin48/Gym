@@ -72,3 +72,13 @@ Kaynaklar:
 ## Canlıya alma durumu
 
 Geliştirme ve yerel doğrulama tamamlandı; fiziksel cihaz ve hosted V5 entegrasyonu açık. Üretim dağıtımı, ana dala birleştirme ve canlı migration yapılmadı. Yayın onayı istenmedi; önce açık doğrulamalar tamamlanmalı.
+
+## GitHub doğrulama eki — 15 Kasım
+
+Uzak geliştirme commit'i: `a44740a2abd767c11ef31e08da508786c59dddd9` (yerel ilk commit ile aynı dosya ağacı). Taslak PR: https://github.com/kaanaydin48/Gym/pull/22
+
+Üç GitHub Actions workflow'u başarılı: Quest kontrolleri, Workout Flex V2, Member directory.
+Quest koşusu: https://github.com/kaanaydin48/Gym/actions/runs/43705544243
+Bu koşuda tüm birim/DB/Deno testleri ile **Chromium ve WebKit dört mobil genişlikte geçti**. Yukarıdaki yerel WebKit engeli GitHub test ortamında giderilmiştir; WebKit artık açık iş değildir. Fiziksel iPhone/PWA ve hosted V5 entegrasyonu hâlâ açık kalır.
+
+Bu ek yalnız rapor değişikliğidir; test edilen uygulama/migration dosyaları değişmedi. Üretime geçilmedi, PR birleştirilmedi.
