@@ -2,7 +2,7 @@
 
 15 Kasım 2026. Dal: `feature/v5-full-automation-20261115`.
 Taban: `2656311471c2a09e9f65659cd0cbb9bff9b76735`.
-**Üretime yayın yapılmadı. Ana dal değiştirilmedi. Canlı veya hosted test Supabase'e yazılmadı.**
+**Güncel durum: 15 Kasım kullanıcı yayın onayıyla V5 üretime alındı. Aşağıdaki geliştirme bölümleri tarihsel kayıttır; en sondaki yayın eki geçerlidir.**
 Son commit: bu dosyanın bulunduğu dalda `git log -1`. İlerleme bu depoda saklanır.
 
 ## Uygulananlar
@@ -82,3 +82,24 @@ Quest koşusu: https://github.com/kaanaydin48/Gym/actions/runs/43705544243
 Bu koşuda tüm birim/DB/Deno testleri ile **Chromium ve WebKit dört mobil genişlikte geçti**. Yukarıdaki yerel WebKit engeli GitHub test ortamında giderilmiştir; WebKit artık açık iş değildir. Fiziksel iPhone/PWA ve hosted V5 entegrasyonu hâlâ açık kalır.
 
 Bu ek yalnız rapor değişikliğidir; test edilen uygulama/migration dosyaları değişmedi. Üretime geçilmedi, PR birleştirilmedi.
+
+## Üretim yayını — 15 Kasım 2026
+
+Kullanıcının “Canlıya al” talimatıyla PR #22 birleştirildi.
+Uygulama yayın commit'i: `b37fa80411276d53b2531e8b174807a1513874df`.
+Pages dağıtımı başarılı: https://github.com/kaanaydin48/Gym/actions/runs/43706596630
+
+- Üretimde zamanlayıcı geçici durduruldu; refresh kısa süre bakım yanıtı verdi.
+- `release_v5_backup` özel şemasına 11 tablonun geçiş öncesi kopyası alındı. RLS açık; public/anon/authenticated/service_role erişimi kapalı. Hiçbir kullanıcı verisi dışarı aktarılmadı.
+- `quests_v5_pre_release_backup` ve `quests_v5_automation` migration'ları üretime uygulandı.
+- quests-refresh v3 ve quests-scheduler v2 canlıya dağıtıldı. Her ikisi kendi kimlik doğrulamasını yapar; anonim POST istekleri 401 döndü.
+- Gerçek hosted scheduler çağrısı HTTP 200, processed=1, failed=[] döndü. Hesap sonucu ruleVersion=5 ve senkron durumda.
+- Mevcut XP toplamı 975, ledger 21 satır olarak korundu. gym_account_state ve workout_logs yedekle iki yönlü karşılaştırmada aynı kaldı.
+- Manuel RPC authenticated erişimi kapalı doğrulandı. Dakikalık cron yeniden etkinleştirildi; eski iş adı quests-v4-minute olsa da artık V5 Edge işleyicisini çağırır.
+- Mevcut ödüllü hesapta başlangıç 16 Kasım 2026 00.00 Europe/Istanbul. Geçiş gününde geçmiş XP donduruldu.
+- Advisor yeni WARN üretmedi. Yeni özel yedek tablolarındaki RLS/no-policy INFO kayıtları kasıtlı erişim engelidir. Önceden mevcut is_admin/is_coach_of ve parola koruma uyarıları değişmedi.
+- Hosted test projesinde farklı bir V5 taslağı (v5_start/v5_baseline) bulundu; üzerine yazılmadı. Üretim şeması beklenen V4 tabanıyla eşleşti.
+
+Açık doğrulamalar: fiziksel iPhone Safari/PWA ve kullanıcı oturumuyla uçtan uca Auth/çevrimdışı deneyimi. Chromium/WebKit, yerel DB testleri, canlı scheduler ve anonim erişim kontrolleri bunlarla karıştırılmamalı.
+
+Devam ederken artık main dalındaki bu yayını esas al. Eski taslak rapordaki “yayınlanmadı” ifadeleri tarihsel kayıttır. Üretim yedeklerini veya XP defterini silme.
