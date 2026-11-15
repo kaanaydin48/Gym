@@ -8,3 +8,6 @@
 .q-sheet button{background:#edf3ee!important;color:#476951!important}
 .q-sheet .q-close{background:#f3f3f3!important;color:#666!important}
 .q-coach-task{border-top:1px solid #eee;padding:16px 0}.q-coach-task input{font-size:16px}
+
+/* Compact V5 cards; completed weekly tasks use the same soft green check. */
+.q-card{padding:14px}.q-row{min-height:60px;padding:10px 0}.q-icon.q-complete{background:#f0f6f2;color:#78a68b}.q-sheet-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.q-sheet{max-height:calc(100dvh - env(safe-area-inset-top) - 12px)}

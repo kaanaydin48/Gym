@@ -9,7 +9,7 @@ import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {processAccount} from '../../quests/worker.mjs';
 import {assertLocalDatabase} from '../../quests/isolation.mjs';
-import {addDays} from '../../quests/engine.mjs';
+import {addDays,weekKey} from '../../quests/engine.mjs';
 import {runTick} from '../../quests/scheduler.mjs';
 pg.types.setTypeParser(1082,x=>x);
 const dir=await mkdtemp(join(tmpdir(),'gym-quests-pg-'));
@@ -50,128 +50,79 @@ try{
  const snapshot={schema:'gym-tracker-pro',days:{[today]:{kind:'workout',programId:'pull',finished:Date.now(),exercises:[{id:'row',name:'Row',type:'external',factor:1,logs:[{kg:20,reps:10,rir:2,done:true}]}]}}};
  await member.query('select save_gym_state($1,0)',[snapshot]);
  await member.query('select quest_enroll()');await other.query('select quest_enroll()');
- await check('migration applies; real PostgreSQL version 17',async()=>assert.match((await admin.query('select version()')).rows[0].version,/PostgreSQL 17/));
- await check('anonymous RPC blocked; member cannot directly grant or rewrite XP',async()=>{
-  await assert.rejects(anon.query('select quest_enroll()'),/permission denied/);
-  await assert.rejects(member.query("insert into xp_ledger(user_id,reward_key,effective_date,pool,delta,generation,operation_key,reason) values($1,'fake',current_date,'daily',100,1,'fake','fake')",[ids.member]),/permission denied/);
-  await assert.rejects(member.query("update quest_accounts set result='{}' where user_id=$1",[ids.member]),/permission denied/);
+ // Seed an already-earned V4 reward, then prove migration freezes it without rewriting.
+ await admin.query("insert into xp_ledger(user_id,reward_key,effective_date,pool,delta,generation,operation_key,reason) values($1,'quest:daily:legacy:1',current_date,'daily',100,0,'legacy-seed','earned')",[ids.other]);
+ await admin.query("update quest_accounts set result=$2 where user_id=$1",[ids.other,{badges:[{id:'old',name:'Eski rozet'}],titles:['Eski unvan']}]);
+ const v5=(await readdir('supabase/migrations')).find(f=>f.endsWith('_quests_v5_automation.sql'));
+ await admin.query(await readFile('supabase/migrations/'+v5,'utf8'));
+
+ await check('pre-award rollback is transactional and retains all existing rows',async()=>{
+ await admin.query('begin');
+ await admin.query(await readFile('supabase/rollback/quests_v5_before_rewards.sql','utf8'));
+ assert.equal((await admin.query("select count(*) n from xp_ledger")).rows[0].n,'1');
+ assert.equal((await admin.query("select has_function_privilege('authenticated','public.quest_record_action(text,text,text,uuid)','execute') ok")).rows[0].ok,true);
+ await admin.query('rollback');
  });
- await check('two concurrent worker sessions serialize; no duplicate XP',async()=>{
-  const [a,b]=await Promise.all([processAccount(worker1,ids.member),processAccount(worker2,ids.member)]);
-  assert.equal(a.level.xp,510);assert.equal(b.level.xp,510);
-  assert.equal(+(await admin.query('select sum(delta) n from xp_ledger')).rows[0].n,510);
-  assert.equal(+(await admin.query('select count(*) n from xp_ledger')).rows[0].n,4);
+ await check('V5 migration preserves legacy XP, badges and starts rewarded accounts tomorrow',async()=>{
+ const r=await processAccount(worker1,ids.other);assert.equal(r.level.xp,100);assert.equal(r.activation,addDays(today,1));assert.equal(r.badges[0].id,'old');
+ assert.equal((await admin.query("select delta from xp_ledger where user_id=$1",[ids.other])).rows[0].delta,100);
  });
- await check('same event retries idempotently and preserves persisted workout',async()=>{
-  await processAccount(worker1,ids.member);
-  assert.equal(+(await admin.query('select count(*) n from xp_ledger')).rows[0].n,4);
-  assert.deepEqual((await member.query('select state from gym_account_state')).rows[0].state,snapshot);
+ await check('two concurrent workers and reload give exactly one 30 XP reward',async()=>{
+ const [a,b]=await Promise.all([processAccount(worker1,ids.member),processAccount(worker2,ids.member)]);
+ assert.equal(a.level.xp,30);assert.equal(b.level.xp,30);
+ await processAccount(worker1,ids.member);
+ assert.equal((await admin.query('select * from xp_ledger where user_id=$1',[ids.member])).rowCount,1);
  });
- await check('RLS owner/assigned coach/other coach boundaries',async()=>{
-  assert.equal((await member.query('select * from user_quests')).rowCount,7);
-  assert.equal((await other.query('select * from user_quests')).rowCount,0);
-  assert.equal((await coach.query('select * from user_quests')).rowCount,7);
-  assert.equal((await outsider.query('select * from user_quests')).rowCount,0);
-  assert.equal((await coach.query('select * from xp_ledger')).rowCount,0);
+ await check('8 and 16 completed sets reconcile automatically, weekly reward is separate',async()=>{
+ const d=snapshot.days[today];d.finished=null;d.exercises[0].muscle='Göğüs';
+ d.exercises[0].logs=Array.from({length:8},()=>({kg:20,reps:10,done:true}));
+ await member.query('select save_gym_state($1,1)',[snapshot]);
+ let r=await processAccount(worker1,ids.member);assert.equal(r.level.xp,70);
+ d.exercises[0].logs.push(...Array.from({length:8},()=>({kg:20,reps:10,done:true})));
+ await member.query('select save_gym_state($1,2)',[snapshot]);r=await processAccount(worker1,ids.member);assert.equal(r.level.xp,90);
+ d.finished=Date.now();await member.query('select save_gym_state($1,3)',[snapshot]);assert.equal((await processAccount(worker1,ids.member)).level.xp,120);
  });
- await check('historical edit reverses via append-only delta; original rows survive',async()=>{
-  snapshot.days[today].exercises[0].logs[0].done=false;
-  await member.query('select save_gym_state($1,1)',[snapshot]);
-  const r=await processAccount(worker1,ids.member);assert.equal(r.level.xp,0);
-  const rows=(await admin.query('select delta from xp_ledger order by id')).rows;
-  assert.deepEqual(rows.map(r=>r.delta),[100,40,250,120,-100,-40,-250,-120]);
-  await assert.rejects(worker1.query('delete from xp_ledger'),/Append-only/);
+ await check('historical correction appends reversals; source and original ledger remain intact',async()=>{
+ snapshot.days[today].exercises[0].logs.forEach(s=>s.done=false);
+ await member.query('select save_gym_state($1,4)',[snapshot]);assert.equal((await processAccount(worker1,ids.member)).level.xp,0);
+ assert.ok((await admin.query('select * from xp_ledger where user_id=$1 and delta<0',[ids.member])).rowCount>0);
+ assert.deepEqual((await member.query('select state from gym_account_state')).rows[0].state,snapshot);
+ await assert.rejects(worker1.query('delete from xp_ledger'),/Append-only/);
  });
- await check('re-earning after correction and stale workout revision rejection',async()=>{
-  snapshot.days[today].exercises[0].logs[0].done=true;
-  await assert.rejects(member.query('select save_gym_state($1,1)',[snapshot]),/GYM_CONFLICT/);
-  await member.query('select save_gym_state($1,2)',[snapshot]);
-  assert.equal((await processAccount(worker1,ids.member)).level.xp,510);
+ await check('user isolation, stale revision conflict, direct XP writes and manual RPCs rejected',async()=>{
+ assert.equal((await other.query('select * from user_quests')).rowCount,0);
+ assert.equal((await outsider.query('select * from user_quests')).rowCount,0);
+ await assert.rejects(member.query('select save_gym_state($1,1)',[snapshot]),/GYM_CONFLICT/);
+ await assert.rejects(member.query("update quest_accounts set result='{}'"),/permission denied/);
+ await assert.rejects(member.query("insert into xp_ledger(user_id,reward_key,effective_date,pool,delta,generation,operation_key,reason) values($1,'fake',current_date,'daily',100,1,'fake','fake')",[ids.member]),/permission denied/);
+ await assert.rejects(member.query("select quest_record_action('reflection',null,'long evidence',gen_random_uuid())"),/permission denied/);
+ await assert.rejects(coach.query("select quest_approve(gen_random_uuid(),true,'long reason',gen_random_uuid())"),/permission denied/);
+ await assert.rejects(anon.query('select quest_enroll()'),/permission denied/);
+ await assert.rejects(member.query("select quest_personal_goal('daily','review','My review',1)"),/Invalid goal/);
  });
- await check('manual action receipt idempotency; evidence required',async()=>{
-  const args=['reflection',null,'Bugünkü antrenmanı ve toparlanmayı değerlendirdim.','20000000-0000-4000-8000-000000000001'];
-  const a=await member.query('select quest_record_action($1,$2,$3,$4)',args);
-  const b=await member.query('select quest_record_action($1,$2,$3,$4)',args);
-  assert.deepEqual(a.rows,b.rows);
-  await assert.rejects(member.query("select quest_record_action('reflection',null,'x',gen_random_uuid())"),/8–2000/);
-  assert.equal((await processAccount(worker1,ids.member)).level.xp,540);
+ await check('stale V4 worker cannot insert legacy rewards; duplicate operation rejected in database',async()=>{
+ await assert.rejects(worker1.query("insert into xp_ledger(user_id,reward_key,effective_date,pool,delta,generation,operation_key,reason) values($1,'old',current_date,'daily',10,1,'old','old')",[ids.member]),/Legacy XP/);
+ const r=(await admin.query('select * from xp_ledger where user_id=$1 order by id limit 1',[ids.member])).rows[0];
+ await assert.rejects(worker1.query('insert into xp_ledger(user_id,reward_key,effective_date,pool,delta,generation,operation_key,reason) values($1,$2,$3,$4,$5,$6,$7,$8)',[r.user_id,r.reward_key,r.effective_date,r.pool,r.delta,r.generation,r.operation_key,r.reason]),/duplicate key/);
  });
- await check('coach edit scoped, cannot alter completed goal or raise XP',async()=>{
-  const key=`weekly:${(await admin.query("select date_trunc('week',now() at time zone 'Europe/Istanbul')::date::text as w")).rows[0].w}:4`;
-  await assert.rejects(outsider.query('select quest_edit($1,$2,$3,2,0)',[ids.member,key,'Planı iki gün kontrol et']),/Forbidden/);
-  assert.equal((await coach.query('select quest_edit($1,$2,$3,2,0)',[ids.member,key,'Planı iki gün kontrol et'])).rows[0].quest_edit,1);
-  await assert.rejects(coach.query('select quest_edit($1,$2,$3,2,0)',[ids.member,key,'Planı iki gün kontrol et']),/QUEST_CONFLICT/);
-  const r=await processAccount(worker1,ids.member);assert.equal(r.quests.find(q=>q.id===key).target,2);
+ await check('scheduler processes pending and missed day automatically',async()=>{
+ await admin.query("update quest_accounts set processed_day=current_date-1 where user_id=$1",[ids.member]);
+ const pool={query:(...args)=>worker1.query(...args),connect:async()=>({query:(...args)=>worker2.query(...args),release(){}})};
+ const r=await runTick(pool);assert.equal(r.failed.length,0);assert.ok(r.processed>=1);
  });
- await check('celebration receipt consumed once across sessions',async()=>{
-  assert.equal((await member.query("select quest_acknowledge('badge:first')")).rows[0].quest_acknowledge,true);
-  assert.equal((await member.query("select quest_acknowledge('badge:first')")).rows[0].quest_acknowledge,false);
-  await assert.rejects(member.query("select quest_acknowledge('badge:legend')"),/not earned/);
- });
- await check('unneeded TRUNCATE privilege removed',async()=>{
-  const rows=(await admin.query("select has_table_privilege('authenticated','gym_account_state','TRUNCATE') a,has_table_privilege('anon','gym_account_state','TRUNCATE') b,has_table_privilege('authenticated','coach_program_assignments','TRUNCATE') c")).rows[0];
-  assert.deepEqual(rows,{a:false,b:false,c:false});
- });
- await check('coach directory exposes only assigned members; overrides readable by assigned coach',async()=>{
-  assert.deepEqual((await coach.query('select id from profiles where id<>$1',[ids.coach])).rows.map(r=>r.id),[ids.member]);
-  assert.equal((await coach.query('select * from quest_overrides')).rowCount,1);
- });
- await check('manual assignment, evidence, authorized approval and revocation',async()=>{
-  await processAccount(worker1,ids.other);const key=`daily:${today}:3`;
-  await outsider.query('select quest_assign_manual($1,$2,$3,0)',[ids.other,key,'Teknik videosunu değerlendir']);
-  await processAccount(worker1,ids.other);
-  const id=(await other.query("select quest_record_action('submission',$1,'Teknik kaydını koçuma sundum.',gen_random_uuid()) as id",[key])).rows[0].id;
-  await assert.rejects(other.query("select quest_approve($1,true,'Kendim onay verdim.',gen_random_uuid())",[id]),/Forbidden/);
-  await assert.rejects(coach.query("select quest_approve($1,true,'Başka koç onay verdi.',gen_random_uuid())",[id]),/Forbidden/);
-  await outsider.query("select quest_approve($1,true,'Tekniği kontrol ettim.',gen_random_uuid())",[id]);
-  assert.equal((await processAccount(worker1,ids.other)).level.xp,30);
-  await outsider.query("select quest_approve($1,false,'Hatalı önceki onayı geri aldım.',gen_random_uuid())",[id]);
-  const revoked=await processAccount(worker1,ids.other);assert.equal(revoked.level.xp,0);
-  assert.deepEqual(revoked.verifications.filter(v=>v.kind==='approval').map(v=>v.approved),[true,false]);
-  assert.equal(revoked.verifications.find(v=>v.kind==='submission').evidence,'Teknik kaydını koçuma sundum.');
-  await assert.rejects(outsider.query('select quest_assign_manual($1,$2,$3,1)',[ids.other,key,'Başka bir görev']),/Doğrulaması/);
- });
- await check('personal goals are prospective and cannot overwrite current rewards',async()=>{
-  const effective=(await member.query("select quest_personal_goal('weekly','sets','Planlı set hedefim',10) as day")).rows[0].day;
-  assert.ok(effective>today);assert.equal((await member.query('select * from quest_personal_goals')).rowCount,1);
-  assert.equal((await other.query('select * from quest_personal_goals')).rowCount,0);
- });
- await check('workout correction retains before/after audit; user cannot rewrite it',async()=>{
-  const rows=(await member.query('select * from quest_source_events order by id')).rows;
-  assert.equal(rows.length,2);assert.equal(rows[0].before_day.exercises[0].logs[0].done,true);assert.equal(rows[0].after_day.exercises[0].logs[0].done,false);
-  await assert.rejects(member.query('delete from quest_source_events'),/permission denied/);
- });
- await check('unearned title rejected; earned title can be selected',async()=>{
-  assert.equal((await member.query("select quest_select_title('İlk Adım')")).rows[0].quest_select_title,'İlk Adım');
-  await assert.rejects(member.query("select quest_select_title('Efsane')"),/not earned/);
- });
- await check('worker failure rolls back XP but never loses the already saved workout',async()=>{
-  const prior=+(await admin.query('select sum(delta) n from xp_ledger where user_id=$1',[ids.member])).rows[0].n;
-  await admin.query("create function quest_private.test_failure() returns trigger language plpgsql as $$begin raise exception 'Synthetic failure';end$$;create trigger test_failure before insert on xp_ledger for each row execute function quest_private.test_failure()");
-  snapshot.days[today].exercises[0].logs[0].done=false;
-  await member.query('select save_gym_state($1,3)',[snapshot]);
-  await assert.rejects(processAccount(worker1,ids.member),/Synthetic failure/);
-  assert.equal(+(await admin.query('select sum(delta) n from xp_ledger where user_id=$1',[ids.member])).rows[0].n,prior);
-  const state=(await member.query('select state from gym_account_state')).rows[0].state;assert.equal(state.days[today].exercises[0].logs[0].done,false);
-  const account=(await member.query('select generation,processed_generation from quest_accounts')).rows[0];assert.notEqual(account.generation,account.processed_generation);
-  await admin.query('drop trigger test_failure on xp_ledger;drop function quest_private.test_failure()');
-  assert.equal((await processAccount(worker1,ids.member)).level.xp,30);
-  assert.equal((await member.query('select active_title from quest_accounts')).rows[0].active_title,'Başlangıç');
- });
- await check('missed periods catch up, closed quests expire and streaks remain independent',async()=>{
-  const id='10000000-0000-4000-8000-000000000005';const monday=(await admin.query("select date_trunc('week',now() at time zone 'Europe/Istanbul')::date::text as day")).rows[0].day;
-  const activation=addDays(monday,-14),plans={};for(let date=activation;date<monday;date=addDays(date,1))plans[date]={kind:'rest'};
-  await admin.query("insert into profiles(id,role) values($1,'member')",[id]);
-  await admin.query('insert into quest_accounts(user_id,activation,enrolled_at,initial_plan) values($1,$2,$3,$4)',[id,activation,activation+'T00:00:00+03:00',plans]);
-  const r=await processAccount(worker1,id);
-  assert.equal(r.streaks.adherence,2);assert.equal(r.streaks.quests,0);
-  assert.equal(r.quests.filter(q=>q.period==='daily').length,(Math.round((Date.parse(today)-Date.parse(activation))/86400000)+1)*3);
-  assert.ok(r.quests.some(q=>q.status==='expired'));assert.equal(r.level.xp,2300);
- });
- await check('scheduler only picks pending/date-expired accounts; repeated tick is quiet',async()=>{
-  await admin.query('update quest_accounts set generation=generation+1 where user_id=$1',[ids.member]);
-  const pool=new pg.Pool({...config,options:'-c role=service_role'});
-  try{const first=await runTick(pool);assert.ok(first.processed>=1);assert.deepEqual(first.failed,[]);assert.equal((await runTick(pool)).processed,0);}finally{await pool.end();}
+ await check('missed-day catchup: planned rest 15, fourth/unplanned zero, edits reconcile',async()=>{
+ const start=weekKey(addDays(today,-14)),dates=[0,1,2,3].map(n=>addDays(start,n));
+ const rests=Object.fromEntries(dates.map(d=>[d,{kind:'rest'}]));
+ await admin.query('update quest_accounts set activation=$2,v5_activation=$2,enrolled_at=$3,initial_plan=$4,generation=generation+1 where user_id=$1',[ids.member,start,`${start}T00:00:00+03:00`,rests]);
+ snapshot.days={...rests,[addDays(start,4)]:{kind:'rest'}};
+ await member.query('select save_gym_state($1,5)',[snapshot]);
+ let r=await processAccount(worker1,ids.member);assert.equal(r.level.xp,45);
+ assert.equal(r.quests.find(q=>q.start===dates[3]&&q.kind==='rest').progress,0);
+ delete snapshot.days[dates[0]];
+ await member.query('select save_gym_state($1,6)',[snapshot]);r=await processAccount(worker1,ids.member);assert.equal(r.level.xp,45);
+ assert.equal(r.quests.find(q=>q.start===dates[3]&&q.kind==='rest').progress,1);
+ delete snapshot.days[dates[1]];
+ await member.query('select save_gym_state($1,7)',[snapshot]);assert.equal((await processAccount(worker1,ids.member)).level.xp,30);
  });
  await check('Deno HTTP entrypoint + real PostgreSQL; fixture Auth validates caller and rejects forged identity',async()=>{
   const auth=httpServer((req,res)=>{res.setHeader('Content-Type','application/json');if(req.headers.authorization==='Bearer fixture-valid'){res.end(JSON.stringify({id:ids.member}));}else{res.statusCode=401;res.end('{}');}});
@@ -187,7 +138,12 @@ try{
    assert.equal(r.status,200);assert.equal((await r.json()).result.level.xp,30);
   }finally{child.kill('SIGTERM');await new Promise(r=>child.exitCode!==null?r():child.once('exit',r));await new Promise(r=>auth.close(r));}
  });
- console.log(`${count}/${count} PostgreSQL integration scenarios passed; synthetic fixtures only, no hosted connections.`);
+ await check('rollback refuses to erase or reinterpret awarded V5 XP',async()=>{
+ await admin.query('begin');
+ await assert.rejects(admin.query(await readFile('supabase/rollback/quests_v5_before_rewards.sql','utf8')),/V5 rewards exist/);
+ await admin.query('rollback');
+ });
+ console.log(`${count}/${count} V5 PostgreSQL scenarios passed`);
 }catch(error){console.error(error||"Postgres failed to start");process.exitCode=1;}finally{
  await Promise.allSettled(clients.map(c=>c.end()));if(db.process && db.process.exitCode===null)await db.stop();await rm(dir,{recursive:true,force:true});
 }

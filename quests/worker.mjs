@@ -1,6 +1,7 @@
 // Trusted worker only: never import this module into a browser.
 // Database client must be a server credential. No user-supplied result/XP is accepted.
-import {evaluate,ledgerDiff,dayKey,weekKey,addDays,RULE_VERSION} from './engine.mjs';
+import {ledgerDiff,dayKey,weekKey,addDays} from './engine.mjs';
+import {evaluateV5,RULE_VERSION} from './engine-v5.mjs';
 
 export function freezeWeek(days,start,today) {
   return {start,days:Array.from({length:7},(_,i)=>{
@@ -50,17 +51,12 @@ export async function processAccount(client,userId) {
       await client.query('insert into public.quest_day_plans(user_id,day,plan,cutoff) values($1,$2,$3,$4) on conflict do nothing',[userId,date,plan,cutoff]);
     }
     const weeks=(await client.query('select plan from public.quest_plan_snapshots where user_id=$1 order by week_start',[userId])).rows.map(r=>r.plan);
-    const dailyPlans=(await client.query('select plan from public.quest_day_plans where user_id=$1 order by day',[userId])).rows.map(r=>r.plan);
-    const raw=(await client.query('select * from public.quest_actions where user_id=$1 order by ordinal',[userId])).rows;
-    const approvals=new Map(),actions=[];
-    for(const a of raw){const date=typeof a.day==='string'?a.day:dayKey(a.day);
-      if(a.kind==='approval')approvals.set(a.quest_key,{kind:'approval',questId:a.quest_key,approved:a.payload.approved,date});
-      else actions.push({kind:a.kind,date,accepted:true});
-    }
-    actions.push(...approvals.values());
-    const overrides=(await client.query('select definition from public.quest_overrides where user_id=$1',[userId])).rows.map(r=>r.definition);
-    const result=evaluate({days,weeks,dailyPlans,actions,overrides,activation,today});
+    const dailyPlans=(await client.query('select plan,cutoff from public.quest_day_plans where user_id=$1 order by day',[userId])).rows.map(r=>r.plan.kind==='rest'&&new Date(r.cutoff)>new Date(`${r.plan.day}T00:00:00+03:00`)?{...r.plan,kind:'none'}:r.plan);
     const previous=(await client.query('select reward_key as key,effective_date::text as date,pool,delta from public.xp_ledger where user_id=$1 order by id',[userId])).rows;
+    if(!account.v5_activation)throw Error('V5 migration required');
+    const legacy=new Map();
+    for(const r of previous.filter(r=>!r.key.startsWith('quest:v5:'))){const old=legacy.get(r.key);legacy.set(r.key,{key:r.key,date:r.date,pool:r.pool,xp:(old?.xp||0)+r.delta});}
+    const result=evaluateV5({days,weeks,dailyPlans,activation:account.v5_activation,today,legacyRewards:[...legacy.values()],legacyBadges:account.v5_legacy?.badges||[],legacyTitles:account.v5_legacy?.titles||[]});
     // Day progression can change rest/expiry/streak without any workout revision.
     const generation=`${account.generation}:${today}:v${result.ruleVersion}`;
     const changes=ledgerDiff(previous,result.rewards,generation);
@@ -70,8 +66,6 @@ export async function processAccount(client,userId) {
     if(total!==result.level.xp)throw Error('XP reconciliation invariant failed');
     if(changes.length||account.processed_generation!==account.generation||account.processed_day!==today)await client.query('insert into public.quest_audit_log(user_id,action,detail) values($1,$2,$3)',[userId,'reconciled',{generation,sourceRevision:saved?.revision??null,changes:changes.length,xp:total}]);
     result.sourceRevision=saved?.revision??null;
-    // Own-account evidence is returned only through the account's RLS-protected result.
-    result.verifications=raw.filter(a=>a.quest_key).slice(-100).map(a=>({questId:a.quest_key,kind:a.kind,at:a.created_at,evidence:a.kind==='submission'?a.payload.evidence:undefined,approved:a.kind==='approval'?a.payload.approved:undefined}));
     const title=result.titles.includes(account.active_title)?account.active_title:result.level.title;
     await client.query('update public.quest_accounts set result=$2,processed_generation=generation,processed_day=$3,active_title=$4,updated_at=now() where user_id=$1',[userId,result,today,title]);
     await client.query('commit');

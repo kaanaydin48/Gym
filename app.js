@@ -215,6 +215,7 @@ async function saveAll({silentSuccess=false}={}){
   localStorage.setItem(KEY,JSON.stringify(state));
   localStorage.setItem(SYNC_KEY,JSON.stringify({pending:dirty,revision:cloudRevision}));
   cloudMessage='Buluta kaydedildi ve doğrulandı · rev '+cloudRevision;
+  if(typeof window.dispatchEvent==='function'&&typeof CustomEvent==='function')window.dispatchEvent(new CustomEvent('gym-state-synced',{detail:{userId:gymAccount.user.id,revision:cloudRevision}}));
   if(!silentSuccess||dirty)toast(dirty?'Buluta kaydedildi. İşlem sırasında yaptığın yeni değişiklikleri de kaydet.':'Tüm girdiler buluta kaydedildi ve doğrulandı.');
   return true;
  }catch(e){

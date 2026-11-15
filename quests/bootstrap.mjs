@@ -29,29 +29,27 @@ export function installQuestFeature(account) {
     }
     if(host?.parentElement===area)return;
     ui?.destroy();host=document.createElement('div');host.id='questCardHost';area.prepend(host);
-    ui=mountQuestUI({host,model,onAction:async(q,evidence)=>{
-      api.queue.enqueue(q.kind==='manual'?'submission':q.kind,q.id,evidence);
-      model={...model,pending:true};ui.update(model);
-      // Local queue succeeds even offline; do not claim a confirmed reward.
-      try{await api.queue.flush();await refresh();}catch{model={...model,error:'İşlem cihazda saklandı. Bağlantı gelince doğrulanacak.'};ui.update(model);}
-    },onGoal:async args=>{const {error}=await api.rpc('quest_personal_goal',args);if(error)throw error;},onTitle:async title=>{const {error}=await api.rpc('quest_select_title',{title});if(error)throw error;},
+    ui=mountQuestUI({host,model,onGoal:async args=>{const {error}=await api.rpc('quest_personal_goal',args);if(error)throw error;},onTitle:async title=>{const {error}=await api.rpc('quest_select_title',{title});if(error)throw error;},
     onAcknowledge:async reward_key=>{const {data,error}=await api.rpc('quest_acknowledge',{reward_key});return !error&&data===true;}});
   }
+  let refreshing=false,refreshAgain=false;
   async function refresh(){
-    if(stopped)return;
-    try{await api.queue.flush();const next=await api.read();if(stopped)return;model=next;try{localStorage.setItem(cacheKey,JSON.stringify(model));}catch{};mount();ui?.update(model);
+    if(refreshing){refreshAgain=true;return;}refreshing=true;
+    if(stopped){refreshing=false;return;}
+    try{const next=await api.read();if(stopped)return;model=next;try{localStorage.setItem(cacheKey,JSON.stringify(model));}catch{};mount();ui?.update(model);
       if(ui&&host?.isConnected&&!model.pending&&!document.getElementById('questDetail')?.open){
         const rewards=[...(model.badges||[]).map(b=>[`badge:${b.id}`,b.name]),...(model.level?.level>1?[[`level:${model.level.level}`,`Seviye ${model.level.level}`]]:[])];
         for(const [key,title] of rewards)if(await ui.celebrate(key,title))break;
       }
     }
     catch{model={...model,pending:true,error:'Bağlantı kurulamadı. Son doğrulanmış ilerleme gösteriliyor.'};mount();ui?.update(model);}
+    finally{refreshing=false;if(refreshAgain&&!stopped){refreshAgain=false;refresh();}}
   }
   const observer=new MutationObserver(mount);observer.observe(document.getElementById('app'),{childList:true});
   const visible=()=>{if(document.visibilityState==='visible')refresh();};
-  document.addEventListener('visibilitychange',visible);window.addEventListener('online',refresh);
+  document.addEventListener('visibilitychange',visible);window.addEventListener('online',refresh);window.addEventListener('gym-state-synced',refresh);
   const timer=setInterval(refresh,60000);mount();refresh();
-  const stop=()=>{stopped=true;clearInterval(timer);observer.disconnect();document.removeEventListener('visibilitychange',visible);window.removeEventListener('online',refresh);ui?.destroy();disposeCoach?.();host?.remove();profileHost?.remove();};
+  const stop=()=>{stopped=true;clearInterval(timer);observer.disconnect();document.removeEventListener('visibilitychange',visible);window.removeEventListener('online',refresh);window.removeEventListener('gym-state-synced',refresh);ui?.destroy();disposeCoach?.();host?.remove();profileHost?.remove();};
   const {data:subscription}=account.client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||session?.user&&session.user.id!==account.user.id)stop();});
   return ()=>{stop();subscription?.subscription?.unsubscribe();};
 }
