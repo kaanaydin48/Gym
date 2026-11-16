@@ -11,3 +11,5 @@
 
 /* Compact V5 cards; completed weekly tasks use the same soft green check. */
 .q-card{padding:14px}.q-row{min-height:60px;padding:10px 0}.q-icon.q-complete{background:#f0f6f2;color:#78a68b}.q-sheet-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.q-sheet{max-height:calc(100dvh - env(safe-area-inset-top) - 12px)}
+
+.q-rest-day{display:grid;gap:5px;margin-top:12px;padding:10px;border-radius:12px;background:#f7f5fa;font-size:12px}.q-rest-day span{font-size:10px;color:#777;line-height:1.5}
