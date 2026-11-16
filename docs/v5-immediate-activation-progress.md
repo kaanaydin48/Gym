@@ -15,7 +15,7 @@ Taban: `b9fc73d`. Ana dala birleştirme, Pages yayını ve canlı Supabase deği
 
 - Yalnız 15 Kasım veya öncesinde kaydolmuş, başlangıcı tam 16 Kasım olan ertelenmiş hesaplar 15 Kasım'a alınır. Sonraki kullanıcılar değişmez. Migration tekrarında generation tekrar artırılmaz.
 - Geçiş günü eski günlük ödül almış hesaplar için o gün V5 kaynaklarından dışlanır. Eski ödül anahtarları/tutarları aynen korunur. 15 Kasım öncesi setler haftalık hedeflere de katılmaz.
-- Günlük 30/20/20 ve haftalık 50/60/50/40/70 XP ile 8/16 ve kas hedefleri korunur.
+- Günlük 30/20/20 ve haftalık 50/60/50/40/70/30 XP ile 8/16 ve kas hedefleri korunur.
 - Günlük **genel** 250 sınırı artık haftalık ödülleri de kapsar. Haftalık ödül tarihi pazartesi değil hedefe ulaşılan gündür. Eski ödüller kapasiteye dahil edilir, azaltılmaz. Sınıra takılan görevde gerçek verilen XP gösterilir; kalan tutar sonraki güne taşınmaz.
 - Dinlenme Günü kartı ve görev adı; gece yarısı planı + güncel rest + geçmiş kaynak olaylarında antrenman bulunmaması + gün bitişi + haftada üç sınırı. Yapılmış antrenmanı sonradan rest'e çevirme dinlenme XP'si üretmez.
 - Yüklenme mesajı gerçek pending durumundan ayrıldı. Aktif hesaplarda başlangıç bildirimi koşul gereği kaybolur.
@@ -36,12 +36,12 @@ Taban: `b9fc73d`. Ana dala birleştirme, Pages yayını ve canlı Supabase deği
 - `npm test`: uygulama regresyonları + 35 quest testi + 10 workout-flex testi geçti.
 - `npm run test:quests:db`: 12/12 gerçek yerel PostgreSQL senaryosu geçti. İki eşzamanlı worker, yenileme, 8/16 set, bitirme, haftalık ödüller, kaynak koruma, eski ledger koruma, migration tekrar güvenliği, 15 Kasım dinlenmesi, RLS/yetki ve Deno HTTP testi dahil. HTTP kimlik doğrulaması fixture'dır; hosted Auth testi değildir.
 - `npx deno check supabase/functions/quests-refresh/index.ts`: geçti.
-- Chromium/WebKit mobil testleri: sonuç aşağıdaki eklerde güncellenecek.
+- Chromium/WebKit mobil testleri: CI ortamında geçti; aşağıdaki son eke bak.
 - Fiziksel iPhone Safari, ana ekran PWA ve gerçek kullanıcı oturumuyla hosted Auth/Edge uçtan uca testi yapılmadı.
 
 ## Devam / yayın kontrolü
 
-Önce dalın son commit'ini ve çalışma ağacını kontrol et; tamamlanan testleri sebepsiz tekrarlama. Yerel browser sonucu ve GitHub CI sonucu bu rapora eklenecek.
+Önce dalın son commit'ini ve çalışma ağacını kontrol et; tamamlanan testleri sebepsiz tekrarlama. Yerel browser sonucu ve GitHub CI sonucu aşağıdaki eklerde kayıtlı.
 
 Yalnız yeni açık yayın onayı sonrası: canlı durumu yeniden oku ve yeni V5 kazanımları varsa korunacak ödüller için dry-run karşılaştırmasını yap. 250 sınırı düzeltmesi yeni kazanılmış V5 ödüllerini azaltacaksa otomatik yayınlama; önce geçişi bu kazanımları koruyacak şekilde genişlet. Worker/scheduler'ı birlikte durdur, yedek ve kaynak/ledger toplamlarını doğrula, migration ve iki Edge bundle'ını birlikte yayınla, reconciliation smoke testi yap, sonra frontend/Pages yayınla. SQL tek başına eski worker çalışırken uygulanmamalı. Yayın sonrası 15 Kasım için en fazla bir 15 XP kaydı, eski 975 XP'nin korunması ve kaynak tablolarının değişmemesi doğrulanmalı.
 
@@ -51,4 +51,16 @@ Henüz canlıya alma onayı yok. Geliştirme dalı incelenebilir; fiziksel cihaz
 
 Chromium: 320/375/390/430 px genişliklerde 4 günlük/6 haftalık kart, 225/350 XP, dinlenme kartı, sekme geçişleri, detay penceresi ve yatay taşma testleri geçti. 390 px görüntü görsel olarak incelendi. İlk denemede dinlenme kartının `aside` etiketi uygulamanın kenar menü CSS'ini alıyordu; `div role=note` ile düzeltildi ve test geçti.
 
-Yerel WebKit bağımlılık eksikliği nedeniyle açılamadı. Otomatik bağımlılık kurulumu root geçişinde başarısız oldu. GitHub Actions'ın WebKit işi ile doğrulama bekleniyor; fiziksel cihaz testi yerine geçmez.
+Yerel WebKit bağımlılık eksikliği nedeniyle açılamadı. Otomatik bağımlılık kurulumu root geçişinde başarısız oldu. GitHub Actions WebKit doğrulaması aşağıdaki son ekte tamamlandı; fiziksel cihaz testi yerine geçmez.
+
+## GitHub CI tamamlandı
+
+Test edilen uzak uygulama commit'i: `ddab8ffeca284b753d63302cca7d559f35836d8b` (yerel c2a0de9 ile aynı dosya ağacı).
+Taslak PR: https://github.com/kaanaydin48/Gym/pull/23
+
+- Quest kuralları, PostgreSQL, Deno ve **Chromium + WebKit dört mobil genişlikte başarılı**: https://github.com/kaanaydin48/Gym/actions/runs/43833728810
+- Member directory ve mevcut Hacim Akışı mobil düzen kontrolleri başarılı: https://github.com/kaanaydin48/Gym/actions/runs/43833728844
+- Yerel WebKit eksikliği CI ortamında giderildi. Fiziksel iPhone/PWA ve gerçek kullanıcıyla hosted Auth/Edge uçtan uca testi hâlâ yapılmadı.
+- Canlı security advisor salt okunur kontrolünde önceki rapordaki is_admin/is_coach_of ve parola koruma uyarıları görülüyor; bu düzeltme yetki/şema oluşturmaz. Referanslar: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable ve https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . Özel yedek/scheduler tablolarındaki RLS/no-policy INFO kayıtları erişimi kapalı tutan mevcut yapıdır.
+
+Kod ve otomatik testler tamamlandı; yayın için hazırlanmış durumda. Canlıya alınmadı. Yeni yayın onayı gelirse yukarıdaki canlı preflight ile başlanmalı; önceki tamamlanmış geliştirme işleri yeniden yapılmamalı.
