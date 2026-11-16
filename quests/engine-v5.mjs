@@ -1,6 +1,7 @@
 // V5 uses only persisted workout events. Legacy rules remain available for audit tests.
-import {addDays,weekKey,levelFor,capRewards,performanceComparisons,TITLES,workoutMetrics} from './engine.mjs';
+import {addDays,weekKey,levelFor,DAILY_CAP,performanceComparisons,TITLES,workoutMetrics} from './engine.mjs';
 export const RULE_VERSION=5;
+export const ENGINE_REVISION='5.1';
 export const MUSCLES=[['Göğüs',4,50],['Sırt',4,60],['Omuz',3,50],['Kol',5,40],['Bacak',4,70],['Karın',1,30]];
 export function muscleGroup(value){
  const key=String(value||'').trim().toLocaleLowerCase('tr-TR');
@@ -12,33 +13,47 @@ function stats(day){
  for(const e of day.exercises||[]){const g=muscleGroup(e.muscle);if(g)muscles[g]=(muscles[g]||0)+globalThis.GymWorkoutMetrics.validSets(e).length;}
  return {...metrics,muscles};
 }
-export function evaluateV5({days={},dailyPlans=[],weeks=[],activation,today,legacyRewards=[],legacyBadges=[],legacyTitles=[]}){
+export function evaluateV5({days={},dailyPlans=[],weeks=[],activation,today,legacyRewards=[],legacyBadges=[],legacyTitles=[],excludedRewardDays=[],workedDays=[]}){
  addDays(activation,0);addDays(today,0);
  const quests=[],byDay=new Map(),restCounts=new Map();
+ const excluded=new Set(excludedRewardDays),worked=new Set(workedDays);
  const push=(period,start,slot,kind,title,target,xp,progress)=>quests.push({id:`v5:${period}:${start}:${slot}`,period,start,end:addDays(start,period==='daily'?1:7),slot,kind,title,target,xp,progress:Math.min(target,progress),status:progress>=target?'complete':addDays(start,period==='daily'?1:7)<=today?'expired':'active',ruleVersion:5});
  for(let date=activation;date<=today;date=addDays(date,1)){
-  const m=stats(days[date]);byDay.set(date,m);
+  const m=excluded.has(date)?stats(null):stats(days[date]);byDay.set(date,m);
   push('daily',date,11,'workout','Antrenman tamamla',1,30,+m.finished);
   push('daily',date,12,'sets','Temel set hedefi',8,20,m.sets);
   push('daily',date,13,'sets','İleri set hedefi',16,20,m.sets);
   const plan=dailyPlans.find(p=>p.day===date),week=weekKey(date);
   // Both the immutable boundary snapshot and the current calendar must still be rest.
-  if(plan?.kind==='rest'){
-   const eligible=date<today&&days[date]?.kind==='rest'&&!m.finished&&(restCounts.get(week)||0)<3;
+  if(plan?.kind==='rest'&&!excluded.has(date)){
+   const eligible=date<today&&days[date]?.kind==='rest'&&!worked.has(date)&&!m.finished&&(restCounts.get(week)||0)<3;
    if(eligible)restCounts.set(week,(restCounts.get(week)||0)+1);
-   push('daily',date,14,'rest','Planlı dinlenme',1,15,+eligible);
+   push('daily',date,14,'rest','Dinlenme Günü',1,15,+eligible);
   }
   if(['sets','workouts'].includes(plan?.goal?.kind))push('daily',date,15,plan.goal.kind,plan.goal.title,plan.goal.target,0,plan.goal.kind==='sets'?m.sets:+m.finished);
  }
- for(let start=weekKey(activation);start<=today;start=addDays(start,7)){
+ for(let start=weekKey(activation);activation<=today&&start<=today;start=addDays(start,7)){
   const entries=[...byDay].filter(([d])=>d>=start&&d<addDays(start,7));
-  MUSCLES.forEach(([g,target,xp],i)=>push('weekly',start,11+i,'muscle',`${g} set hedefi`,target,xp,entries.reduce((n,[,m])=>n+(m.muscles[g]||0),0)));
+  MUSCLES.forEach(([g,target,xp],i)=>{
+   let total=0,completedOn;
+   for(const [date,m] of entries){total+=m.muscles[g]||0;if(total>=target&&!completedOn)completedOn=date;}
+   push('weekly',start,11+i,'muscle',`${g} set hedefi`,target,xp,total);
+   quests.at(-1).completedOn=completedOn;
+  });
   const goal=weeks.find(w=>w.start===start)?.goal;
   if(['sets','workouts'].includes(goal?.kind))push('weekly',start,17,goal.kind,goal.title,goal.target,0,entries.reduce((n,[,m])=>n+(goal.kind==='sets'?m.sets:+m.finished),0));
  }
  const history=Object.entries(days).filter(([d])=>d<today&&d>=addDays(today,-28)).map(([,d])=>stats(d)).filter(m=>m.finished).map(m=>m.sets).sort((a,b)=>a-b);
  const suggestedBase=history.length?Math.max(1,Math.round(history[Math.floor(history.length/2)]/2)):8;
- const automatic=capRewards(quests.filter(q=>q.status==='complete'&&q.xp>0).map(q=>({key:`quest:${q.id}`,date:q.start,pool:q.period,xp:q.xp})));
+ // One global daily cap, including weekly awards on the day the target was reached.
+ // Legacy ledger totals are immutable; they consume capacity but are never reduced.
+ const used=new Map();
+ for(const r of legacyRewards)used.set(r.date,(used.get(r.date)||0)+r.xp);
+ const automatic=quests.filter(q=>q.status==='complete'&&q.xp>0)
+  .map(q=>({key:`quest:${q.id}`,date:q.completedOn||q.start,pool:q.period,xp:q.xp}))
+  .sort((a,b)=>a.date.localeCompare(b.date)||a.key.localeCompare(b.key))
+  .map(r=>{const xp=Math.min(r.xp,Math.max(0,DAILY_CAP-(used.get(r.date)||0)));used.set(r.date,(used.get(r.date)||0)+xp);return {...r,eligibleXp:r.xp,xp};});
+ for(const q of quests){const reward=automatic.find(r=>r.key===`quest:${q.id}`);if(reward)q.awardedXp=reward.xp;}
  const rewards=[...legacyRewards,...automatic],level=levelFor(rewards.reduce((n,r)=>n+r.xp,0));
  const finished=Object.entries(days).filter(([d,x])=>d<=today&&stats(x).finished).length;
  const completed=quests.filter(q=>q.status==='complete').length;
@@ -49,5 +64,5 @@ export function evaluateV5({days={},dailyPlans=[],weeks=[],activation,today,lega
  }
  const earned=[['first','İlk Adım',finished>=1],['ten','10 Antrenman',finished>=10],['hundred','100 Kulübü',finished>=100],['quests','Görev Ustası',completed>=100],['steady','İstikrar',streak>=4],['discipline','Disiplin',streak>=12],['legend','Efsane',finished>=100&&streak>=12&&level.level>=30]].filter(x=>x[2]).map(([id,name])=>({id,name}));
  const badges=[...new Map([...legacyBadges,...earned].map(b=>[b.id,b])).values()];
- return {ruleVersion:5,today,week:weekKey(today),activation,quests,rewards,level,badges,titles:[...new Set([...legacyTitles,...TITLES.filter(([l])=>l<=level.level).map(([,n])=>n),...badges.map(b=>b.name)])],streaks:{quests:streak,adherence:streak},stats:{workouts:finished,quests:completed},comparisons:performanceComparisons(days,today),personalization:{mode:'fixed',base:8,advanced:16,sampleSize:history.length,suggestedBase,suggestedAdvanced:suggestedBase*2}};
+ return {ruleVersion:5,engineRevision:ENGINE_REVISION,today,week:weekKey(today),activation,quests,rewards,level,badges,titles:[...new Set([...legacyTitles,...TITLES.filter(([l])=>l<=level.level).map(([,n])=>n),...badges.map(b=>b.name)])],streaks:{quests:streak,adherence:streak},stats:{workouts:finished,quests:completed},comparisons:performanceComparisons(days,today),personalization:{mode:'fixed',base:8,advanced:16,sampleSize:history.length,suggestedBase,suggestedAdvanced:suggestedBase*2}};
 }

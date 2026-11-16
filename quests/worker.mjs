@@ -1,7 +1,7 @@
 // Trusted worker only: never import this module into a browser.
 // Database client must be a server credential. No user-supplied result/XP is accepted.
 import {ledgerDiff,dayKey,weekKey,addDays} from './engine.mjs';
-import {evaluateV5,RULE_VERSION} from './engine-v5.mjs';
+import {evaluateV5,RULE_VERSION,ENGINE_REVISION} from './engine-v5.mjs';
 
 export function freezeWeek(days,start,today) {
   return {start,days:Array.from({length:7},(_,i)=>{
@@ -30,7 +30,7 @@ export async function processAccount(client,userId) {
     const account=(await client.query('select *, (now() at time zone \'Europe/Istanbul\')::date::text as today from public.quest_accounts where user_id=$1 for update',[userId])).rows[0];
     if(!account)throw Error('Quest account required');
     const today=account.today;
-    if(account.processed_generation===account.generation&&account.processed_day===today&&account.result?.ruleVersion===RULE_VERSION){
+    if(account.processed_generation===account.generation&&account.processed_day===today&&account.result?.ruleVersion===RULE_VERSION&&account.result?.engineRevision===ENGINE_REVISION){
       await client.query('commit');return account.result;
     }
     const saved=(await client.query('select state, revision from public.gym_account_state where member_id=$1',[userId])).rows[0];
@@ -56,9 +56,9 @@ export async function processAccount(client,userId) {
     if(!account.v5_activation)throw Error('V5 migration required');
     const legacy=new Map();
     for(const r of previous.filter(r=>!r.key.startsWith('quest:v5:'))){const old=legacy.get(r.key);legacy.set(r.key,{key:r.key,date:r.date,pool:r.pool,xp:(old?.xp||0)+r.delta});}
-    const result=evaluateV5({days,weeks,dailyPlans,activation:account.v5_activation,today,legacyRewards:[...legacy.values()],legacyBadges:account.v5_legacy?.badges||[],legacyTitles:account.v5_legacy?.titles||[]});
+    const result=evaluateV5({days,weeks,dailyPlans,activation:account.v5_activation,today,legacyRewards:[...legacy.values()],legacyBadges:account.v5_legacy?.badges||[],legacyTitles:account.v5_legacy?.titles||[],excludedRewardDays:account.v5_legacy?.excluded_reward_days||[],workedDays:events.filter(e=>e.after_day?.kind==='workout'&&(e.after_day.finished||e.after_day.exercises?.some(x=>globalThis.GymWorkoutMetrics.validSets(x).length))).map(e=>e.day)});
     // Day progression can change rest/expiry/streak without any workout revision.
-    const generation=`${account.generation}:${today}:v${result.ruleVersion}`;
+    const generation=`${account.generation}:${today}:v${ENGINE_REVISION}`;
     const changes=ledgerDiff(previous,result.rewards,generation);
     for(const r of changes)await client.query('insert into public.xp_ledger(user_id,reward_key,effective_date,pool,delta,generation,operation_key,reason) values($1,$2,$3,$4,$5,$6,$7,$8)',[userId,r.key,r.date,r.pool,r.delta,account.generation,r.operationKey,r.reason]);
     for(const q of result.quests)await client.query('insert into public.user_quests(user_id,quest_key,period,start_date,slot,detail,generation) values($1,$2,$3,$4,$5,$6,$7) on conflict(user_id,quest_key) do update set detail=excluded.detail,generation=excluded.generation',[userId,q.id,q.period,q.start,q.slot,q,account.generation]);

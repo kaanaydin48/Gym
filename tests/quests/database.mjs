@@ -110,6 +110,22 @@ try{
  const pool={query:(...args)=>worker1.query(...args),connect:async()=>({query:(...args)=>worker2.query(...args),release(){}})};
  const r=await runTick(pool);assert.equal(r.failed.length,0);assert.ok(r.processed>=1);
  });
+ await check('targeted activation migration preserves source/legacy XP and settles November 15 once',async()=>{
+ const rest={'2026-11-15':{kind:'rest'}};
+ await admin.query("update quest_accounts set v5_activation='2026-11-16',activation='2026-11-09',enrolled_at='2026-11-09T00:00:00+03:00',initial_plan=$2,generation=generation+1 where user_id=$1",[ids.other,rest]);
+ await other.query('select save_gym_state($1,0)',[{schema:'gym-tracker-pro',days:rest}]);
+ const before=(await admin.query('select * from xp_ledger where user_id=$1 order by id',[ids.other])).rows;
+ const source=(await admin.query('select * from gym_account_state order by member_id')).rows;
+ const migration=(await readdir('supabase/migrations')).find(f=>f.endsWith('_quests_v5_immediate_activation.sql'));
+ const sql=await readFile('supabase/migrations/'+migration,'utf8');await admin.query(sql);
+ const gen=(await admin.query('select generation from quest_accounts where user_id=$1',[ids.other])).rows[0].generation;
+ await admin.query(sql);assert.equal((await admin.query('select generation from quest_accounts where user_id=$1',[ids.other])).rows[0].generation,gen);
+ assert.deepEqual((await admin.query('select * from xp_ledger where user_id=$1 order by id',[ids.other])).rows,before);
+ assert.deepEqual((await admin.query('select * from gym_account_state order by member_id')).rows,source);
+ const [a,b]=await Promise.all([processAccount(worker1,ids.other),processAccount(worker2,ids.other)]);
+ assert.equal(a.activation,'2026-11-15');assert.equal(a.level.xp,today>'2026-11-15'?115:100);assert.equal(b.level.xp,a.level.xp);
+ assert.equal((await admin.query("select count(*) n from xp_ledger where user_id=$1 and reward_key='quest:v5:daily:2026-11-15:14'",[ids.other])).rows[0].n,today>'2026-11-15'?'1':'0');
+ });
  await check('missed-day catchup: planned rest 15, fourth/unplanned zero, edits reconcile',async()=>{
  const start=weekKey(addDays(today,-14)),dates=[0,1,2,3].map(n=>addDays(start,n));
  const rests=Object.fromEntries(dates.map(d=>[d,{kind:'rest'}]));

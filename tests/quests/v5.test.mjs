@@ -55,3 +55,32 @@ test('cards expose progress with no evidence or manual approval',()=>{
  const html=cardMarkup(calc({[start]:workout(8)}));
  assert.ok(html.includes('✓'));assert.doesNotMatch(html,/textarea|Doğrulamaya gönder|kanıt/);assert.match(html,/Kişisel hedef/);
 });
+
+test('15 November activation shows incomplete daily/weekly tasks and preserves level 4 progress',()=>{
+ const r=calc({'2026-11-14':workout(16),'2026-11-15':{kind:'rest'}},{activation:'2026-11-15',today:'2026-11-15',dailyPlans:[{day:'2026-11-15',kind:'rest'}],legacyRewards:[{key:'old',date:'2026-11-14',pool:'daily',xp:975}]});
+ assert.equal(r.level.xp,975);assert.equal(r.level.level,4);assert.equal(r.level.xp-r.level.floor,225);
+ assert.equal(r.quests.filter(q=>q.period==='daily').length,4);assert.equal(r.quests.filter(q=>q.period==='weekly').length,6);
+ assert.match(cardMarkup(r),/Dinlenme Günü/);assert.doesNotMatch(cardMarkup(r),/tarihinde başlayacak|hazırlanıyor/);
+ assert.match(cardMarkup({pending:true}),/Görevler yükleniyor/);
+});
+test('15 November rest settles after midnight, without replaying earlier workouts',()=>{
+ const options={activation:'2026-11-15',today:'2026-11-16',dailyPlans:[{day:'2026-11-15',kind:'rest'}],legacyRewards:[{key:'old',date:'2026-11-14',pool:'daily',xp:975}]};
+ const days={'2026-11-14':workout(16),'2026-11-15':{kind:'rest'}};
+ assert.equal(calc(days,options).level.xp,990);
+ assert.equal(calc(days,{...options,workedDays:['2026-11-15']}).level.xp,975);
+ assert.equal(calc(days,{...options,excludedRewardDays:['2026-11-15']}).level.xp,975);
+});
+test('cutover days already rewarded by V4 cannot earn daily or weekly V5 rewards',()=>{
+ const r=calc({'2026-11-15':workout(16)},{activation:'2026-11-15',today:'2026-11-16',excludedRewardDays:['2026-11-15'],legacyRewards:[{key:'old',date:'2026-11-15',pool:'daily',xp:100}]});
+ assert.equal(r.level.xp,100);assert.ok(r.quests.every(q=>q.progress===0));
+});
+test('global 250 cap includes weekly awards on completion day and immutable legacy XP',()=>{
+ const d=workout(16);d.exercises=[['Göğüs',4],['Sırt',4],['Omuz',3],['Kol',5],['Bacak',4],['Karın',1]].map(([g,n])=>workout(n,true,g).exercises[0]);
+ const r=calc({[start]:d});assert.equal(r.level.xp,250);
+ assert.equal(r.rewards.reduce((n,x)=>n+x.xp,0),250);assert.ok(r.quests.some(q=>q.awardedXp<q.xp));
+ const old={key:'old',date:start,pool:'weekly',xp:240};const capped=calc({[start]:d},{legacyRewards:[old]});assert.equal(capped.level.xp,250);assert.deepEqual(capped.rewards[0],old);
+ const later=calc({'2026-11-03':workout(4)},{today:'2026-11-03'});assert.equal(later.rewards.find(r=>r.pool==='weekly').date,'2026-11-03');
+});
+test('first set updates both progress counters without completion reward',()=>{
+ const r=calc({[start]:workout(1,false)});assert.equal(r.quests[1].progress,1);assert.equal(r.quests.find(q=>q.period==='weekly').progress,1);assert.equal(r.level.xp,0);
+});
