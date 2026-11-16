@@ -1,5 +1,7 @@
 # V5 görevlerini hemen açma — ilerleme ve yayın öncesi rapor
 
+**Güncel durum: 16 Kasım kullanıcı yayın onayıyla üretime alındı. Önceki bölümler geliştirme kaydıdır; son yayın eki geçerlidir.**
+
 16 Kasım 2026, Europe/Istanbul. Dal: `fix/v5-immediate-activation`.
 Taban: `b9fc73d`. Ana dala birleştirme, Pages yayını ve canlı Supabase değişikliği YAPILMADI.
 
@@ -64,3 +66,21 @@ Taslak PR: https://github.com/kaanaydin48/Gym/pull/23
 - Canlı security advisor salt okunur kontrolünde önceki rapordaki is_admin/is_coach_of ve parola koruma uyarıları görülüyor; bu düzeltme yetki/şema oluşturmaz. Referanslar: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable ve https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection . Özel yedek/scheduler tablolarındaki RLS/no-policy INFO kayıtları erişimi kapalı tutan mevcut yapıdır.
 
 Kod ve otomatik testler tamamlandı; yayın için hazırlanmış durumda. Canlıya alınmadı. Yeni yayın onayı gelirse yukarıdaki canlı preflight ile başlanmalı; önceki tamamlanmış geliştirme işleri yeniden yapılmamalı.
+
+
+## Üretim yayını — 16 Kasım 2026
+
+Kullanıcı “Canlıya al” onayı verdi. PR #23 birleştirildi; yayın commit'i `ab5287630967195bb94f68292b72c9b80381025d`.
+Pages yayını başarılı: https://github.com/kaanaydin48/Gym/actions/runs/43841947186
+Canlı sw.js sürümü v21-quests-v5-activation olarak doğrulandı.
+
+- Yayın öncesi net XP 975; V5 ledger kaydı yoktu. Son PR commit'inin iki CI workflow'u başarılıydı.
+- Cron kısa süre durduruldu. Geçici 503 bakım fonksiyonu otomatik inceleme tarafından reddedildi ve uygulanmadı. Hizmeti kesmeden doğrudan test edilmiş çalışan Edge sürümleri dağıtıldı; ardından migration uygulandı.
+- `release_v5_activation_backup` özel şemasına quest_accounts, xp_ledger, gym_account_state ve workout_logs kopyalandı. RLS açık ve istemci rollerine erişim kapalı.
+- quests-refresh v4, quests-scheduler v3 aktif. Kendi kimlik doğrulamaları korunuyor; anonim POST her ikisinde 401.
+- Kontrollü activation migration uygulandı. Scheduler gerçek hosted çağrısı 200, processed=1, failed=[] döndü. Motor 5.1, başlangıç 15 Kasım ve hesap senkron.
+- Yalnız `quest:v5:daily:2026-11-15:14` anahtarıyla bir kez 15 XP eklendi. Toplam 990, seviye 4, ilerleme 240/350. Sonraki cron kontrolünde yine tek ödül ve 990 XP.
+- Eski ledger satırları birebir korundu. gym_account_state ve workout_logs yedekle çift yönlü karşılaştırmada aynı.
+- Cron yeniden etkin. Fiziksel iPhone/PWA oturum testi henüz yapılmadı; otomatik Chromium/WebKit ve gerçek hosted scheduler doğrulamaları başarılı.
+
+Devam ederken artık main üzerindeki yayını esas al. Bu yayın tamamlandı; tekrar migration/ödül dağıtımı yapma. Yedekleri ve eski XP kayıtlarını koru.
