@@ -6,6 +6,17 @@
  try{
   if(!window.supabase)throw Error('Giriş bağlantısı yüklenemedi.');
   const client=window.supabase.createClient('https://aryzgrgjwjdxumbddank.supabase.co','sb_publishable_t2QNhjaGq0_kaY5IfsF87A_y7ep-837');
+  if(navigator.onLine===false){
+   const {data:cached}=await client.auth.getSession();
+   if(cached.session?.user){
+    window.gymAccount={client,user:cached.session.user,role:'member'};
+    document.getElementById('app').innerHTML='<p class="notice">Çevrimdışı içerik görünümü. Antrenman ekranı bağlantı gelince açılır.</p><div class="calendar-home"></div><section id="offlineSaved"></section>';
+    document.getElementById('profileButton').hidden=true;
+    const {installDailyContent}=await import('./daily-content/ui.mjs');installDailyContent(window.gymAccount);
+    window.addEventListener('online',()=>location.reload(),{once:true});
+    document.documentElement.style.visibility='visible';return;
+   }
+  }
   const {data,error}=await client.auth.getUser();
   if(error||!data.user){location.replace('./login.html');return;}
   const result=await client.from('profiles').select('role').eq('id',data.user.id).single();
@@ -23,6 +34,7 @@
    try{const {installQuestFeature}=await import('./quests/bootstrap.mjs');installQuestFeature(window.gymAccount);}
    catch(error){console.error('Görev geliştirme ortamı başlatılamadı:',error.message);}
   }
+  try{const {installDailyContent}=await import('./daily-content/ui.mjs');installDailyContent(window.gymAccount);}catch(error){console.error('Günlük içerik başlatılamadı:',error.message);}
   document.querySelector('footer span').textContent='Bulut kayıt · 1.2';
   document.documentElement.style.visibility='visible';
  }catch(error){

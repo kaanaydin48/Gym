@@ -1,0 +1,22 @@
+name: Daily content V1
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  daily-content:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/daily-content/*.test.mjs
+      - run: node tests/daily-content/database.mjs
+      - run: npx deno check supabase/functions/daily-content/index.ts
+      - run: npx playwright install --with-deps chromium webkit
+      - run: node tests/daily-content/browser.mjs
+      - run: CONTENT_BROWSER=webkit node tests/daily-content/browser.mjs
