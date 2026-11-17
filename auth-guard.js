@@ -10,6 +10,7 @@
    const {data:cached}=await client.auth.getSession();
    if(cached.session?.user){
     window.gymAccount={client,user:cached.session.user,role:'member'};
+    window.GymTheme?.restore(cached.session.user.id);
     document.getElementById('app').innerHTML='<p class="notice">Çevrimdışı içerik görünümü. Antrenman ekranı bağlantı gelince açılır.</p><div class="calendar-home"></div><section id="offlineSaved"></section>';
     document.getElementById('profileButton').hidden=true;
     const {installDailyContent}=await import('./daily-content/ui.mjs');installDailyContent(window.gymAccount);
@@ -22,6 +23,7 @@
   const result=await client.from('profiles').select('role').eq('id',data.user.id).single();
   if(result.error||!['admin','coach','member'].includes(result.data?.role))throw Error('Hesap yetkin bulunamadı. Yöneticinle iletişime geç.');
   window.gymAccount={client,user:data.user,role:result.data.role};
+  window.GymTheme?.restore(data.user.id);
   client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')location.replace('./login.html');});
   await load('./membership.js?v=flex-v2-20261114');
   await load('./contour-icons.js?v=approved-40-v1');
