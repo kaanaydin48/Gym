@@ -19,5 +19,11 @@ try{for(const width of [320,375,390,430]){
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'allow'});const page=await context.newPage();await page.goto(base+'/tests/daily-content/preview.html');await page.locator('.dc-card').nth(2).waitFor();
  await page.evaluate(async()=>{await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;localStorage.setItem('sb-aryzgrgjwjdxumbddank-auth-token',JSON.stringify({access_token:btoa('{}')+'.'+btoa(JSON.stringify({exp:4102444800,sub:'daily-test'}))+'.test',refresh_token:'offline-test-only',token_type:'bearer',expires_at:4102444800,expires_in:9999999,user:{id:'daily-test',aud:'authenticated',email:'fixture@example.invalid',user_metadata:{}}}));});
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
- await context.setOffline(true);await page.goto(base+'/index.html',{waitUntil:'domcontentloaded'});await page.locator('.dc-card').nth(2).waitFor();assert.equal(await page.locator('.dc-card').count(),3);assert.ok((await page.locator('#app').innerText()).includes('Çevrimdışı içerik görünümü'));console.log('PASS cached PWA cold offline start with account session');await context.close();
+ // Playwright WebKit offline emulation rejects SW navigation before the fetch handler
+ // (microsoft/playwright#42775). Remove the actual server instead, preserving SW execution.
+ if(process.env.CONTENT_BROWSER==='webkit'){
+  await context.addInitScript(()=>Object.defineProperty(navigator,'onLine',{get:()=>false}));
+  server.closeAllConnections();await new Promise(r=>server.close(r));
+ }else await context.setOffline(true);
+ await page.goto(base+'/index.html',{waitUntil:'domcontentloaded'});await page.locator('.dc-card').nth(2).waitFor();assert.equal(await page.locator('.dc-card').count(),3);assert.ok((await page.locator('#app').innerText()).includes('Çevrimdışı içerik görünümü'));console.log('PASS cached PWA cold offline start with account session');await context.close();
  }finally{await browser.close();await new Promise(r=>server.close(r));}
