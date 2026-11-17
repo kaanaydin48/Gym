@@ -26,7 +26,7 @@ export async function verifySources(db,fetcher=fetch){
  if(/retract|withdraw/i.test(types+' '+title)||item.isRetracted==='Y'){
  await db.query('update public.daily_content_sources set active=false where id=$1',[source.id]);continue;}
  if(!title.toLowerCase().includes(source.match.toLowerCase()))continue;
- const card={...source,verifiedAt:new Date().toISOString(),publicationTitle:title};
+ const card={...source,published:item.firstPublicationDate||source.published,verifiedAt:new Date().toISOString(),publicationTitle:title};
  await db.query('insert into public.daily_content_sources(id,card,verified_at,active) values($1,$2,now(),true) on conflict(id) do update set card=excluded.card,verified_at=now(),active=true',[source.id,JSON.stringify(card)]);verified++;
  }
  if(!verified)throw Error('Hiçbir kaynak doğrulanamadı');return verified;

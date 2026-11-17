@@ -35,3 +35,11 @@ Kullanıcı bu kapsam için test sonrası doğrudan yayın izni verdi.
 
 Canlıya ALINMADI. Main ve üretim Supabase henüz değiştirilmedi.
 Yerel `.openai/` ve `dist/` sadece önizleme içindir, commit'e ekleme.
+
+## CI ve hosted test güncellemesi
+PR #24: https://github.com/kaanaydin48/Gym/pull/24
+İlk uzak commit: `87e5c1d6ffda71e49d48af3132658305c2a137c8`.
+Daily content CI 44063708438: Chromium ve WebKit 320/375/390/430 px tüm kontroller başarılı.
+Test scheduler 200: processed=8, failed=0, sourceError=false. Beş kaynağın tamamı etkin. Anonim çağrı 401.
+Kaynak yayın tarihi artık canlı kaynak metadata alanından alınır; geri çekilme/yanlış başlık/kaynak erişim hatası testleri eklendi (9/9).
+Test Edge v2 kurulu. Soğuk PWA açılışı ve paylaşım yolları için ek CI testleri hazırlandı.
