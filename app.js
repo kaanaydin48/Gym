@@ -245,12 +245,25 @@ const labels=[['calendar','Ana Sayfa'],['workout','Antrenman'],['programs','Prog
 function navIcon(id){return '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+navIcons[id]+'</svg>';}
 
 function go(t){tab=t==='progress'?'calendar':t;render();window.scrollTo(0,0)}
-/* Single Instagram-minimal theme. Legacy saved theme preferences are ignored, not deleted. */
-function currentTheme(){return 'minimal';}
-function chooseTheme(){return;}
-function themePicker(){return '';}
+/* Theme preference travels with the existing revision-protected account snapshot. */
+function currentTheme(){return state.settings.theme==='liquid-glass'?'liquid-glass':'classic-white';}
+function chooseTheme(theme){
+ if(!['classic-white','liquid-glass'].includes(theme))return;
+ state.settings.theme=theme;
+ applyTheme();
+ const saved=save();
+ // Update only the picker: keep focus, scroll position, timers and form values intact.
+ document.querySelectorAll('[data-theme-choice]').forEach(button=>{
+  const active=button.dataset.themeChoice===theme;
+  button.setAttribute('aria-pressed',String(active));
+  button.querySelector('.theme-selected').textContent=active?'✓ Seçili':'Seç';
+ });
+ toast(saved?'Tema cihazda kaydedildi; bulut kaydı sıraya alındı.':'Tema uygulandı; cihaz kaydı başarısız.');
+}
+function themePicker(){return `<section class="card theme-settings" aria-labelledby="theme-title"><h2 id="theme-title">Görünüm ve Tema</h2><p class="muted">Görünümü değiştir; kayıtların ve programın aynı kalsın.</p><div class="theme-choices">${[['classic-white','Classic White','Mevcut minimal beyaz tasarım'],['liquid-glass','Liquid Glass','Ice Blue + Pearl Silver · V1.5']].map(([id,name,description])=>`<button type="button" class="theme-option" data-theme-choice="${id}" aria-pressed="${currentTheme()===id}" onclick="chooseTheme('${id}')"><span class="theme-preview preview-${id}" aria-hidden="true"><i></i><i></i><i></i><em></em></span><strong>${name}</strong><small>${description}</small><span class="theme-selected">${currentTheme()===id?'✓ Seçili':'Seç'}</span></button>`).join('')}</div><p class="muted">Seçimin bu hesapta saklanır. Bulut kaydı tamamlandığında diğer cihazlarına da aktarılır.</p></section>`;}
 function applyTheme(){
  document.body.classList.remove('dark','theme-sage','theme-cobalt','theme-lavender','theme-orange','theme-cream','theme-dark');
+ window.GymTheme?.apply(currentTheme());
 }
 function render(){extendExerciseLibrary();applyTheme();const profileButton=$('profileButton');if(profileButton){const name=String(state.profile.name||gymAccount.user.user_metadata?.full_name||'Hesabım').trim()||'Hesabım';profileButton.textContent=name;profileButton.setAttribute('aria-label',name+' · Hesabım');}$('greeting').textContent=`Merhaba, ${state.profile.name||'sporcu'}.`;
 const nav=labels.map(([id,name])=>`<button class="${tab===id?'active':''}" onclick="go('${id}')"><b>${navIcon(id)}</b>${name}</button>`).join('');$('desktopNav').innerHTML=nav;$('mobileNav').innerHTML=nav;$('app').innerHTML='<p id="unsavedNotice" class="notice" role="status" hidden></p>'+(storageError?'<p class="notice">Yerel kayıt okunamadı veya yazılamadı. Mevcut depolama üzerine otomatik yazılmadı. Yedeğinizi kontrol edin.</p>':'')+({calendar:calendarView,workout:workoutView,progress:progressView,programs:programsView,settings:settingsView}[tab]());renderRestTimer();showRestNotice();updateSaveStatus();GymMotion.refresh();requestAnimationFrame(drawHomeFlowRibbons);if(tab==='settings'&&gymAccount.role==='member')loadAssignedProgram();}
