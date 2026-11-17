@@ -43,3 +43,20 @@ Daily content CI 44063708438: Chromium ve WebKit 320/375/390/430 px tüm kontrol
 Test scheduler 200: processed=8, failed=0, sourceError=false. Beş kaynağın tamamı etkin. Anonim çağrı 401.
 Kaynak yayın tarihi artık canlı kaynak metadata alanından alınır; geri çekilme/yanlış başlık/kaynak erişim hatası testleri eklendi (9/9).
 Test Edge v2 kurulu. Soğuk PWA açılışı ve paylaşım yolları için ek CI testleri hazırlandı.
+
+## PWA test bulgusu
+Chromium soğuk çevrimdışı başlangıç testi geçti. WebKit setOffline(true), servis çalışanı sayfayı kontrol etse bile navigasyonu reddediyor; upstream hata: https://github.com/microsoft/playwright/issues/42775 . Test, WebKit için gerçek yerel origin sunucusunu kapatıp navigator.onLine=false durumuyla önbellekten açılışı doğrulayacak şekilde değiştirildi. Bu test fiziksel iPhone uçak modu testiyle aynı değildir. Son CI head: baf14b9179d3450543c611933f122241be8dda9e.
+
+Üretim öncesi salt okunur özet: gym_account_state 2 kayıt, MD5 72855e79d69a396c2c595e9d8d085d9c; workout_logs 23 kayıt, MD5 62d7d0db4cc8620072aa85257d4d130b; xp_ledger 24 kayıt, net XP 990.
+
+## 17 Kasım devam oturumu — üretim
+Önceki kesintide uygulanan migration scheduler idi (migration geçmişinden doğrulandı). daily_content_v1 bu oturumda uygulandı. Production daily-content Edge v1 aktif; test Edge ile aynı SHA256 06ab46f6ae0de1d33a9cf4cd8ee32ae54f4b47d1c79c58a9a0871a959df0d372.
+İlk üretim: HTTP 200, processed=4, failed=0, sourceError=false; 5 kaynak, 4 günlük kayıt.
+cron daily-content-midnight, 0 21 * * * (İstanbul 00:00), jobid=2 etkin.
+PR #24 birleştirildi. Merge commit: 435e87fdd8345ba320d1fbc64b9f80af001b430c. Tüm sekiz GitHub check başarılı.
+XP 990. Önceki oturumla state/log hashleri farklı; oturumlar arasında zaman geçtiği için veri birebir aynı iddiası yapılmaz. Yeni modül eski tablolara yazmaz; migrationlar mevcut kayıtları değiştirmez.
+Pages yayın sonucu ayrıca doğrulanacak. Bilim bölümü beş doğrulanmış editoryal özetle sınırlı; yeni makale keşfi/serbest otomatik Türkçe özetleme eksik. Fiziksel iPhone testi yapılmadı.
+
+Pages dağıtımı BAŞARILI: https://github.com/kaanaydin48/Gym/actions/runs/44126235875 . Canlı adres https://kaanaydin48.github.io/Gym/ . Üç public tabloda RLS açık; anonim Edge isteği 401; cron etkin.
+Yeni sürüm canlıya alındı. Tam özgün kapsamın eksik kalan bölümü: yeni yayınları keşfedip otomatik Türkçe özetleme. Mevcut bilim seçimi günlük doğrulanan beş kaynaklık havuzdan çalışır. Bu eksikliği tamamlandı diye raporlama.
+Sonraki oturumda yayını/migrationları tekrar uygulama. Önce main ve üretim durumunu kontrol et; yeni araştırma özetleme altyapısını ayrıca tamamla.
