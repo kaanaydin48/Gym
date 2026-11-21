@@ -246,9 +246,9 @@ function navIcon(id){return '<svg class="nav-icon" viewBox="0 0 24 24" width="22
 
 function go(t){tab=t==='progress'?'calendar':t;render();window.scrollTo(0,0)}
 /* Theme preference travels with the existing revision-protected account snapshot. */
-function currentTheme(){return state.settings.theme==='liquid-glass'?'liquid-glass':'classic-white';}
+function currentTheme(){return ['classic-white','liquid-glass','instagram-minimal-v3'].includes(state.settings.theme)?state.settings.theme:'classic-white';}
 function chooseTheme(theme){
- if(!['classic-white','liquid-glass'].includes(theme))return;
+ if(!['classic-white','liquid-glass','instagram-minimal-v3'].includes(theme))return;
  state.settings.theme=theme;
  applyTheme();
  const saved=save();
@@ -260,7 +260,7 @@ function chooseTheme(theme){
  });
  toast(saved?'Tema cihazda kaydedildi; bulut kaydı sıraya alındı.':'Tema uygulandı; cihaz kaydı başarısız.');
 }
-function themePicker(){return `<section class="card theme-settings" aria-labelledby="theme-title"><h2 id="theme-title">Görünüm ve Tema</h2><p class="muted">Görünümü değiştir; kayıtların ve programın aynı kalsın.</p><div class="theme-choices">${[['classic-white','Classic White','Mevcut minimal beyaz tasarım'],['liquid-glass','Liquid Glass','Ice Blue + Pearl Silver · V1.5']].map(([id,name,description])=>`<button type="button" class="theme-option" data-theme-choice="${id}" aria-pressed="${currentTheme()===id}" onclick="chooseTheme('${id}')"><span class="theme-preview preview-${id}" aria-hidden="true"><i></i><i></i><i></i><em></em></span><strong>${name}</strong><small>${description}</small><span class="theme-selected">${currentTheme()===id?'✓ Seçili':'Seç'}</span></button>`).join('')}</div><p class="muted">Seçimin bu hesapta saklanır. Bulut kaydı tamamlandığında diğer cihazlarına da aktarılır.</p></section>`;}
+function themePicker(){return `<section class="card theme-settings" aria-labelledby="theme-title"><h2 id="theme-title">Görünüm ve Tema</h2><p class="muted">Görünümü değiştir; kayıtların ve programın aynı kalsın.</p><div class="theme-choices">${[['classic-white','Classic White','Mevcut minimal beyaz tasarım'],['liquid-glass','Liquid Glass','Ice Blue + Pearl Silver · V1.5'],['instagram-minimal-v3','Instagram Minimal V3','Siyah, beyaz ve gri · sosyal minimal']].map(([id,name,description])=>`<button type="button" class="theme-option" data-theme-choice="${id}" aria-pressed="${currentTheme()===id}" onclick="chooseTheme('${id}')"><span class="theme-preview preview-${id}" aria-hidden="true"><i></i><i></i><i></i><em></em></span><strong>${name}</strong><small>${description}</small><span class="theme-selected">${currentTheme()===id?'✓ Seçili':'Seç'}</span></button>`).join('')}</div><p class="muted">Seçimin bu hesapta saklanır. Bulut kaydı tamamlandığında diğer cihazlarına da aktarılır.</p></section>`;}
 function applyTheme(){
  document.body.classList.remove('dark','theme-sage','theme-cobalt','theme-lavender','theme-orange','theme-cream','theme-dark');
  window.GymTheme?.apply(currentTheme());
