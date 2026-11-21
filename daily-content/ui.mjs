@@ -14,11 +14,17 @@ export function installDailyContent(account){
   catch(e){if(e.name==='AbortError')return;const box=el('textarea');box.value=payload.title+'\n'+payload.text+'\n'+payload.url;box.setAttribute('aria-label','Paylaşmak için kopyala');host?.append(box);box.select();status='Metni seçip kopyalayabilirsin.';return;}
   paint();
  }
- function cardView(card){
+ function cardView(card,day){
   const item=el('article','dc-card');item.setAttribute('aria-label',labels[card.kind]||'Kaydedilen içerik');
   const top=el('div','dc-top');top.append(el('span','dc-label',labels[card.kind]));
   const prefs=api.data.preferences[card.id]||{},actions=el('div','dc-actions');
-  actions.append(button('save',prefs.saved?'Kaydı kaldır':'Kaydet',()=>update(card,'saved',!prefs.saved),!!prefs.saved),button('share',card.private?'Genel mesajı paylaş; kişisel kayıtların paylaşılmaz':'Paylaş',()=>share(card)));top.append(actions);item.append(top,el('h3','',card.title),el('p','dc-body',card.body));
+  actions.append(button('save',prefs.saved?'Kaydı kaldır':'Kaydet',()=>update(card,'saved',!prefs.saved),!!prefs.saved),button('share',card.private?'Genel mesajı paylaş; kişisel kayıtların paylaşılmaz':'Paylaş',()=>share(card)));top.append(actions);
+  const cover=el('img','ig-only ig-cover');
+  const imageName={message:'studio',tip:'training',science:'movement'}[card.kind]||'studio';
+  cover.alt='';cover.loading='lazy';cover.dataset.src='./assets/social/'+imageName+'.jpg';
+  if(document.documentElement.dataset.theme==='instagram-minimal-v3')cover.src=cover.dataset.src;
+  if(day){const time=el('time','ig-only ig-date',new Date(day+'T12:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'short'}));time.dateTime=day;top.insertBefore(time,actions);}
+  item.append(top,cover,el('h3' ,'',card.title),el('p','dc-body',card.body));
   if(card.kind==='science'){
    const source=el('div','dc-source');source.append(el('span','',`${card.evidence} · Yayın: ${card.published}`));
    const a=el('a','','Orijinal kaynak ↗');if(/^https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/$/.test(card.url||'')){a.href=card.url;a.target='_blank';a.rel='noopener noreferrer';source.append(a);}
@@ -33,8 +39,8 @@ export function installDailyContent(account){
    const daily=api.data.daily;
    if(daily){
     const rail=el('div','dc-rail');rail.setAttribute('aria-label','Günlük içerikler');rail.setAttribute('tabindex','0');
-    daily.cards.forEach(c=>rail.append(cardView(c)));host.append(rail);
-    const dots=el('div','dc-dots');daily.cards.forEach((c,i)=>{const b=el('button');b.type='button';b.setAttribute('aria-label',labels[c.kind]+' kartına git');b.setAttribute('aria-current',String(page===i));b.onclick=()=>rail.children[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest',inline:'start'});dots.append(b);});host.append(dots);
+    daily.cards.forEach(c=>rail.append(cardView(c,daily.day)));host.append(rail);
+    const dots=el('div','dc-dots');daily.cards.forEach((c,i)=>{const b=el('button');b.type='button';b.setAttribute('aria-label',labels[c.kind]+' kartına git');b.setAttribute('aria-current',String(page===i));b.onclick=()=>rail.children[i].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest',inline:'start'});b.dataset.kind=c.kind;b.dataset.label=labels[c.kind];dots.append(b);});host.append(dots);
     rail.onscroll=()=>{page=Math.max(0,Math.min(2,Math.round(rail.scrollLeft/(rail.children[0].getBoundingClientRect().width+12))));[...dots.children].forEach((b,i)=>b.setAttribute('aria-current',String(i===page)));};
     requestAnimationFrame(()=>{if(rail.isConnected)rail.scrollLeft=page*(rail.children[0].getBoundingClientRect().width+12);});
     const stamp=el('p','dc-status',daily.day!==dayKey()?`${daily.day} tarihli son kayıt gösteriliyor. Bağlantı gelince yenilenecek.`:'Bugünün seçkisi · Türkiye saati');host.append(stamp);

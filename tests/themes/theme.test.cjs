@@ -34,3 +34,17 @@ test('concurrent-device conflict keeps the local theme and workout snapshot',asy
  b.run("chooseTheme('classic-white')");assert.equal(await b.run('saveAll({silentSuccess:true})'),false);
  assert.equal(b.run('currentTheme()'),'classic-white');assert.equal(b.run('dirty'),true);
 });
+
+test('V3 survives local reload and cloud sync without changing workout data',async()=>{
+ setRemote(null);setFail(false);
+ const a=themed();await a.ctx.gymReady;
+ const before=a.run('JSON.stringify([state.programs,state.days])');
+ a.run("chooseTheme('instagram-minimal-v3')");
+ assert.equal(a.ctx.document.documentElement.dataset.theme,'instagram-minimal-v3');
+ const b=themed(a.storage);await b.ctx.gymReady;
+ assert.equal(b.run('currentTheme()'),'instagram-minimal-v3');
+ await a.run('saveAll({silentSuccess:true})');
+ const c=themed();await c.ctx.gymReady;
+ assert.equal(c.run('currentTheme()'),'instagram-minimal-v3');
+ assert.equal(c.run('JSON.stringify([state.programs,state.days])'),before);
+});
