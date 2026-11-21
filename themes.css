@@ -66,3 +66,41 @@ html[data-theme=liquid-glass] body :is(#mobileNav,.rest-timer){background:rgba(2
 }
 html[data-theme=liquid-glass] body #desktopNav button{background:var(--glass-inner)!important;color:#627082!important}
 html[data-theme=liquid-glass] body #desktopNav button.active{color:#2864a8!important;box-shadow:inset 0 0 0 1px #c4d9ed}
+
+/* Instagram Minimal V3 — opt-in, isolated from existing themes */
+.preview-instagram-minimal-v3{background:#fff;border-color:#dbdbdb}
+.preview-instagram-minimal-v3 i{background:#fafafa;border-color:#dbdbdb;border-radius:3px}
+.preview-instagram-minimal-v3 i:first-child{background:#000}
+.preview-instagram-minimal-v3 em{background:#efefef}
+html[data-theme="instagram-minimal-v3"] body{
+ --bg:#fff!important;--card:#fff!important;--ink:#000!important;
+ --muted:#737373!important;--line:#dbdbdb!important;--soft:#efefef!important;
+ --green:#111!important;--lime:#efefef!important;--purple:#737373!important;
+ background:#fff!important;color:#000!important;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+html[data-theme="instagram-minimal-v3"] body :is(aside,header,main,footer,#mobileNav,#desktopNav){background:#fff;color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.card,.metric,.q-card,.dc-window,.dc-card,.home-flow-item,.period-flow-item,.home-exercise,.list-item,.program-card,.summary-peak,.q-streak){
+ background:#fff!important;color:#000!important;border-color:#dbdbdb!important;
+ box-shadow:none!important;border-radius:8px!important;
+}
+html[data-theme="instagram-minimal-v3"] body :is(.hero,.hero .badge){background:#fafafa!important;color:#000!important}
+html[data-theme="instagram-minimal-v3"] body :is(.hero small,.muted,small){color:#737373}
+html[data-theme="instagram-minimal-v3"] body :is(h1,h2,h3){letter-spacing:-.025em}
+html[data-theme="instagram-minimal-v3"] body :is(button,.secondary){box-shadow:none}
+html[data-theme="instagram-minimal-v3"] body button:not(.secondary):not(.theme-option):not(.avatar):not(.active){background:#111;color:#fff}
+html[data-theme="instagram-minimal-v3"] body :is(input,select,textarea){background:#fafafa;color:#000;border-color:#dbdbdb;box-shadow:none}
+html[data-theme="instagram-minimal-v3"] body :is(nav button,#mobileNav button,#desktopNav button){background:transparent!important;color:#737373!important;border-radius:0!important}
+html[data-theme="instagram-minimal-v3"] body :is(nav button.active,#mobileNav button.active,#desktopNav button.active){color:#000!important;font-weight:750}
+html[data-theme="instagram-minimal-v3"] body .theme-option[aria-pressed=true]{outline-color:#000}
+html[data-theme="instagram-minimal-v3"] body .theme-selected{color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.badge,.dot){background:#efefef;color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.avatar,.logo){background:#efefef;color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.rest-timer,dialog,.q-sheet,.regional-sheet){background:#fff;color:#000;border:1px solid #dbdbdb;box-shadow:none}
+html[data-theme="instagram-minimal-v3"] body :is(.completed,.is-complete,[data-completed="true"]){accent-color:#78a68b}
+@media(max-width:800px){
+ html[data-theme="instagram-minimal-v3"] body main{padding-left:14px;padding-right:14px}
+ html[data-theme="instagram-minimal-v3"] body header{padding-bottom:12px;margin-bottom:16px}
+ html[data-theme="instagram-minimal-v3"] body .card{padding:14px;margin-bottom:12px}
+ html[data-theme="instagram-minimal-v3"] body #mobileNav{border-top:1px solid #dbdbdb;box-shadow:none}
+}
