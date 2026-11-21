@@ -8,10 +8,10 @@ const {chromium,webkit}=require('playwright');const fs=require('node:fs'),assert
  if(file==='index.html'){
  let html=fs.readFileSync('index.html','utf8').replace(/<script[\s\S]*?<\/script>/g,'').replace('html{visibility:hidden}','html{visibility:visible}');
  const mock=`window.gymAccount={user:{id:'fixture',email:'fixture@example.invalid',user_metadata:{}},role:'coach',client:{from(){const q={select(){return q},eq(){return q},async maybeSingle(){if(!navigator.onLine||localStorage.getItem('fixtureOffline'))return {error:Error('offline')};return {data:JSON.parse(localStorage.getItem('remote')||'null')}},async single(){return q.maybeSingle()}};return q},async rpc(name,{payload,expected_revision}){if(!navigator.onLine||localStorage.getItem('fixtureOffline'))return {error:Error('offline')};const old=JSON.parse(localStorage.getItem('remote')||'null');if(expected_revision!==(old?.revision||0))return {error:Error('GYM_CONFLICT')};localStorage.setItem('remote',JSON.stringify({state:payload,revision:expected_revision+1}));return {data:expected_revision+1}}}};`;
- html=html.replace('</body>',`<script>${mock}</script>`+['membership.js','contour-icons.js','motion.js','workout-metrics.js','workout-flex-v2.js','app.js'].map(f=>`<script src="/${f}"></script>`).join('')+'</body>');return route.fulfill({contentType:'text/html',body:html});
+ html=html.replace('</body>',`<script>${mock}</script>`+['theme.js','membership.js','contour-icons.js','motion.js','workout-metrics.js','workout-flex-v2.js','app.js'].map(f=>`<script src="/${f}"></script>`).join('')+'</body>');return route.fulfill({contentType:'text/html',body:html});
  }if(fs.existsSync(file))return route.fulfill({path:path.resolve(file)});return route.fulfill({status:404,body:''});
  });
- await page.goto('https://gym.test/');await page.evaluate(()=>window.gymReady);await page.evaluate(()=>{state.days={};go('workout')});
+ await page.goto('https://gym.test/');await page.evaluate(()=>window.gymReady);await page.evaluate(()=>{chooseTheme('instagram-minimal-v3');state.days={};go('workout')});
  await page.locator('#assignProgram').selectOption('0');await page.getByRole('button',{name:'Antrenman ata',exact:true}).click();
  const card=page.locator('.workout-exercise-card').first();const kg=card.locator('input[data-field="kg"]'),reps=card.locator('input[data-field="reps"]');
  await kg.nth(0).fill('30');await reps.nth(0).fill('10');assert.equal(await kg.nth(1).inputValue(),'');assert.equal(await reps.nth(3).inputValue(),'');
@@ -31,6 +31,18 @@ const {chromium,webkit}=require('playwright');const fs=require('node:fs'),assert
  assert(await page.locator('input[data-field="rir"]').count()>0);assert.equal(await page.locator('input[data-field="rir"]').first().inputValue(),'2');
  await page.evaluate(()=>{localStorage.removeItem('fixtureOffline');return retryCloud()});await page.getByRole('button',{name:'Antrenmanı bitir ✓',exact:true}).click();await page.getByRole('button',{name:'Yalnızca bugün',exact:true}).click();
  assert.equal(await page.evaluate(()=>state.programs[0].version),1);assert(await page.evaluate(()=>state.days[selected].finished));
+ assert.equal(await page.locator('html').getAttribute('data-theme'),'instagram-minimal-v3');
+ for(const screen of ['calendar','settings','programs','workout']){
+   await page.evaluate(screen=>go(screen),screen);
+   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),screen+' overflow at '+width);
+ }
+ await page.evaluate(()=>go('settings'));
+ for(const theme of ['liquid-glass','classic-white','instagram-minimal-v3']){
+   await page.locator('[data-theme-choice="'+theme+'"]').click();
+   assert.equal(await page.locator('html').getAttribute('data-theme'),theme);
+   assert.equal(await page.locator('.ig-profile').isVisible(),theme==='instagram-minimal-v3');
+ }
+ await page.evaluate(()=>go('workout'));
  assert.deepEqual(errors,[]);await page.screenshot({path:'/tmp/gym-flex-'+type.name()+'-'+width+'.png',fullPage:true});await context.close();
  }
  await browser.close();console.log('PASS '+type.name()+': 320/393/430px RIR inputs, no autofill, automatic timer, replacement, 3-linked cards, offline RPC failure + persisted recovery, finish, default template choice; no runtime errors/overflow');

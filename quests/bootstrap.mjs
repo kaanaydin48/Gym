@@ -21,6 +21,11 @@ export function installQuestFeature(account) {
         for(const title of model.titles||[]){const option=document.createElement('option');option.textContent=title;option.selected=title===(model.activeTitle||model.level?.title);select.append(option);}
         select.onchange=async()=>{try{const {error}=await api.rpc('quest_select_title',{title:select.value});if(error)throw error;model.activeTitle=select.value;info.textContent=`Seviye ${model.level?.level||1} · ${select.value}`;}catch(error){info.textContent=error.message;}};
         profileHost.append(heading,info,select);
+        const level=document.querySelector('.ig-level');
+        if(level&&model.level){
+          const l=model.level;
+          level.textContent=`Seviye ${l.level} · ${l.xp-l.floor} / ${l.next-l.floor} XP`;
+        }
       }
       if(['coach','admin'].includes(account.role)&&document.querySelector('#app h1')?.textContent==='Hesabım'&&!coachHost?.isConnected){
         disposeCoach?.();coachHost=document.createElement('div');document.getElementById('app').append(coachHost);disposeCoach=mountCoachQuests(coachHost,account);

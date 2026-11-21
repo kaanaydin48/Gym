@@ -66,3 +66,106 @@ html[data-theme=liquid-glass] body :is(#mobileNav,.rest-timer){background:rgba(2
 }
 html[data-theme=liquid-glass] body #desktopNav button{background:var(--glass-inner)!important;color:#627082!important}
 html[data-theme=liquid-glass] body #desktopNav button.active{color:#2864a8!important;box-shadow:inset 0 0 0 1px #c4d9ed}
+
+/* Instagram Minimal V3 — opt-in, isolated from existing themes */
+.preview-instagram-minimal-v3{background:#fff;border-color:#dbdbdb}
+.preview-instagram-minimal-v3 i{background:#fafafa;border-color:#dbdbdb;border-radius:3px}
+.preview-instagram-minimal-v3 i:first-child{background:#000}
+.preview-instagram-minimal-v3 em{background:#efefef}
+html[data-theme="instagram-minimal-v3"] body{
+ --bg:#fff!important;--card:#fff!important;--ink:#000!important;
+ --muted:#737373!important;--line:#dbdbdb!important;--soft:#efefef!important;
+ --green:#111!important;--lime:#efefef!important;--purple:#737373!important;
+ background:#fff!important;color:#000!important;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+html[data-theme="instagram-minimal-v3"] body :is(aside,header,main,footer,#mobileNav,#desktopNav){background:#fff;color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.card,.metric,.q-card,.dc-window,.dc-card,.home-flow-item,.period-flow-item,.home-exercise,.list-item,.program-card,.summary-peak,.q-streak){
+ background:#fff!important;color:#000!important;border-color:#dbdbdb!important;
+ box-shadow:none!important;border-radius:8px!important;
+}
+html[data-theme="instagram-minimal-v3"] body :is(.hero,.hero .badge){background:#fafafa!important;color:#000!important}
+html[data-theme="instagram-minimal-v3"] body :is(.hero small,.muted,small){color:#737373}
+html[data-theme="instagram-minimal-v3"] body :is(h1,h2,h3){letter-spacing:-.025em}
+html[data-theme="instagram-minimal-v3"] body :is(button,.secondary){box-shadow:none}
+html[data-theme="instagram-minimal-v3"] body button:not(.secondary):not(.theme-option):not(.avatar):not(.active){background:#111;color:#fff}
+html[data-theme="instagram-minimal-v3"] body :is(input,select,textarea){background:#fafafa;color:#000;border-color:#dbdbdb;box-shadow:none}
+html[data-theme="instagram-minimal-v3"] body :is(nav button,#mobileNav button,#desktopNav button){background:transparent!important;color:#737373!important;border-radius:0!important}
+html[data-theme="instagram-minimal-v3"] body :is(nav button.active,#mobileNav button.active,#desktopNav button.active){color:#000!important;font-weight:750}
+html[data-theme="instagram-minimal-v3"] body .theme-option[aria-pressed=true]{outline-color:#000}
+html[data-theme="instagram-minimal-v3"] body .theme-selected{color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.badge,.dot){background:#efefef;color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.avatar,.logo){background:#efefef;color:#000}
+html[data-theme="instagram-minimal-v3"] body :is(.rest-timer,dialog,.q-sheet,.regional-sheet){background:#fff;color:#000;border:1px solid #dbdbdb;box-shadow:none}
+html[data-theme="instagram-minimal-v3"] body :is(.completed,.is-complete,[data-completed="true"]){accent-color:#78a68b}
+@media(max-width:800px){
+ html[data-theme="instagram-minimal-v3"] body main{padding-left:14px;padding-right:14px}
+ html[data-theme="instagram-minimal-v3"] body header{padding-bottom:12px;margin-bottom:16px}
+ html[data-theme="instagram-minimal-v3"] body .card{padding:14px;margin-bottom:12px}
+ html[data-theme="instagram-minimal-v3"] body #mobileNav{border-top:1px solid #dbdbdb;box-shadow:none}
+}
+
+.ig-only{display:none!important}
+html[data-theme="instagram-minimal-v3"] {
+ & .ig-only{display:block!important}
+ & body main>header{display:flex;align-items:center;gap:12px;border-bottom:1px solid #dbdbdb;padding:10px 0;margin:0 0 14px}
+ & main>header>div:not(.ig-brand){display:none}
+ & .ig-brand{font-size:23px;font-weight:750;letter-spacing:-1.2px;margin-right:auto}
+ & body button.ig-bell{background:transparent!important;color:#111!important;border:0;padding:10px;min-height:44px}
+ & body #profileButton{max-width:90px;overflow:hidden;text-overflow:ellipsis;background:#efefef!important;color:#111!important;border-radius:24px}
+ & body main .card{border:0!important;border-bottom:1px solid #dbdbdb!important;border-radius:0!important;box-shadow:none!important}
+ & body .calendar-home,#app .home-insights{gap:10px}
+ & body .day:not(.selected), & body .month-controls button{background:#fafafa!important;color:#111!important}
+ & body .day.selected{background:#111!important;color:#fff!important}
+ & body :is(.calendar,.legend,.home-flow-item,.home-exercise-chart,.period-flow-item,.cal-weekly,.metrics,.calendar-stats,.q-card,.rest-timer){filter:grayscale(1)}
+ & body :is(.dc-icon,.q-row,.workout-flex-menu,.exercise-preview,.home-history-button){background:transparent!important;color:#111!important}
+ & body .set-entry input:not([type=checkbox]){background:#efefef!important;border:1px solid transparent!important;border-radius:7px}
+ & body .set-entry input[type=checkbox]{accent-color:#78a68b}
+ & body .set-adjust button{background:#efefef!important;color:#111!important}
+ & body #finishWorkoutButton{background:#111!important;color:#fff!important}
+ & body .set-entry.done{background:#fafafa!important}
+ & body #dailyContent{display:flex;flex-direction:column;padding:0!important;overflow:hidden}
+ & #dailyContent>h2{font-size:18px;order:1;padding:8px 0}
+ & #dailyContent .dc-subtitle{display:none}
+ & #dailyContent .dc-rail{order:2;gap:12px}
+ & #dailyContent>.dc-status{order:3}
+ & #dailyContent .dc-card{flex:0 0 100%;padding:0 0 10px;border:0!important;border-radius:0!important}
+ & .dc-top{padding:4px 0;min-height:42px}
+ & .dc-label{color:#111;font-size:14px;font-weight:650}
+ & .ig-date{margin-right:auto;color:#737373;font-size:12px}
+ & .ig-cover{width:100%;aspect-ratio:1.75;object-fit:cover}
+ & #dailyContent .dc-dots{order:0;display:flex;justify-content:flex-start;overflow-x:auto;border-bottom:1px solid #dbdbdb;gap:10px;margin:0;padding-bottom:10px}
+ & #dailyContent .dc-dots button{background:transparent!important;color:#111!important;width:78px;height:auto;padding:2px;font:11px/1.4 -apple-system,sans-serif}
+ & #dailyContent .dc-dots button:before{content:"";display:block;width:50px;height:50px;margin:0 auto 4px;border:3px solid white;outline:1px solid #aaa;border-radius:50%;background:center/cover url(assets/social/studio.jpg);filter:grayscale(1)}
+ & #dailyContent .dc-dots button[data-kind=tip]:before{background-image:url(assets/social/training.jpg)}
+ & #dailyContent .dc-dots button[data-kind=science]:before{background-image:url(assets/social/movement.jpg)}
+ & #dailyContent .dc-dots button[aria-current=true]:before{outline:2px solid #111}
+ & #dailyContent .dc-dots button:after{content:attr(data-label);display:block;width:auto;height:auto;background:transparent}
+ & body .ig-profile{padding:8px 0 18px;border-bottom:1px solid #dbdbdb;margin-bottom:14px}
+ & .ig-profile-row{display:flex;align-items:center;justify-content:space-between;text-align:center;gap:6px;margin-bottom:14px}
+ & .ig-profile-row small{display:block;font-size:12px}
+ & .ig-portrait{width:62px;height:62px;border:1px solid #dbdbdb;border-radius:50%;display:grid;place-items:center;font-size:26px;font-weight:650;background:#fafafa;overflow:hidden}
+ & .ig-portrait img{width:100%;height:100%;object-fit:cover}
+ & .ig-level{font-size:13px;color:#737373}
+ & .ig-profile-actions{display:flex;gap:8px;margin-top:14px}
+ & .ig-profile-actions button{flex:1}
+ & body .ig-tabs{display:flex!important;gap:20px;padding:12px 0;border-bottom:1px solid #dbdbdb}
+ & .ig-tabs a{color:#111;text-decoration:none;font-weight:650}
+ & .ig-program-media{float:right}
+ & body[data-screen=settings] #app>.eyebrow,& body[data-screen=settings] #app>.lead,& body .title-row .eyebrow{display:none}
+ & body :is(h1,.title-row h1){font-size:22px;line-height:1.2}
+ & body #mobileNav button{min-height:44px}
+}
+html[data-theme="instagram-minimal-v3"] {
+ & body[data-screen=calendar] :is(.ig-back,.ig-screen-title),& body:not([data-screen=workout]) .ig-workout-menu,& body:not([data-screen=calendar]) :is(.ig-brand,.ig-bell){display:none!important}
+ & body:not([data-screen=calendar]) main>header{display:grid;grid-template-columns:1fr auto 1fr}
+ & :is(.ig-back,.ig-workout-menu){color:#111!important;background:transparent!important;font-size:24px;min-height:44px;min-width:44px;padding:0;border:0}
+ & .ig-back{justify-self:start}
+ & body:not([data-screen=calendar]) #profileButton,& .ig-workout-menu{justify-self:end}
+ & body[data-screen=workout] #profileButton{display:none}
+ & .ig-screen-title{font-size:17px;font-weight:700}
+ & body[data-screen=workout] .ig-screen-title:before{content:"Antrenman"}
+ & body[data-screen=programs] .ig-screen-title:before{content:"Programlar"}
+ & body[data-screen=settings] .ig-screen-title:before{content:"Hesap"}
+ & body .dc-dots button{flex:none}
+}
